@@ -1,5 +1,3 @@
-import math
-import sys
 import numpy as np
 
 class Map:
@@ -12,8 +10,12 @@ class Map:
         self.num_obstacles = num_obstacles
         self.bounds = bounds
 
-        self.unobs_occupied = list()
-        self.unobs_free = list()
+        # The first two were kept as lists because I am iterating an modifying it at the same time in the scan function.
+        self.unobs_occupied = set()
+        self.unobs_free = set()
+        # These two are only populated in the Simulator.
+        self.obs_occupied = set()
+        self.obs_free = set()
 
         # Add obstacles to environment
         for i in range(self.num_obstacles):
@@ -21,45 +23,24 @@ class Map:
             x = int(np.random.uniform(3, self.bounds[0] - 3, size=1))
             y = int(np.random.uniform(3, self.bounds[1] - 3, size=1))
 
-            if tetris_id == 0: #Square
-                self.unobs_occupied.append((x, y))
-                self.unobs_occupied.append((x+1, y))
-                self.unobs_occupied.append((x, y+1))
-                self.unobs_occupied.append((x+1, y+1))
-            else: #Straight line
-                self.unobs_occupied.append((x, y))
-                self.unobs_occupied.append((x+1, y))
-                self.unobs_occupied.append((x+2, y))
-                self.unobs_occupied.append((x+3, y))
+            if tetris_id == 0: # Square
+                self.unobs_occupied.add((x, y))
+                self.unobs_occupied.add((x+1, y))
+                self.unobs_occupied.add((x, y+1))
+                self.unobs_occupied.add((x+1, y+1))
+            else: # Straight line
+                self.unobs_occupied.add((x, y))
+                self.unobs_occupied.add((x+1, y))
+                self.unobs_occupied.add((x+2, y))
+                self.unobs_occupied.add((x+3, y))
 
         # Add free coords to unobs_free list
         for x in range(bounds[0]):
             for y in range(bounds[1]):
                 if (x, y) not in self.unobs_occupied:
-                    self.unobs_free.append((x, y))
+                    self.unobs_free.add((x, y))
 
-    def scan(self, robot_loc, sensing_range):
-        obs_obstacles = set()
-        obs_free = set()
+    def get_bounds(self):
+        return self.bounds
+
     
-        for o_loc in self.unobs_occupied:
-            distance = self.euclidean_distance(robot_loc, o_loc)
-            if distance <= sensing_range:
-                obs_obstacles.add(o_loc)
-                self.unobs_occupied.remove(o_loc)
-        for f_loc in self.unobs_free:
-            distance = self.euclidean_distance(robot_loc, f_loc)
-            if distance <= sensing_range:
-                obs_free.add(f_loc)
-                self.unobs_free.remote(f_loc)
-
-        return [obs_obstacles, obs_free]
-
-    @staticmethod
-    def euclidean_distance(p1, p2):
-        x1 = p1[0]
-        y1 = p1[1]
-        x2 = p2[0]
-        y2 = p2[1]
-
-        return math.sqrt((y2-y1)**2 + (x2-x1)**2)

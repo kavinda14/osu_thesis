@@ -9,7 +9,7 @@ class Robot:
         # Static variables
         self.start_loc = self.x_loc, self.y_loc
         self.velocity = 1.0
-        self.sensing_range = 1.0
+        self.sensing_range = 1.6
         self.lim = bounds
         self.map = map
 
@@ -22,10 +22,15 @@ class Robot:
     def check_valid_loc(self):
         x = self.x_loc
         y = self.y_loc
-        in_bounds = (x >= self.lim[0] and x <= self.lim[1] and y >= self.lim[0] and y <= self.lim[1])
+        in_bounds = (x >= 0 and x <= self.lim[0] and y >= 0 and y <= self.lim[1])
 
         # Check if new location is intersecting with obstacles from map
         for loc in self.map.unobs_occupied:
+            if x == loc[0] and y == loc[1]:
+                print("Invalid Location {}".format(loc))
+                return False
+
+        for loc in self.map.obs_occupied:
             if x == loc[0] and y == loc[1]:
                 print("Invalid Location {}".format(loc))
                 return False
@@ -35,12 +40,14 @@ class Robot:
     def check_new_loc(self, x_loc, y_loc):
         x = x_loc
         y = y_loc
-        #in_bounds = (x >= self.lim[0] and x <= self.lim[1] and y >= self.lim[0] and y <= self.lim[1])
         in_bounds = (x >= 0 and x <= self.lim[0] and y >= 0 and y <= self.lim[1])
 
-
-        # Check unobs_occupied from map
+        # Check unobs_occupied and obs_occupied from map
         for loc in self.map.unobs_occupied:
+            if x == loc[0] and y == loc[1]:
+                return False
+
+        for loc in self.map.obs_occupied:
             if x == loc[0] and y == loc[1]:
                 return False
 
@@ -91,7 +98,7 @@ class Robot:
         """ Move the robot while respecting bounds"""
         self.check_valid_move(direction, updateState=True)
 
-    ###Functions used when evaluated a final path
+    ### Functions used when evaluated a final path
     def set_path(self, path):
         self.path = path
 
@@ -110,8 +117,8 @@ class Robot:
         if self.index+1 >= len(self.final_path):
             return direction
 
-        current_loc = self.final_path[self.index].location
-        next_loc = self.final_path[self.index+1].location
+        current_loc = self.final_path[self.index]
+        next_loc = self.final_path[self.index+1]
         if next_loc[0] == current_loc[0]-1:
             direction = "left"
         if next_loc[0] == current_loc[0]+1:
