@@ -48,6 +48,11 @@ class Simulator:
         # print(self.sensor_model.final_partial_info)
         # print(self.sensor_model.final_path)
         # print(self.sensor_model.final_score)
+
+        print("obs_free: ", self.obs_free)
+        print("obs_occupied: ", self.obs_occupied)
+        print("unobs_free: ", self.map.unobs_free)
+        print("unobs_occupied: ", self.map.unobs_occupied)
         
         if visualize:
             self.visualize()

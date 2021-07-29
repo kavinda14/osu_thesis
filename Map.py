@@ -35,8 +35,8 @@ class Map:
                 self.unobs_occupied.add((x+3, y))
 
         # Add free coords to unobs_free list
-        for x in range(bounds[0]):
-            for y in range(bounds[1]):
+        for x in range(bounds[0] + 1):
+            for y in range(bounds[1] + 1):
                 if (x, y) not in self.unobs_occupied:
                     self.unobs_free.add((x, y))
 

@@ -6,14 +6,17 @@ import numpy as np
 
 if __name__ == "__main__":
 
-    bounds = [10, 10]
-    map = Map(bounds, 1)
+    bounds = [8, 8]
+    map = Map(bounds, 2)
     robot = Robot(2, 2, bounds, map)
     sensor_model = SensorModel(robot, map)
     simulator = Simulator(map, robot, sensor_model)
-    simulator.run(20, False)
+    simulator.run(2, False)
     
     sensor_model.final_path_as_matrix()
+    binary_matrices = sensor_model.final_partial_info_as_binary_matrices()
+    print("final_partial_info: ", sensor_model.final_partial_info[0])
+    print("binary matrix: ", binary_matrices[0])
     simulator.visualize()
     score = simulator.get_score()
 
