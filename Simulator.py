@@ -28,6 +28,9 @@ class Simulator:
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
         self.sensor_model.append_path(self.robot.get_loc())
+        # At the start, there is no action, so we just add the initial partial info into the action matrix list
+        initial_partial_info_matrix = self.sensor_model.get_final_partial_info()[0]
+        self.sensor_model.append_action_matrix(initial_partial_info_matrix)
         for _ in range(0, duration):
             end = self.tick(visualize)
             if end:
@@ -38,6 +41,7 @@ class Simulator:
 
         # Generate an action from the robot path
         action = OraclePlanner.random_planner(self.robot)
+        self.sensor_model.create_action_matrix(action)
         # Move the robot
         self.robot.move(action)
         # Update the explored map based on robot position

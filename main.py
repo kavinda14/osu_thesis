@@ -11,7 +11,7 @@ if __name__ == "__main__":
     robot = Robot(2, 2, bounds, map)
     sensor_model = SensorModel(robot, map)
     simulator = Simulator(map, robot, sensor_model)
-    simulator.run(2, False)
+    simulator.run(1, False)
     
     sensor_model.final_path_as_matrix()
     binary_matrices = sensor_model.final_partial_info_as_binary_matrices()
@@ -23,4 +23,3 @@ if __name__ == "__main__":
     print("Score: ", score)
 
  
-    
