@@ -40,7 +40,7 @@ class Robot:
     def check_new_loc(self, x_loc, y_loc):
         x = x_loc
         y = y_loc
-        in_bounds = (x >= 0 and x <= self.lim[0] and y >= 0 and y <= self.lim[1])
+        in_bounds = (x >= 0 and x < self.lim[0] and y >= 0 and y < self.lim[1])
 
         # Check unobs_occupied and obs_occupied from map
         for loc in self.map.unobs_occupied:
@@ -98,35 +98,20 @@ class Robot:
         """ Move the robot while respecting bounds"""
         self.check_valid_move(direction, updateState=True)
 
-    ### Functions used when evaluated a final path
-    def set_path(self, path):
-        self.path = path
+    def get_action_loc(self, action):
+        robot_loc = self.get_loc()
+        action_loc = []
 
-    def follow_direction_path(self):
-        """ Select direction that move robot along a pre-computed path"""
-        direction = None
-        if self.index+1 >= len(self.final_path):
-            return direction
-        direction = self.final_path[self.index]
-        self.index += 1
-        return direction
+        if action == 'left':
+            action_loc = [robot_loc[0]-1, robot_loc[1]]
 
-    def follow_path(self):
-        """ Select direction that move robot along a pre-computed path"""
-        direction = None
-        if self.index+1 >= len(self.final_path):
-            return direction
+        elif action == 'right':
+            action_loc = [robot_loc[0]+1, robot_loc[1]]
+        
+        elif action == 'backward':
+            action_loc = [robot_loc[0], robot_loc[1]+1]
 
-        current_loc = self.final_path[self.index]
-        next_loc = self.final_path[self.index+1]
-        if next_loc[0] == current_loc[0]-1:
-            direction = "left"
-        if next_loc[0] == current_loc[0]+1:
-            direction = "right"
-        if next_loc[1] == current_loc[1]-1:
-            direction = "forward"
-        if next_loc[1] == current_loc[1]+1:
-            direction = "backward"
+        elif action == 'forward':
+            action_loc = [robot_loc[0], robot_loc[1]-1]
 
-        self.index += 1
-        return direction
+        return action_loc

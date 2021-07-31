@@ -9,8 +9,9 @@ class SensorModel:
         self.sensing_range = robot.sensing_range
 
         self.final_partial_info = list()
-        self.final_score = list()
+        self.final_scores = list()
         self.final_path = list()
+        self.final_path_matrices = list()
         self.final_actions = list()
 
     def scan(self):
@@ -35,7 +36,7 @@ class SensorModel:
     # Called in Simulator
     def create_partial_info(self):
         bounds = self.map.get_bounds()
-        partial_info = np.empty((bounds[0], bounds[1]))
+        partial_info = np.empty((bounds[0], bounds[1]), dtype=int)
 
         for obs_free_loc in self.map.obs_free:
             partial_info[obs_free_loc] = 0
@@ -49,57 +50,56 @@ class SensorModel:
         for unobs_occupied_loc in self.map.unobs_occupied:
             partial_info[unobs_occupied_loc] = 2
         
-        self.final_partial_info.append(partial_info.astype(int))
+        self.final_partial_info.append(partial_info)
 
-    def final_path_as_matrix(self):
+    def create_final_path_matrix(self):
         bounds = self.map.get_bounds()
-        path_matrix = np.zeros((bounds[0], bounds[1]))
+        path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
 
         for path in self.final_path:
             path_matrix[path] = 1
 
-        print(path_matrix.astype(int))
-        print("np size: ", np.shape(path_matrix))
+        self.final_path_matrices.append(path_matrix)
 
-    def final_partial_info_as_binary_matrices(self):
-        final_partial_info_binary_matrices = list()
+    def create_binary_matrices(self, matrix_list):
+        binary_matrices = list()
         
-        for partial_info in self.final_partial_info:
+        for main_matrix in matrix_list:
 
             matrix_list = list()
             n = 1
 
             while (n <= 3):
-                matrix = np.empty((np.shape(partial_info)))
-                for x in range(np.shape(partial_info)[0]):
-                    for y in range(np.shape(partial_info)[1]):
+                sub_matrix = np.empty((np.shape(main_matrix)), dtype=int)
+                for x in range(np.shape(main_matrix)[0]):
+                    for y in range(np.shape(main_matrix)[1]):
                         # obs_free
                         if n == 1:
-                            if partial_info[x, y] == 0:
-                                matrix[x, y] = 1
+                            if main_matrix[x, y] == 0:
+                                sub_matrix[x, y] = 1
                             else:
-                                matrix[x, y] = 0
+                                sub_matrix[x, y] = 0
 
                         # obs_occupied
                         if n == 2:
-                            if partial_info[x, y] == 1:
-                                matrix[x, y] = 1
+                            if main_matrix[x, y] == 1:
+                                sub_matrix[x, y] = 1
                             else:
-                                matrix[x, y] = 0
+                                sub_matrix[x, y] = 0
 
                         # unobs
                         if n == 3:
-                            if partial_info[x, y] == 2:
-                                matrix[x, y] = 1
+                            if main_matrix[x, y] == 2:
+                                sub_matrix[x, y] = 1
                             else:
-                                matrix[x, y] = 0
+                                sub_matrix[x, y] = 0
                 
-                matrix_list.append(matrix.astype(int))
+                matrix_list.append(sub_matrix)
                 n += 1
 
-            final_partial_info_binary_matrices.append(matrix_list)
+            binary_matrices.append(matrix_list)
         
-        return final_partial_info_binary_matrices
+        return binary_matrices
 
     def create_action_matrix(self, action):
         # Think of this as an action but a diff way of representing it
@@ -115,23 +115,10 @@ class SensorModel:
                 # matrix2[coord + displacement] = matrix1[coord]
 
         bounds = self.map.get_bounds()
-        actions_matrix = np.ones((bounds[0], bounds[1]), dtype=int)
-        robot_loc = self.robot.get_loc()
-        action_loc = []
+        action_matrix = np.ones((bounds[0], bounds[1]), dtype=int)
         mid_point = [bounds[0]//2, bounds[1]//2]
-
         # Assumption is made that the action is valid
-        if action == 'left':
-            action_loc = [robot_loc[0]-1, robot_loc[1]]
-
-        elif action == 'right':
-            action_loc = [robot_loc[0]+1, robot_loc[1]]
-        
-        elif action == 'backward':
-            action_loc = [robot_loc[0], robot_loc[1]+1]
-
-        elif action == 'forward':
-            action_loc = [robot_loc[0]-1, robot_loc[1]-1]
+        action_loc = self.robot.get_action_loc(action)
 
         displacement = [(mid_point[0] - action_loc[0]), (mid_point[1] - action_loc[1])]
 
@@ -141,22 +128,50 @@ class SensorModel:
             if (x + displacement[0]) < bounds[0]:
                 for y in range(len(partial_info)):
                     if (y + displacement[1] < bounds[1]):
-                        actions_matrix[(x + displacement[0]), (y + displacement[1])] = partial_info[x, y]
+                        action_matrix[(x + displacement[0]), (y + displacement[1])] = partial_info[x, y]
+
+        """"
+        [[2 2 2 2 2]
+        [2 0 0 0 2]
+        [2 0 0 0 2]
+        [2 0 0 0 2]
+        [2 2 2 2 2]]
+
+        action = forward
+
+        [[1 2 2 2 2]
+        [1 2 0 0 0]
+        [1 2 0 0 0]
+        [1 2 0 0 0]
+        [1 2 2 2 2]]
+
+        Remember that the x axis here is the left corner going downwards.
+        Y axis is going to the right.
+        So an action of forward where (y-1) means that the action will be to the left of robot mid-point from my frame.
+        """
         
-        print(action_loc)
-        print("ACTION MATRIX: ", actions_matrix)
+        self.final_actions.append(action_matrix)
 
     def append_action_matrix(self, matrix):
         self.final_actions.append(matrix)
 
     def append_score(self, score):
-        self.final_score.append(score)
+        self.final_scores.append(score)
 
     def append_path(self, path):
         self.final_path.append(path)
 
     def get_final_partial_info(self):
         return self.final_partial_info
+
+    def get_final_actions(self):
+        return self.final_actions
+
+    def get_final_scores(self):
+        return self.final_scores
+
+    def get_final_path_matrices(self):
+        return self.final_path_matrices
 
     @staticmethod
     def euclidean_distance(p1, p2):

@@ -22,12 +22,12 @@ class Simulator:
         self.score = 0
         self.iterations = 0
 
-
     def run(self, duration, visualize=False):
         self._update_map()
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
         self.sensor_model.append_path(self.robot.get_loc())
+        self.sensor_model.create_final_path_matrix()
         # At the start, there is no action, so we just add the initial partial info into the action matrix list
         initial_partial_info_matrix = self.sensor_model.get_final_partial_info()[0]
         self.sensor_model.append_action_matrix(initial_partial_info_matrix)
@@ -49,25 +49,17 @@ class Simulator:
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
         self.sensor_model.append_path(self.robot.get_loc())
-        # print(self.sensor_model.final_partial_info)
-        # print(self.sensor_model.final_path)
-        # print(self.sensor_model.final_score)
-
-        print("obs_free: ", self.obs_free)
-        print("obs_occupied: ", self.obs_occupied)
-        print("unobs_free: ", self.map.unobs_free)
-        print("unobs_occupied: ", self.map.unobs_occupied)
+        self.sensor_model.create_final_path_matrix()
         
         if visualize:
             self.visualize()
 
-        # Score is calculated in scan function.
+        # Score is calculated in _update function.
         # It needs to be reset otherwise the score will carry on to the next iteration even if no new obstacles were scanned.
         self.reset_score()
 
         # End when all objects have been observed OR 1,000 iterations
-        if (len(self.obs_occupied) == self.map.unobs_occupied) or (self.iterations == 1000):
-            self.found_goal = len(self.obs_occupied) == self.map.unobs_occupied
+        if (len(self.obs_occupied) == self.map.unobs_occupied) or (self.iterations == 1000000):
             return True
         else:
             return False
