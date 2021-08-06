@@ -3,16 +3,17 @@ from Map import Map
 from Robot import Robot
 from Simulator import Simulator
 import numpy as np
+import NeuralNet
 
 if __name__ == "__main__":
 
     # Bounds need to be an odd number for the action to always be in the middle
-    bounds = [21, 21]
-    map = Map(bounds, 60)
+    bounds = [10, 10]
+    map = Map(bounds, 1)
     robot = Robot(2, 2, bounds, map)
     sensor_model = SensorModel(robot, map)
     simulator = Simulator(map, robot, sensor_model)
-    simulator.run(200, False)
+    simulator.run(500, False)
     
     # Training data
     path_matricies = sensor_model.get_final_path_matrices()
@@ -26,11 +27,19 @@ if __name__ == "__main__":
     final_scores = sensor_model.get_final_scores()
 
     print("len path: ", len(path_matricies))
-    print("len partial info: ", len(partial_info_binary_matrices))
+    print("path matrix: ", path_matricies[0])
+    print("len partial info: ", len(partial_info_binary_matrices[0]))
+    print("partial info :", partial_info_binary_matrices[0])
     print("len actions: ", len(final_actions_binary_matrices))
+    print("actions: ",final_actions_binary_matrices[0] )
     print("len score: ", len(final_scores))
+    print("score: ", final_scores[0])
 
     print(final_scores)
+    
+    data = NeuralNet.datasetGenerator(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices, final_scores)
+    print(data[0][0])
+
 
 
     simulator.visualize()
@@ -38,4 +47,3 @@ if __name__ == "__main__":
 
     print("Score: ", score)
 
- 
