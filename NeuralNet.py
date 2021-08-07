@@ -38,7 +38,8 @@ class PlanningDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx): 
-        sample = self.data[idx][0], torch.Tensor(self.data[idx][1]).float()
+        # The label is converted to a float and in a list because the NN will complain otherwise.
+        sample = self.data[idx][0], torch.Tensor([self.data[idx][1]]).float()
 
         return sample
 
@@ -57,14 +58,19 @@ def createDataLoaders(data):
     return [trainloader, testloader]
 
 # Neural Network architecture
+def get_linear_layer_multiple(value):
+    return (value - 5) + 1
+
+
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, bounds):
         super().__init__()
+        self.bounds = bounds
         # input channels, output no. of features, kernel size
-        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.conv1 = nn.Conv2d(7, 12, 5)
 #         self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 92 * 92, 120)
+        self.conv2 = nn.Conv2d(12, 16, 5)
+        self.fc1 = nn.Linear(16 * 103 * 103, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 1)
 #         self.double()
@@ -84,11 +90,11 @@ class Net(nn.Module):
         return x
 
 
-def runNetwork(data):
+def runNetwork(data, bounds):
     
     trainloader, testloader = createDataLoaders(data)
 
-    net = Net()
+    net = Net(bounds)
 
     # Loss + Optimizer
     criterion = nn.MSELoss()
@@ -109,8 +115,8 @@ def runNetwork(data):
             # REMEMBER TO ADD float()
             outputs = net(inputs.float())
             
-            print("outputs: ", outputs)
-            print("labels: ", labels)
+            # print("outputs: ", outputs)
+            # print("labels: ", labels)
             loss = criterion(outputs, labels)
             
             loss.backward()
@@ -120,7 +126,7 @@ def runNetwork(data):
             running_loss += loss.item()
             if i % 10 == 9:    # print every 2000 mini-batches
                 print('[%d, %5d] loss: %.3f' %
-                    (epoch + 1, i + 1, running_loss / 2000))
+                    (epoch + 1, i + 1, running_loss / 10))
                 running_loss = 0.0
 
     print('Finished Training')
