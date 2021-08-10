@@ -41,7 +41,7 @@ class Simulator:
 
         # Generate an action from the robot path
         # action = OraclePlanner.random_planner(self.robot)
-        action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, True)
+        action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)
 
 
         self.sensor_model.create_action_matrix(action)

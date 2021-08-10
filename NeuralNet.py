@@ -24,10 +24,27 @@ def datasetGenerator(partial_info_binary_matrices, path_matricies, final_actions
 
         for action in final_actions_binary_matrices[i]:
             image.append(action)
-
+        
+        
         data.append([torch.IntTensor(image), final_scores[i]])
 
     return data
+
+def create_image(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices):
+    image = list()
+
+    for i in range(len(partial_info_binary_matrices)):
+        
+        for partial_info in partial_info_binary_matrices[i]:
+            image.append(partial_info)
+
+        image.append(path_matricies)
+
+        for action in final_actions_binary_matrices[i]:
+            image.append(action)
+        
+    return torch.IntTensor(image)
+
 
 
 class PlanningDataset(Dataset):
@@ -132,4 +149,5 @@ def runNetwork(data, bounds):
                     (epoch + 1, i + 1, running_loss / 10))
                 running_loss = 0.0
 
+    torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/trial1")
     print('Finished Training')

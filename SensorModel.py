@@ -36,7 +36,8 @@ class SensorModel:
         return [scanned_obstacles, scanned_free]
 
     # Called in Simulator
-    def create_partial_info(self):
+    # We keep update as true for getting the training data
+    def create_partial_info(self, update=True):
         bounds = self.map.get_bounds()
         partial_info = np.empty((bounds[0], bounds[1]), dtype=int)
 
@@ -52,7 +53,10 @@ class SensorModel:
         for unobs_occupied_loc in self.map.unobs_occupied:
             partial_info[unobs_occupied_loc] = 2
         
-        self.final_partial_info.append(partial_info)
+        if update:
+            self.final_partial_info.append(partial_info)
+        else: 
+            return partial_info
     
     # update flag was added because when running greedy planner with NN, we want to get path but not update final list
     def create_final_path_matrix(self, update=True):
@@ -67,10 +71,10 @@ class SensorModel:
         else:
             return path_matrix
 
-    def create_binary_matrices(self, matrix_list):
+    def create_binary_matrices(self, input_list):
         binary_matrices = list()
         
-        for main_matrix in matrix_list:
+        for main_matrix in input_list:
 
             matrix_list = list()
             n = 1
@@ -107,7 +111,8 @@ class SensorModel:
         
         return binary_matrices
 
-    def create_action_matrix(self, action):
+    # greedy_planner flag is added because we need to return action matrix
+    def create_action_matrix(self, action, greedy_planner=False):
         # Think of this as an action but a diff way of representing it
         # This function needs to be called before we move the robot in the Simulator
 
@@ -155,7 +160,9 @@ class SensorModel:
         Y axis is going to the right.
         So an action of forward where (y-1) means that the action will be to the left of robot mid-point from my frame.
         """
-        
+        if greedy_planner:
+            return action_matrix
+            
         self.final_actions.append(action_matrix)
 
     def append_action_matrix(self, matrix):
