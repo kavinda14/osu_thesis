@@ -7,7 +7,7 @@ import matplotlib.patches as patches
 import OraclePlanner
 
 class Simulator:
-    def __init__(self, world_map, robot, sensor_model):
+    def __init__(self, world_map, robot, sensor_model, planner):
         """
         Inputs:
         world_map: The map to be explored
@@ -21,6 +21,8 @@ class Simulator:
         self.obs_free = set()
         self.score = 0
         self.iterations = 0
+
+        self.planner = planner
 
     def run(self, duration, visualize=False):
         self._update_map()
@@ -41,8 +43,12 @@ class Simulator:
 
         # Generate an action from the robot path
         # action = OraclePlanner.random_planner(self.robot)
-        action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)
-
+        if self.planner == "random":
+            action = OraclePlanner.random_planner(self.robot)
+        if self.planner == "greedy":
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map)
+        if self.planner == "network":
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)
 
         self.sensor_model.create_action_matrix(action)
         # Move the robot
@@ -102,6 +108,7 @@ class Simulator:
     def visualize(self):
         plt.xlim(0, self.map.bounds[0])
         plt.ylim(0, self.map.bounds[1])
+        plt.title("Planner: {}, Score: {}".format(self.planner, sum(self.sensor_model.get_final_scores())))
 
         ax = plt.gca()
 

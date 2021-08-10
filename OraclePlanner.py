@@ -18,6 +18,10 @@ def greedy_planner(robot, sensor_model, map, neural_net=False):
     best_action = random_planner(robot)
     best_action_score = 0
 
+    model = NeuralNet.Net(map.get_bounds())
+    model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/trial1"))
+    model.eval()
+
     for action in actions:
         if robot.check_valid_move(action):
             temp_robot_loc = robot.get_action_loc(action)
@@ -32,12 +36,12 @@ def greedy_planner(robot, sensor_model, map, neural_net=False):
                 final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
             
                 input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices)
-                
-                model = NeuralNet.Net(map.get_bounds())
-                model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/trial1"))
-                model.eval()
 
-                action_score = model(input)
+                # The unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
+                # By unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 
+                input = input.unsqueeze(0).float()
+
+                action_score = model(input).item()
             else:
                 action_score = len(sensor_model.scan(temp_robot_loc, False)[0])
             if action_score > best_action_score:

@@ -1,13 +1,9 @@
 import torch
-import numpy as np
-import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, utils
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import random
-import array
+import time
 
 #Dataset
 
@@ -30,6 +26,7 @@ def datasetGenerator(partial_info_binary_matrices, path_matricies, final_actions
 
     return data
 
+# This was created for when using a planner with the network
 def create_image(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices):
     image = list()
 
@@ -111,7 +108,9 @@ def runNetwork(data, bounds):
     
     trainloader, testloader = createDataLoaders(data)
 
+    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net = Net(bounds)
+    # net = Net(bounds).to(device)
 
     # Loss + Optimizer
     criterion = nn.MSELoss()
@@ -120,13 +119,15 @@ def runNetwork(data, bounds):
     optimizer = optim.Adam(net.parameters(), lr=0.001)
 
     # Run network
+    start = time.time()
     for epoch in range(2):  # loop over the dataset multiple times
 
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
+            # inputs, labels = data[0].to(device), data[1].to(device)
             inputs, labels = data
-            
+
             # zero the parameter gradients
             optimizer.zero_grad()
 
@@ -148,6 +149,9 @@ def runNetwork(data, bounds):
                 print('[%d, %5d] loss: %.3f' %
                     (epoch + 1, i + 1, running_loss / 10))
                 running_loss = 0.0
+    
+    end = time.time()
+    print("Time taken: ", (end - start)/60)
 
     torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/trial1")
     print('Finished Training')
