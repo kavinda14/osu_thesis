@@ -48,7 +48,7 @@ def createDataLoaders(data):
     train_data = PlanningDataset(data)
     test_data = PlanningDataset(data)
 
-    batch_size = 4
+    batch_size = 64
 
     trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size,
                                             shuffle=True, num_workers=2)
@@ -98,7 +98,9 @@ def runNetwork(data, bounds):
 
     # Loss + Optimizer
     criterion = nn.MSELoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    # SGD produced too low loss values and forums recommended Adam
+    # optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
 
     # Run network
     for epoch in range(2):  # loop over the dataset multiple times
@@ -124,7 +126,8 @@ def runNetwork(data, bounds):
             
             # print statistics
             running_loss += loss.item()
-            if i % 10 == 9:    # print every 2000 mini-batches
+            # print(loss.item())
+            if i % 10 == 9:    # print every 10 mini-batches
                 print('[%d, %5d] loss: %.3f' %
                     (epoch + 1, i + 1, running_loss / 10))
                 running_loss = 0.0

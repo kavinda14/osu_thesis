@@ -40,7 +40,10 @@ class Simulator:
         self.iterations += 1
 
         # Generate an action from the robot path
-        action = OraclePlanner.random_planner(self.robot)
+        # action = OraclePlanner.random_planner(self.robot)
+        action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, True)
+
+
         self.sensor_model.create_action_matrix(action)
         # Move the robot
         self.robot.move(action)
@@ -88,7 +91,7 @@ class Simulator:
             print(self.robot.get_loc())
             raise ValueError(f"Robot has left the map. It is at position: {self.robot.get_loc()}, outside of the map boundary")
         
-        new_observations = self.sensor_model.scan()
+        new_observations = self.sensor_model.scan(self.robot.get_loc())
         # Score is the number of new obstacles found
         self.set_score(len(new_observations[0]))
         self.obs_occupied = self.obs_occupied.union(new_observations[0])

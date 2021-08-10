@@ -14,22 +14,24 @@ class SensorModel:
         self.final_path_matrices = list()
         self.final_actions = list()
 
-    def scan(self):
+    def scan(self, robot_loc, update_map=True):
         scanned_obstacles = set()
         scanned_free = set()
-        robot_loc = self.robot.get_loc()
+        # robot_loc = self.robot.get_loc()
 
         for o_loc in set(self.map.unobs_occupied):
             distance = self.euclidean_distance(robot_loc , o_loc)
             if distance <= self.sensing_range:
                 scanned_obstacles.add(o_loc)
-                self.map.unobs_occupied.remove(o_loc)
+                if update_map:
+                    self.map.unobs_occupied.remove(o_loc)
 
         for f_loc in set(self.map.unobs_free):
             distance = self.euclidean_distance(robot_loc, f_loc)
             if distance <= self.sensing_range:
                 scanned_free.add(f_loc)
-                self.map.unobs_free.remove(f_loc)
+                if update_map:
+                    self.map.unobs_free.remove(f_loc)
 
         return [scanned_obstacles, scanned_free]
 
@@ -51,15 +53,19 @@ class SensorModel:
             partial_info[unobs_occupied_loc] = 2
         
         self.final_partial_info.append(partial_info)
-
-    def create_final_path_matrix(self):
+    
+    # update flag was added because when running greedy planner with NN, we want to get path but not update final list
+    def create_final_path_matrix(self, update=True):
         bounds = self.map.get_bounds()
         path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
 
         for path in self.final_path:
             path_matrix[path] = 1
 
-        self.final_path_matrices.append(path_matrix)
+        if update:
+            self.final_path_matrices.append(path_matrix)
+        else:
+            return path_matrix
 
     def create_binary_matrices(self, matrix_list):
         binary_matrices = list()

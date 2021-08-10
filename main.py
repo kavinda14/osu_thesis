@@ -12,7 +12,7 @@ if __name__ == "__main__":
     robot = Robot(2, 2, bounds, map)
     sensor_model = SensorModel(robot, map)
     simulator = Simulator(map, robot, sensor_model)
-    simulator.run(1000, False)
+    simulator.run(10, False)
     
     # Training data
     path_matricies = sensor_model.get_final_path_matrices()
@@ -36,8 +36,8 @@ if __name__ == "__main__":
 
     print(final_scores)
     
-    data = NeuralNet.datasetGenerator(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices, final_scores)
-    NeuralNet.runNetwork(data, bounds)
+    # data = NeuralNet.datasetGenerator(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices, final_scores)
+    # NeuralNet.runNetwork(data, bounds)
 
     simulator.visualize()
     score = simulator.get_score()
