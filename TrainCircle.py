@@ -15,26 +15,26 @@ if __name__ == "__main__":
 
     # planner_options = ["random", "greedy"]
     planner_options = ["random"]
-    for i in range(50):
+    for i in range(20):
         for planner in planner_options: 
             start = time.time()
             # Bounds need to be an odd number for the action to always be in the middle
-            bounds = [21, 21]
-            map = Map(bounds, 18)
+            bounds = [41, 41]
+            map = Map(bounds, 7, [])
 
             # Selects random starting locations for the robot
-            # We can't use 111 due to the limits we create in checking valid location functions
+            # We can't use the exact bounds (need -1) due to the limits we create in checking valid location functions
             valid_starting_loc = False
             while not valid_starting_loc:
-                x = random.randint(0, 110)
-                y = random.randint(0, 110)
+                x = random.randint(0, bounds[0]-1)
+                y = random.randint(0, bounds[0]-1)
                 valid_starting_loc = map.check_loc(x, y) 
 
             robot = Robot(x, y, bounds, map)
             sensor_model = SensorModel(robot, map)
             
             simulator = Simulator(map, robot, sensor_model, planner)
-            simulator.run(5000, False)
+            simulator.run(7000, False)
 
             # simulator.visualize()
             

@@ -19,7 +19,7 @@ def greedy_planner(robot, sensor_model, map, neural_net=False):
     best_action_score = 0
 
     model = NeuralNet.Net(map.get_bounds())
-    model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/trial1"))
+    model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles"))
     model.eval()
 
     for action in actions:
@@ -42,6 +42,7 @@ def greedy_planner(robot, sensor_model, map, neural_net=False):
                 input = input.unsqueeze(0).float()
 
                 action_score = model(input).item()
+                # print(action_score)
             else:
                 action_score = len(sensor_model.scan(temp_robot_loc, False)[0])
             if action_score > best_action_score:

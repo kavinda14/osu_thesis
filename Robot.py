@@ -9,7 +9,8 @@ class Robot:
         # Static variables
         self.start_loc = self.x_loc, self.y_loc
         self.velocity = 1.0
-        self.sensing_range = 1.6
+        # self.sensing_range = 2.85 # Range for square with bounds 21, 21
+        self.sensing_range = 4.3 # Range for circles with bounds 41, 41
         self.lim = bounds
         self.map = map
 

@@ -1,6 +1,3 @@
-import copy
-import numpy as np
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
@@ -111,7 +108,8 @@ class Simulator:
         plt.title("Planner: {}, Score: {}".format(self.planner, sum(self.sensor_model.get_final_scores())))
 
         ax = plt.gca()
-
+        ax.set_aspect('equal', 'box')
+        
         for spot in self.map.unobs_occupied:
             hole = patches.Rectangle(spot, 1, 1, facecolor='red')
             ax.add_patch(hole)
@@ -119,7 +117,7 @@ class Simulator:
         for spot in self.map.unobs_free:
             hole = patches.Rectangle(spot, 1, 1, facecolor='black')
             ax.add_patch(hole)
-
+        
         for spot in self.obs_free:
             hole = patches.Rectangle(spot, 1, 1, facecolor='white')
             ax.add_patch(hole)
@@ -128,8 +126,19 @@ class Simulator:
             hole = patches.Rectangle(spot, 1, 1, facecolor='green')
             ax.add_patch(hole)
 
-        robot_x = self.robot.get_loc()[0]
-        robot_y = self.robot.get_loc()[1]
+        # Plot robot
+        robot_x = self.robot.get_loc()[0] + 0.5
+        robot_y = self.robot.get_loc()[1] + 0.5
         plt.scatter(robot_x, robot_y, color='purple', zorder=5)
+
+        # Plot robot path
+        x_values = list()
+        y_values = list()
+        for path in self.sensor_model.get_final_path():
+            x_values.append(path[0] + 0.5)
+            y_values.append(path[1] + 0.5)
+
+        plt.plot(x_values, y_values)
+
 
         plt.show()

@@ -3,7 +3,9 @@ from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import matplotlib.pyplot as plt
 import time
+
 
 #Dataset
 
@@ -62,7 +64,7 @@ def createDataLoaders(data):
     train_data = PlanningDataset(data)
     test_data = PlanningDataset(data)
 
-    batch_size = 64
+    batch_size = 128
 
     trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size,
                                             shuffle=True, num_workers=2)
@@ -84,10 +86,10 @@ class Net(nn.Module):
         self.conv1 = nn.Conv2d(7, 12, 5)
 #         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(12, 16, 5)
-        self.fc1 = nn.Linear(16 * 103 * 103, 120)
+        # self.fc1 = nn.Linear(16 * 103 * 103, 120)
+        self.fc1 = nn.Linear(16 * 33 * 33, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 1)
-#         self.double()
 
     def forward(self, x):
 #         x = self.pool(F.relu(self.conv1(x)))
@@ -120,6 +122,7 @@ def runNetwork(data, bounds):
 
     # Run network
     start = time.time()
+    loss_values = list()
     for epoch in range(2):  # loop over the dataset multiple times
 
         running_loss = 0.0
@@ -148,10 +151,17 @@ def runNetwork(data, bounds):
             if i % 10 == 9:    # print every 10 mini-batches
                 print('[%d, %5d] loss: %.3f' %
                     (epoch + 1, i + 1, running_loss / 10))
-                running_loss = 0.0
+                loss_values.append(running_loss/10)
+                running_loss = 0.0            
     
     end = time.time()
-    print("Time taken: ", (end - start)/60)
+    time_taken = (end - start)/60
+    print("Time taken: {:.3f}".format(time_taken))
 
-    torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/trial1")
+    torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/circles")
     print('Finished Training')
+
+    loss_values.append(running_loss)
+    plt.plot(loss_values)
+    plt.title("Loss Values, time taken: {:.4f}".format(time_taken))
+    plt.show()

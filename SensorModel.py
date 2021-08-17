@@ -174,6 +174,9 @@ class SensorModel:
     def append_path(self, path):
         self.final_path.append(path)
 
+    def get_final_path(self):
+        return self.final_path
+
     def get_final_partial_info(self):
         return self.final_partial_info
 
