@@ -20,6 +20,9 @@ class Simulator:
         self.iterations = 0
 
         self.planner = planner
+        
+        # actions list was created because we thought the robot was sometimes not moving
+        self.actions = list()
 
     def run(self, duration, visualize=False):
         self._update_map()
@@ -41,11 +44,14 @@ class Simulator:
         # Generate an action from the robot path
         # action = OraclePlanner.random_planner(self.robot)
         if self.planner == "random":
-            action = OraclePlanner.random_planner(self.robot)
+            action = OraclePlanner.random_planner(self.robot, self.sensor_model)
         if self.planner == "greedy":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map)
         if self.planner == "network":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)
+
+        self.actions.append(action)
+        # print("sensor path: ", self.sensor_model.get_final_path())
 
         self.sensor_model.create_action_matrix(action)
         # Move the robot
@@ -54,6 +60,7 @@ class Simulator:
         self._update_map()
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
+        previous_paths_debug = self.sensor_model.get_final_path()
         self.sensor_model.append_path(self.robot.get_loc())
         self.sensor_model.create_final_path_matrix()
         
@@ -87,6 +94,9 @@ class Simulator:
 
     def get_iteration(self):
         return self.iterations
+
+    def get_actions(self):
+        return self.actions
 
     def _update_map(self):
         # Sanity check the robot is in bounds

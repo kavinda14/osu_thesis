@@ -26,8 +26,8 @@ if __name__ == "__main__":
             # We can't use 111 due to the limits we create in checking valid location functions
             valid_starting_loc = False
             while not valid_starting_loc:
-                x = random.randint(0, 110)
-                y = random.randint(0, 110)
+                x = random.randint(0, bounds[0])
+                y = random.randint(0, bounds[1])
                 valid_starting_loc = map.check_loc(x, y) 
 
             robot = Robot(x, y, bounds, map)

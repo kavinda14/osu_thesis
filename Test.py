@@ -5,14 +5,14 @@ from Simulator import Simulator
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
+import random as r
 
 if __name__ == "__main__":
  
     # Bounds need to be an odd number for the action to always be in the middle
-    # planner_options = ["random", "greedy", "network"]
-    planner_options = ["random"]
+    planner_options = ["random", "greedy", "network"]
     # planner_options = ["random"]
-    bounds = [41, 41]
+    bounds = [21, 21]
     random = list()
     greedy = list()
     network = list()
@@ -24,16 +24,24 @@ if __name__ == "__main__":
         x1.append(i)
         map = Map(bounds, 7, (), False)
         unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
+
+        valid_starting_loc = False
+        while not valid_starting_loc:
+            x = r.randint(0, bounds[0]-1)
+            y = r.randint(0, bounds[0]-1)
+            valid_starting_loc = map.check_loc(x, y) 
         for planner in planner_options:     
             map = Map(bounds, 18, copy.deepcopy(unobs_occupied), True)
-            robot = Robot(0, 0, bounds, map)
+            robot = Robot(x, y, bounds, map)
             sensor_model = SensorModel(robot, map)
             simulator = Simulator(map, robot, sensor_model, planner)
             # simulator.visualize()
-            simulator.run(7000, False)
-            simulator.visualize()
+            simulator.run(50, False)
+            # simulator.visualize()
             score = sum(sensor_model.get_final_scores())
+            
             print("Planner: {}, Score: {}".format(planner, score))
+            print("No of steps taken: ", len(simulator.get_actions()))
 
             if planner == "random":
                 random.append(score)

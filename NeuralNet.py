@@ -1,3 +1,4 @@
+import pickle
 import torch
 from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
@@ -7,8 +8,40 @@ import matplotlib.pyplot as plt
 import time
 
 
-#Dataset
+# Dataset
+# def datasetGenerator(limit, partial_info_binary_matrices_pickle, path_matricies_pickle, final_actions_binary_matrices_pickle, final_scores_pickle): 
+#     data = list()
 
+#     for i in range(limit):
+
+#         partial_info_pickle_in = open(partial_info_binary_matrices_pickle, "rb")
+#         current_partial_info = pickle.load(partial_info_pickle_in)
+        
+#         path_matrices_pickle_in = open(path_matricies_pickle, "rb")
+#         current_path_matrix = pickle.load(path_matrices_pickle_in)
+#         action_pickle_in = open(final_actions_binary_matrices_pickle, "rb")
+#         current_action = pickle.load(action_pickle_in)
+#         scores_pickle_in = open(final_scores_pickle, "rb")
+#         current_score = pickle.load(scores_pickle_in)
+#         print(len(current_score))
+
+#         for j in range(len(current_partial_info)):
+#             image = list()
+            
+#             for partial_info in current_partial_info[j]:
+#                 image.append(partial_info)
+
+#             image.append(current_path_matrix[j])
+
+#             for action in current_action[j]:
+#                 image.append(action)
+            
+            
+#             data.append([torch.IntTensor(image), current_score[j]])
+
+#     return data
+
+# Dataset
 def datasetGenerator(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices, final_scores): 
     data = list()
 
@@ -87,7 +120,7 @@ class Net(nn.Module):
 #         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(12, 16, 5)
         # self.fc1 = nn.Linear(16 * 103 * 103, 120)
-        self.fc1 = nn.Linear(16 * 33 * 33, 120)
+        self.fc1 = nn.Linear(16 * 13 * 13, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 1)
 
@@ -148,17 +181,17 @@ def runNetwork(data, bounds):
             # print statistics
             running_loss += loss.item()
             # print(loss.item())
-            if i % 10 == 9:    # print every 10 mini-batches
+            if i % 100 == 99:    # print every 10 mini-batches
                 print('[%d, %5d] loss: %.3f' %
-                    (epoch + 1, i + 1, running_loss / 10))
-                loss_values.append(running_loss/10)
+                    (epoch + 1, i + 1, running_loss / 100))
+                loss_values.append(running_loss/100)
                 running_loss = 0.0            
     
     end = time.time()
     time_taken = (end - start)/60
     print("Time taken: {:.3f}".format(time_taken))
 
-    torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/circles")
+    torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2")
     print('Finished Training')
 
     loss_values.append(running_loss)
