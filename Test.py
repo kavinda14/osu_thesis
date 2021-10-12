@@ -6,12 +6,14 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import random as r
+import time as time
 
 if __name__ == "__main__":
  
     # Bounds need to be an odd number for the action to always be in the middle
     planner_options = ["random", "greedy", "network"]
     # planner_options = ["random"]
+    # bounds = [21, 21]
     bounds = [21, 21]
     random = list()
     greedy = list()
@@ -34,14 +36,17 @@ if __name__ == "__main__":
             map = Map(bounds, 18, copy.deepcopy(unobs_occupied), True)
             robot = Robot(x, y, bounds, map)
             sensor_model = SensorModel(robot, map)
+            start = time.time()
             simulator = Simulator(map, robot, sensor_model, planner)
             # simulator.visualize()
             simulator.run(50, False)
+            end = time.time()
             # simulator.visualize()
             score = sum(sensor_model.get_final_scores())
             
             print("Planner: {}, Score: {}".format(planner, score))
             print("No of steps taken: ", len(simulator.get_actions()))
+            print("Time taken: ", end - start)
 
             if planner == "random":
                 random.append(score)

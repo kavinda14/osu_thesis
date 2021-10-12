@@ -25,19 +25,21 @@ def random_planner(robot, sensor_model):
         times_visited = sensor_model.get_final_path().count(tuple(robot.get_action_loc(action)))
         robot_loc_debug = robot.get_loc()
         action_loc_debug = robot.get_action_loc(action)
-        if times_visited > 6: # This means that the same action is allowed x + 1 times
+        if times_visited > 1: # This means that the same action is allowed x + 1 times
             visited_before = True
         else: 
             visited_before = False
         if valid_move == True and visited_before == False:
             break
-        if counter > 100:
+        if counter > 10:
+        # if counter > 100:
             break
    
     return action
 
 def greedy_planner(robot, sensor_model, map, neural_net=False):
-    actions = ['left', 'right', 'backward', 'forward']
+    # actions = ['left', 'right', 'backward', 'forward']
+    actions = ['left', 'backward', 'right', 'forward']
     # actions = ['backward', 'forward']
     # best_action = random_planner(robot, sensor_model)
     # best_action = None
@@ -65,7 +67,7 @@ def greedy_planner(robot, sensor_model, map, neural_net=False):
             action_loc_debug = robot.get_action_loc(action)
             # if robot.check_valid_move(action) and times_visited < 1: # This means times_visited - 1 is allowed e.g. times_visited < 1 means 0 times allowed
             if robot.check_valid_move(action):
-                if times_visited < 6: # This means times_visited is allowed e.g. times_visited < 1 means 1 times allowed to be in list
+                if times_visited < 2: # This means times_visited is allowed e.g. times_visited < 1 means 1 times allowed to be in list
                     temp_robot_loc = robot.get_action_loc(action)
                     if neural_net:
                         # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
@@ -89,7 +91,7 @@ def greedy_planner(robot, sensor_model, map, neural_net=False):
                         best_action_score = action_score
                         best_action = action
 
-        if counter > 100:
+        if counter > 20:
             break
 
     return best_action

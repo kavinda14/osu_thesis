@@ -47,8 +47,8 @@ class Map:
             for x in range(bounds[0]):
                 for y in range(bounds[1]):
                     distance = self.euclidean_distance((x, y), mid_point)
-                    # if distance < 1.6: # 1.6 with map of 21, 21 bounds is good for square
-                    if distance < 2.3: # 4.3 with map of 41, 41 bounds is good for circle
+                    if distance < 1.6: # 1.6 with map of 21, 21 bounds is good for square
+                    # if distance < 2.3: # 4.3 with map of 41, 41 bounds is good for circle
                         self.unobs_occupied.add((x, y))
 
             # Add obstacles to environment
@@ -63,8 +63,8 @@ class Map:
                         for y in range(bounds[1]):
                     # for free_loc in list(self.unobs_free):
                             distance = self.euclidean_distance((x, y), mid_point)
-                            # if distance < 1.6: # 1.6 with map of 21, 21 bounds is good for square
-                            if distance < 2.3: # 4.3 with map of 41, 41 bounds is good for circle
+                            if distance < 1.6: # 1.6 with map of 21, 21 bounds is good for square
+                            # if distance < 2.3: # 4.3 with map of 41, 41 bounds is good for circle
                                 self.unobs_occupied.add((x, y))
 
             ### Adds narrow rectangles
