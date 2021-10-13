@@ -86,7 +86,12 @@ def greedy_planner(robot, sensor_model, map, neural_net=False):
                         
                     else:
                         # counter += 1
-                        action_score = len(sensor_model.scan(temp_robot_loc, False)[0])
+                        # Oracle greedy
+                        # action_score = len(sensor_model.scan(temp_robot_loc, False)[0])
+                        # Non-oracle greedy
+                        scanned_unobs = sensor_model.scan(temp_robot_loc, False)
+                        action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
+
                     if action_score > best_action_score:
                         best_action_score = action_score
                         best_action = action

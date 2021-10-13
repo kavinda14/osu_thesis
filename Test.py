@@ -20,7 +20,7 @@ if __name__ == "__main__":
     network = list()
     x1 = list()
 
-    trials = 100
+    trials = 200
     for i in range(trials):
         print("Trial no: {}".format(i))
         x1.append(i)
