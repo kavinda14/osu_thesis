@@ -95,6 +95,46 @@ class Robot:
 
         return valid
 
+    def check_valid_move_mcts(self, direction, location, updateState=False):
+        """ Checks if the direction is valid
+        direction (str): "left", "right", "up", "down" directions to move the robot
+        updateState (bool): if True, function also moves the robot if direction is valid
+                            otherwise, only perform validity check without moving robot
+        """
+        # Just don't move
+        if not direction:
+            return True
+        
+        x_loc = location[0]
+        y_loc = location[1]
+
+        if direction == 'left':
+            valid = self.check_new_loc(x_loc-1, y_loc)
+            if valid and updateState:
+                x_loc -= 1
+
+        elif direction == 'right':
+            valid = self.check_new_loc(x_loc+1, y_loc)
+            if valid and updateState:
+                x_loc += 1
+
+        elif direction == 'backward':
+            valid = self.check_new_loc(x_loc, y_loc+1)
+            if valid and updateState:
+                y_loc += 1
+
+        elif direction == 'forward':
+            valid = self.check_new_loc(x_loc, y_loc-1)
+            if valid and updateState:
+                y_loc -= 1
+        else:
+            raise ValueError(f"Robot received invalid direction: {direction}!")
+        
+        if updateState:
+            return [valid, [x_loc, y_loc]]
+
+        return valid
+
     def move(self, direction):
         """ Move the robot while respecting bounds"""
         self.check_valid_move(direction, updateState=True)
@@ -116,3 +156,6 @@ class Robot:
             action_loc = [robot_loc[0], robot_loc[1]-1]
 
         return action_loc
+    
+    def get_bounds(self):
+        return self.lim
