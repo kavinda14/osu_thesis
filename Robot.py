@@ -156,6 +156,18 @@ class Robot:
             action_loc = [robot_loc[0], robot_loc[1]-1]
 
         return action_loc
+
+    def get_direction(self, current_loc, next_loc):
+        if (next_loc[0] - current_loc[0] == -1):
+            return 'left'
+        if (next_loc[0] - current_loc[0] == 1):
+            return 'right'
+        if (next_loc[1] - current_loc[1] == 1):
+            return 'backward'
+        if (next_loc[1] - current_loc[1] == -1):
+            return 'forward'
+
+        return None
     
     def get_bounds(self):
         return self.lim

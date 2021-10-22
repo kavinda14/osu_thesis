@@ -1,7 +1,12 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import sys
 
 import OraclePlanner
+
+sys.path.insert(0, './basic_MCTS_python')
+from basic_MCTS_python import mcts
+# from basic_MCTS_python import plot_tree
 
 class Simulator:
     def __init__(self, world_map, robot, sensor_model, planner):
@@ -49,6 +54,13 @@ class Simulator:
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map)
         if self.planner == "network":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)
+        if self.planner == 'mcts':
+            budget = 7
+            max_iterations = 200
+            exploration_exploitation_parameter = 0.8 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
+            solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model)
+            action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
+
 
         self.actions.append(action)
         # print("sensor path: ", self.sensor_model.get_final_path())

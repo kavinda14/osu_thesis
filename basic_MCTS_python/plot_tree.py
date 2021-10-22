@@ -10,7 +10,8 @@ from action import printActionSequence
 
 
 
-def plotTree(list_of_all_nodes, winner, action_set, use_UCT, budget, fig_num, exploration_exploitation_parameter):
+# def plotTree(list_of_all_nodes, winner, action_set, use_UCT, budget, fig_num, exploration_exploitation_parameter):
+def plotTree(list_of_all_nodes, winner, use_UCT, budget, fig_num, exploration_exploitation_parameter):
 
     def ucb(average, n_parent, n_child):
         return average + exploration_exploitation_parameter * math.sqrt( (2*math.log(n_parent)) / float(n_child) )
@@ -20,7 +21,8 @@ def plotTree(list_of_all_nodes, winner, action_set, use_UCT, budget, fig_num, ex
     ax = fig.add_axes([0,0,1,1])
     ax.set_axis_off()
 
-    num_actions = len(action_set)
+    num_actions = 4
+    # num_actions = len(action_set)
 
     # Compute colour bounds
     r_min = 1.0

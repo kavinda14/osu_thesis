@@ -6,11 +6,12 @@ Jan 2020
 '''
 
 class TreeNode():
-    def __init__(self, parent, sequence, budget, unpicked_child_actions):
+    def __init__(self, parent, sequence, budget, unpicked_child_actions, coords):
         # tree properties
         self.parent = parent        
         self.children = []
         self.unpicked_child_actions = unpicked_child_actions
+        self.coords = coords
 
         # sequence properties
         self.sequence = sequence
@@ -24,6 +25,12 @@ class TreeNode():
         # Incremental update to the average
         self.average_evaluation_score = float(self.average_evaluation_score * self.num_updates + evaluation_score) / float(self.num_updates + 1)
         self.num_updates = self.num_updates + 1
+
+    def get_coords(self):
+        return self.coords
+
+    def get_children(self):
+        return self.children
 
 
 

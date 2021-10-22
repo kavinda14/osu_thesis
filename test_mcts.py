@@ -9,6 +9,8 @@ import time as time
 import sys
 sys.path.insert(0, './basic_MCTS_python')
 from basic_MCTS_python import mcts
+from basic_MCTS_python import plot_tree
+
 
 
 if __name__ == "__main__":
@@ -41,10 +43,28 @@ if __name__ == "__main__":
     budget = 7
 
     exploration_exploitation_parameter = 0.8 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-    max_iterations = 2000
+    max_iterations = 20
     
-    [solution, root, list_of_all_nodes, winner] = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, robot, map)
-    print(winner)
+    print('robot loc: ', [x, y])
+    robot_move = -1
+    for i in range(100):
+        current_loc = robot.get_loc() 
+        # print('current_loc: ', current_loc)
+        [solution, root, list_of_all_nodes, winner_node, winner_loc] = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sensor_model)
+        next_loc = winner_node.get_coords()
+        # print('next_loc: ', next_loc)
+        direction = robot.get_direction(current_loc, next_loc)
+        # print(direction)
+        robot.move(direction)
+        # simulator.visualize()
+
+    # simulator.visualize()
+
+    # print('winner: ', winner.get_coords())
+
+    # plot_tree.plotTree(list_of_all_nodes, winner, False, budget, 1, exploration_exploitation_parameter)
+    # plot_tree.plotTree(list_of_all_nodes, winner, True, budget, 2, exploration_exploitation_parameter)
+    
   
 
 
