@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # Bounds need to be an odd number for the action to always be in the middle
     # planner_options = ["random", "greedy", "network", "mcts"]
     planner_options = ["mcts"]
-    # planner_options = ["random"]
+    # planner_options = ["network"]
     # bounds = [21, 21]
     bounds = [21, 21]
     random = list()
