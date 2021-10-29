@@ -9,6 +9,7 @@ from tree_node import TreeNode
 import reward
 from cost import cost
 from rollout import rollout
+from rollout import rollout_network
 from action import Action, printActionSequence
 import copy
 import random
@@ -42,7 +43,7 @@ def generate_valid_neighbors(current_state, state_sequence, robot):
 
 
 # def mcts(action_set, budget, max_iterations, exploration_exploitation_parameter, robot, input_map):
-def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sensor_model):
+def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sensor_model, world_map):
 
     ################################
     # Setup
@@ -155,6 +156,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
         # Rollout
         # rollout_sequence = rollout(subsequence=current.sequence, action_set=action_set, budget=budget)
         rollout_sequence = rollout(subsequence=current.sequence, budget=budget, robot=robot)
+        rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map)
         # rollout_reward = reward(action_sequence=rollout_sequence)
         rollout_reward = reward.greedy_reward(rollout_sequence, sensor_model)
 

@@ -69,7 +69,7 @@ if __name__ == "__main__":
     print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
     print("final_final_scores: ", len(input_scores))
 
-    ### ADD DATA FOR ROLLOUT
+    ### ADD DATA FOR ROLLOUT ###
 
     temp_input_partial_info_binary_matrices = list()
     temp_input_path_matrices = list()
@@ -81,15 +81,12 @@ if __name__ == "__main__":
     for _ in range(len(input_partial_info_binary_matrices)//2):
         # -2 here because if not the the randint() ends up like randint(1,0), where first value is higher
         index1 = random.randint(0, len(input_partial_info_binary_matrices)-2)
-        print("length: ", len(input_partial_info_binary_matrices))
         if index1 not in visited:
             visited.append(index1)
             temp_input_partial_info_binary_matrices.append(input_partial_info_binary_matrices[index1])
-            print("index1: ", index1)
             # +1 because we don't want the same idx as index and -1 because it goes outside array otherwise
             index2 = random.randint(index1+1, len(input_partial_info_binary_matrices)-1)
             
-            print("index2: ", index2)
             temp_input_path_matrices.append(input_path_matrices[index2])
             temp_input_actions_binary_matrices.append(input_actions_binary_matrices[index2])
             temp_input_scores.append(input_scores[index2])

@@ -12,7 +12,7 @@ if __name__ == "__main__":
  
     # Bounds need to be an odd number for the action to always be in the middle
     # planner_options = ["random", "greedy", "network", "mcts"]
-    planner_options = ["mcts"]
+    planner_options = ["mcts", "greedy"]
     # planner_options = ["network"]
     # bounds = [21, 21]
     bounds = [21, 21]
@@ -40,7 +40,7 @@ if __name__ == "__main__":
             sensor_model = SensorModel(robot, map)
             start = time.time()
             simulator = Simulator(map, robot, sensor_model, planner)
-            simulator.visualize()
+            # simulator.visualize()
             simulator.run(50, False)
             end = time.time()
             simulator.visualize()

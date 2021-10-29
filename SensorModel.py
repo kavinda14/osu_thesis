@@ -58,6 +58,27 @@ class SensorModel:
             self.final_partial_info.append(partial_info)
         else: 
             return partial_info
+
+    def create_partial_info_mcts(self, map, update=True):
+        bounds = map.get_bounds()
+        partial_info = np.empty((bounds[0], bounds[1]), dtype=int)
+
+        for obs_free_loc in map.obs_free:
+            partial_info[obs_free_loc] = 0
+
+        for obs_occupied_loc in map.obs_occupied:
+            partial_info[obs_occupied_loc] = 1
+
+        for unobs_free_loc in map.unobs_free:
+            partial_info[unobs_free_loc] = 2
+
+        for unobs_occupied_loc in map.unobs_occupied:
+            partial_info[unobs_occupied_loc] = 2
+        
+        if update:
+            self.final_partial_info.append(partial_info)
+        else: 
+            return partial_info
     
     # update flag was added because when running greedy planner with NN, we want to get path but not update final list
     def create_final_path_matrix(self, update=True):
@@ -65,6 +86,18 @@ class SensorModel:
         path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
 
         for path in self.final_path:
+            path_matrix[path] = 1
+
+        if update:
+            self.final_path_matrices.append(path_matrix)
+        else:
+            return path_matrix
+
+    def create_final_path_matrix_mcts(self, input_final_path_matrix, update=True):
+        bounds = self.map.get_bounds()
+        path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+
+        for path in input_final_path_matrix:
             path_matrix[path] = 1
 
         if update:
