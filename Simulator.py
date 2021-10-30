@@ -1,3 +1,4 @@
+from time import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import sys
@@ -45,6 +46,7 @@ class Simulator:
 
     def tick(self, visualize=False):
         self.iterations += 1
+        print("Step: ", self.iterations)
 
         # Generate an action from the robot path
         # action = OraclePlanner.random_planner(self.robot)
@@ -55,12 +57,17 @@ class Simulator:
         if self.planner == "network":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)
         if self.planner == 'mcts':
-            budget = 7
+            times_visited = 3
+            budget = 10
             max_iterations = 200
             exploration_exploitation_parameter = 0.8 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-            solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map)
-            action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
+            
+            while times_visited > 2:
+                solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map)
+                times_visited = self.sensor_model.get_final_path().count(winner_loc)
+                print('times_visted: ', times_visited)
 
+            action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
 
         self.actions.append(action)
         # print("sensor path: ", self.sensor_model.get_final_path())

@@ -5,26 +5,11 @@ Oregon State University
 Jan 2020
 '''
 
-from numpy.core.numeric import Infinity
 from cost import cost
 import random
 import copy
 import NeuralNet
 import torch
-# from mcts import State
-
-# def rollout(subsequence, action_set, budget):
-#     # Random rollout policy
-#     # Pick random actions until budget is exhausted
-#     num_actions = len(action_set)
-#     if num_actions <= 0:
-#         raise ValueError('rollout: num_actions is ' + str(num_actions))
-#     sequence = copy.deepcopy(subsequence)
-#     while cost(sequence) < budget:
-#         r = random.randint(0,num_actions-1)
-#         sequence.append(action_set[r])
-
-#     return sequence
 
 class State():
     def __init__(self, action, location):
@@ -53,22 +38,50 @@ def generate_valid_neighbors(current_state, state_sequence, robot):
 
     return neighbors
 
-def rollout(subsequence, budget, robot):
+def rollout_random(subsequence, budget, robot):
     # THESE ARE STATES
     current_state = subsequence[-1]
     current_loc = subsequence[-1].get_location()
-    # print('rollout current_loc', current_loc)
     sequence = copy.deepcopy(subsequence)
     while cost(sequence) < budget:
         neighbors = generate_valid_neighbors(current_state, subsequence, robot)
-        # for neighbor in neighbors:
-        #     print('rollout neigh coords: ', neighbor.get_location())
-        # print(len(neighbors))
         r = random.randint(0, len(neighbors)-1)
         next_state = neighbors[r]
         sequence.append(next_state)
-        current_loc = next_state.get_location()
     
+    return sequence
+
+def rollout_greedy(subsequence, budget, robot, sensor_model, oracle=False):
+    rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
+    sequence = copy.deepcopy(subsequence)
+
+    # THESE ARE STATES
+    current_state = subsequence[-1]
+   
+    while cost(sequence) < budget:
+        neighbors = generate_valid_neighbors(current_state, subsequence, robot)
+        best_state = None
+        # use -infinity because network outputs negative values sometimes
+        best_action_score = float("-inf")
+
+        for state in neighbors:
+            scanned_unobs = sensor_model.scan(state.get_location(), False)
+            if oracle: 
+                action_score = len(scanned_unobs[0])
+            else:  
+                action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
+            
+            if action_score > best_action_score:
+                best_action_score = action_score
+                best_state = state
+        
+        sequence.append(best_state)
+        rollout_final_path.append(best_state.get_location())
+        # this is where the robot "moves"
+        current_state = best_state
+        best_action_score = float("-inf")
+        best_state = None
+
     return sequence
 
 def rollout_network(subsequence, budget, robot, sensor_model, world_map):
@@ -109,6 +122,8 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map):
         
         sequence.append(best_state)
         rollout_final_path.append(best_state.get_location())
+        # this is where the robot "moves"
+        current_state = best_state
         best_action_score = float("-inf")
         best_state = None
 

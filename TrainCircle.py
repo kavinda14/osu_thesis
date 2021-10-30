@@ -65,8 +65,43 @@ if __name__ == "__main__":
     print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
     print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
     print("final_final_scores: ", len(input_scores))
-    
-    # ### Train network
+
+    ### ADD DATA FOR ROLLOUT ###
+
+    temp_input_partial_info_binary_matrices = list()
+    temp_input_path_matrices = list()
+    temp_input_actions_binary_matrices = list()
+    temp_input_scores = list()
+
+    visited = list() 
+    # integer divide by two because we don't want to double the dataset size, but just a decent amount of samples
+    for _ in range(len(input_partial_info_binary_matrices)//2):
+        # -2 here because if not the the randint() ends up like randint(1,0), where first value is higher
+        index1 = random.randint(0, len(input_partial_info_binary_matrices)-2)
+        if index1 not in visited:
+            visited.append(index1)
+            temp_input_partial_info_binary_matrices.append(input_partial_info_binary_matrices[index1])
+            # +1 because we don't want the same idx as index and -1 because it goes outside array otherwise
+            index2 = random.randint(index1+1, len(input_partial_info_binary_matrices)-1)
+            
+            temp_input_path_matrices.append(input_path_matrices[index2])
+            temp_input_actions_binary_matrices.append(input_actions_binary_matrices[index2])
+            temp_input_scores.append(input_scores[index2])
+
+    input_partial_info_binary_matrices += temp_input_partial_info_binary_matrices
+    input_path_matrices += temp_input_path_matrices
+    input_actions_binary_matrices += temp_input_actions_binary_matrices
+    input_scores += temp_input_scores
+
+    print("final_path_matrices: ", len(input_path_matrices))
+    print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
+    print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
+    print("final_final_scores: ", len(input_scores))
+
+    ## Train network
     data = NeuralNet.datasetGenerator(input_partial_info_binary_matrices, input_path_matrices, input_actions_binary_matrices, input_scores)
     NeuralNet.runNetwork(data, bounds)
+    
+   
+
 

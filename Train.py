@@ -101,9 +101,9 @@ if __name__ == "__main__":
     print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
     print("final_final_scores: ", len(input_scores))
 
-    ### Train network
-    # data = NeuralNet.datasetGenerator(input_partial_info_binary_matrices, input_path_matrices, input_actions_binary_matrices, input_scores)
-    # NeuralNet.runNetwork(data, bounds)
+    ## Train network
+    data = NeuralNet.datasetGenerator(input_partial_info_binary_matrices, input_path_matrices, input_actions_binary_matrices, input_scores)
+    NeuralNet.runNetwork(data, bounds)
 
 
 

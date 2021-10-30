@@ -8,8 +8,7 @@ Jan 2020
 from tree_node import TreeNode
 import reward
 from cost import cost
-from rollout import rollout
-from rollout import rollout_network
+from rollout import rollout_network, rollout_greedy, rollout_random
 from action import Action, printActionSequence
 import copy
 import random
@@ -43,7 +42,7 @@ def generate_valid_neighbors(current_state, state_sequence, robot):
 
 
 # def mcts(action_set, budget, max_iterations, exploration_exploitation_parameter, robot, input_map):
-def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sensor_model, world_map):
+def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sensor_model, world_map, rollout_type, reward_type):
 
     ################################
     # Setup
@@ -154,11 +153,19 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
 
         ################################
         # Rollout
-        # rollout_sequence = rollout(subsequence=current.sequence, action_set=action_set, budget=budget)
-        rollout_sequence = rollout(subsequence=current.sequence, budget=budget, robot=robot)
-        rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map)
-        # rollout_reward = reward(action_sequence=rollout_sequence)
-        rollout_reward = reward.greedy_reward(rollout_sequence, sensor_model)
+        if rollout_type == 'random':
+            rollout_sequence = rollout_random(subsequence=current.sequence, budget=budget, robot=robot)
+        if rollout_type == 'greedy':
+            rollout_sequence = rollout_greedy(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model)
+        if rollout_type == 'network':
+            rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map)
+
+        if reward_type == 'random':
+            rollout_reward = reward.reward_random(rollout_sequence)
+        if reward_type == 'greedy':
+            rollout_reward = reward.reward_greedy(rollout_sequence, sensor_model)
+        if reward_type == 'network':
+            rollout_reward = reward.reward_network(rollout_sequence, sensor_model, world_map)
 
         ################################
         # Back-propagation
