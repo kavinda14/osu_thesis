@@ -10,7 +10,7 @@ from basic_MCTS_python import mcts
 # from basic_MCTS_python import plot_tree
 
 class Simulator:
-    def __init__(self, world_map, robot, sensor_model, planner):
+    def __init__(self, world_map, robot, sensor_model, planner, rollout_type, reward_type):
         """
         Inputs:
         world_map: The map to be explored
@@ -26,6 +26,8 @@ class Simulator:
         self.iterations = 0
 
         self.planner = planner
+        self.rollout_type = rollout_type
+        self.reward_type = reward_type
         
         # actions list was created because we thought the robot was sometimes not moving
         self.actions = list()
@@ -50,24 +52,23 @@ class Simulator:
 
         # Generate an action from the robot path
         # action = OraclePlanner.random_planner(self.robot)
-        if self.planner == "random":
-            action = OraclePlanner.random_planner(self.robot, self.sensor_model)
-        if self.planner == "greedy":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map)
-        if self.planner == "network":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)
-        if self.planner == 'mcts':
-            times_visited = 3
-            budget = 10
-            max_iterations = 200
-            exploration_exploitation_parameter = 0.8 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-            
-            while times_visited > 2:
-                solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map)
-                times_visited = self.sensor_model.get_final_path().count(winner_loc)
-                print('times_visted: ', times_visited)
+        # if self.planner == "random":
+        #     action = OraclePlanner.random_planner(self.robot, self.sensor_model)
+        # if self.planner == "greedy":
+        #     action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map)
+        # if self.planner == "network":
+            # action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)
+        # if self.planner == 'mcts':
+        times_visited = 3
+        budget = 10
+        max_iterations = 200
+        exploration_exploitation_parameter = 0.8 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
+        
+        while times_visited > 2:
+            solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type)
+            times_visited = self.sensor_model.get_final_path().count(winner_loc)
 
-            action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
+        action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
 
         self.actions.append(action)
         # print("sensor path: ", self.sensor_model.get_final_path())

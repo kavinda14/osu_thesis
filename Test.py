@@ -8,68 +8,81 @@ import numpy as np
 import random as r
 import time as time
 
+from basic_MCTS_python.reward import reward_greedy
+
 if __name__ == "__main__":
  
     # Bounds need to be an odd number for the action to always be in the middle
-    # planner_options = ["random", "greedy", "network", "mcts"]
-    planner_options = ["mcts", "greedy"]
-    # planner_options = ["network"]
-    # bounds = [21, 21]
+    planner_options = ["random", "greedy", "network"]
     bounds = [21, 21]
-    random = list()
-    greedy = list()
-    network = list()
-    x1 = list()
-
-    # trials = 200
     trials = 1
-    for i in range(trials):
-        print("Trial no: {}".format(i))
-        x1.append(i)
-        map = Map(bounds, 7, (), False)
-        unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
 
-        valid_starting_loc = False
-        while not valid_starting_loc:
-            x = r.randint(0, bounds[0]-1)
-            y = r.randint(0, bounds[0]-1)
-            valid_starting_loc = map.check_loc(x, y) 
-        for planner in planner_options:     
-            map = Map(bounds, 18, copy.deepcopy(unobs_occupied), True)
-            robot = Robot(x, y, bounds, map)
-            sensor_model = SensorModel(robot, map)
-            start = time.time()
-            simulator = Simulator(map, robot, sensor_model, planner)
-            # simulator.visualize()
-            simulator.run(50, False)
-            end = time.time()
-            simulator.visualize()
-            score = sum(sensor_model.get_final_scores())
-            
-    #         print("Planner: {}, Score: {}".format(planner, score))
-    #         print("No of steps taken: ", len(simulator.get_actions()))
-    #         print("Time taken: ", end - start)
+    score_lists = [list() for _ in range(9)]
+    score_list = 0
 
-    #         if planner == "random":
-    #             random.append(score)
-    #         elif planner == "greedy":
-    #             greedy.append(score)
-    #         else:
-    #             network.append(score)
+    for rollout_type in planner_options:
+        for reward_type in planner_options:
+            print("Rollout: {}, Reward: {}".format(rollout_type, reward_type))
+            curr_list = score_lists[score_list]
+            curr_list.append(rollout_type + '_' + reward_type)
+            score_list += 1
 
-    # avg_random = sum(random)/trials
-    # avg_greedy = sum(greedy)/trials
-    # avg_network = sum(network)/trials
+            for i in range(trials):
+                print("Trial no: {}".format(i))
+                map = Map(bounds, 7, (), False)
+                unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
 
+                valid_starting_loc = False
+                while not valid_starting_loc:
+                    x = r.randint(0, bounds[0]-1)
+                    y = r.randint(0, bounds[0]-1)
+                    valid_starting_loc = map.check_loc(x, y) 
+                for planner in planner_options:     
+                    map = Map(bounds, 18, copy.deepcopy(unobs_occupied), True)
+                    robot = Robot(x, y, bounds, map)
+                    sensor_model = SensorModel(robot, map)
+                    start = time.time()
+                    simulator = Simulator(map, robot, sensor_model, planner, rollout_type, reward_type)
+                    # simulator.visualize()
+                    simulator.run(2, False)
+                    end = time.time()
+                    # simulator.visualize()
+                    score = sum(sensor_model.get_final_scores())
+                    
+                    print("rollout: {}, reward: {}, score: {}".format(rollout_type, reward_type, score))
+                    print("No of steps taken: ", len(simulator.get_actions()))
+                    print("Time taken: ", end - start)
+                    
+                    curr_list.append(score)
+
+    ## Create Bar Graphs
+    bars = list()
+    scores = list()
+
+    for score_list in score_lists:
+        planner_name = score_list[0]
+        bars.append(planner_name)
+        del score_list[0]
+        curr_score = sum(score_list)/trials
+        scores.append(curr_score)
+
+    x_pos = np.arange(len(bars))
+    plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320'])
+    plt.xticks(x_pos, bars, rotation=45)
+    plt.show()
+
+    ## Create Line Graphs
     # plt.plot(x1, random, label = "random")
     # plt.plot(x1, greedy, label = "greedy")
     # plt.plot(x1, network, label = "network")
+    # plt.plot(x1, mcts, label = "mcts")
 
     # plt.xlabel('Trial no')
     # # Set the y axis label of the current axis.
     # plt.ylabel('Score')
     # # Set a title of the current axes.
-    # plt.title('Avg scores: random: {}, greedy: {}, network: {}'.format(avg_random, avg_greedy, avg_network))
+    # plt.title('Avg scores: random: {}, greedy: {}, network: {}, mcts {}'.format(avg_random, avg_greedy, avg_network, avg_mcts))
+    # # plt.title('Avg scores: random: {}, greedy: {}, network: {}'.format(avg_random, avg_greedy, avg_network))
     # # show a legend on the plot
     # plt.legend()
     # # Display a figure.
