@@ -37,7 +37,7 @@ def random_planner(robot, sensor_model):
    
     return action
 
-def greedy_planner(robot, sensor_model, map, neural_net=False):
+def greedy_planner(robot, sensor_model, map, neural_net=False, oracle=False):
     # actions = ['left', 'right', 'backward', 'forward']
     actions = ['left', 'backward', 'right', 'forward']
     # actions = ['backward', 'forward']
@@ -87,10 +87,11 @@ def greedy_planner(robot, sensor_model, map, neural_net=False):
                     else:
                         # counter += 1
                         # Oracle greedy
-                        # action_score = len(sensor_model.scan(temp_robot_loc, False)[0])
-                        # Non-oracle greedy
-                        scanned_unobs = sensor_model.scan(temp_robot_loc, False)
-                        action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
+                        if oracle:
+                            action_score = len(sensor_model.scan(temp_robot_loc, False)[0])
+                        else:
+                            scanned_unobs = sensor_model.scan(temp_robot_loc, False)
+                            action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
 
                     if action_score > best_action_score:
                         best_action_score = action_score

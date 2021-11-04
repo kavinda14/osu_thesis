@@ -13,7 +13,7 @@ if __name__ == "__main__":
     input_actions_binary_matrices = list()
     input_scores = list()
 
-    planner_options = ["random", "greedy"]
+    planner_options = ["random", "greedy-oracle"]
     # planner_options = ["greedy"]
     
     for i in range(45):
@@ -36,12 +36,12 @@ if __name__ == "__main__":
             sensor_model = SensorModel(robot, map)
             
             simulator = Simulator(map, robot, sensor_model, planner)
-            # simulator.visualize()
+            simulator.visualize()
             simulator.run(2500, False)
 
-            # simulator.visualize()
+            simulator.visualize()
             
-            ### Training data
+            ### TRAINING DATA
             path_matricies = sensor_model.get_final_path_matrices()
 
             final_partial_info = sensor_model.get_final_partial_info()
@@ -67,7 +67,6 @@ if __name__ == "__main__":
     print("final_final_scores: ", len(input_scores))
 
     ### ADD DATA FOR ROLLOUT ###
-
     temp_input_partial_info_binary_matrices = list()
     temp_input_path_matrices = list()
     temp_input_actions_binary_matrices = list()

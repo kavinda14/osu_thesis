@@ -191,7 +191,7 @@ def runNetwork(data, bounds):
     time_taken = (end - start)/60
     print("Time taken: {:.3f}".format(time_taken))
 
-    torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata")
+    torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata2")
     print('Finished Training')
 
     loss_values.append(running_loss)
