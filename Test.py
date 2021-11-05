@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random as r
 import time as time
+import pickle
 
 from basic_MCTS_python.reward import reward_greedy
 
@@ -25,6 +26,9 @@ if __name__ == "__main__":
     # 12 because we have 13 diff planners
     score_lists = [list() for _ in range(13)]
     score_list = 0
+
+    filename = '/home/kavi/thesis/pickles/planner_scores'
+    # outfile = open(filename,'wb')
 
     test_start_time = time.time()
     for planner in planner_options:
@@ -58,11 +62,18 @@ if __name__ == "__main__":
                         end = time.time()
                         # simulator.visualize()
                         score = sum(sensor_model.get_final_scores())                        
+                        curr_list.append(score)
+                       
                         print("Score: ", score)
                         print("Time taken: ", end - start)
                         print()
                         
-                        curr_list.append(score)
+                        # pickle progress
+                        outfile = open(filename,'wb')
+                        pickle.dump(score_lists, outfile)
+                        outfile.close()
+
+
         else:
             print("Planner: {}".format(planner))
             curr_list = score_lists[score_list]
@@ -86,6 +97,11 @@ if __name__ == "__main__":
                 print()
                 
                 curr_list.append(score)
+                
+                # pickle progress
+                outfile = open(filename,'wb')
+                pickle.dump(score_lists, outfile)
+                outfile.close()
     
     test_end_time = time.time()
     print("Total time taken: ", (test_end_time - test_start_time)/60)
@@ -98,7 +114,7 @@ if __name__ == "__main__":
         planner_name = score_list[0]
         bars.append(planner_name)
         del score_list[0]
-        curr_score = sum(score_list)/trials
+        curr_score = sum(score_list)/len(score_list)
         scores.append(curr_score)
 
     x_pos = np.arange(len(bars))
