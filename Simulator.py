@@ -54,9 +54,9 @@ class Simulator:
         action = OraclePlanner.random_planner(self.robot, self.sensor_model)
         if self.planner == "random":
             action = OraclePlanner.random_planner(self.robot, self.sensor_model)
-        if self.planner == "greedy-oracle":
+        if self.planner == "greedy-o":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, oracle=True)
-        if self.planner == "greedy-nonoracle":
+        if self.planner == "greedy-no":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, oracle=False)
         if self.planner == "network":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)

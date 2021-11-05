@@ -45,7 +45,6 @@ def rollout_random(subsequence, budget, robot):
     sequence = copy.deepcopy(subsequence)
     while cost(sequence) < budget:
         neighbors = generate_valid_neighbors(current_state, subsequence, robot)
-        print(len(neighbors))
         r = random.randint(0, len(neighbors)-1)
         next_state = neighbors[r]
         sequence.append(next_state)
