@@ -61,13 +61,13 @@ class Simulator:
         if self.planner == "network":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)
         if self.planner == 'mcts':
-            times_visited = 3
+            times_visited = 2
             budget = 10
             # test this at diff values >1000 and test for final reward
             max_iterations = 1000
             exploration_exploitation_parameter = 0.8 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             
-            while times_visited > 2:
+            while times_visited > 1:
                 solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type)
                 times_visited = self.sensor_model.get_final_path().count(winner_loc)
 

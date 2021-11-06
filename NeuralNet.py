@@ -4,6 +4,9 @@ from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.utils.data import sampler
+from torch.utils.data.sampler import SubsetRandomSampler
+import numpy as np
 import matplotlib.pyplot as plt
 import time
 from tqdm import tqdm
@@ -12,7 +15,7 @@ from tqdm import tqdm
 def datasetGenerator(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices, final_scores): 
     data = list()
 
-    for i in range(len(partial_info_binary_matrices)):
+    for i in tqdm(range(len(partial_info_binary_matrices))):
         image = list()
 
         for partial_info in partial_info_binary_matrices[i]:
@@ -60,18 +63,44 @@ class PlanningDataset(Dataset):
         return sample
 
 # Dataloaders
-def createDataLoaders(data):
-    train_data = PlanningDataset(data)
-    test_data = PlanningDataset(data)
+# def createDataLoaders(data):
+    
+#     train_data = PlanningDataset(data)
+#     test_data = PlanningDataset(data)
 
-    batch_size = 128
+#     batch_size = 128
 
-    trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size,
-                                            shuffle=True, num_workers=2)
-    testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size,
-                                            shuffle=False, num_workers=2)
+#     trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size,
+#                                             shuffle=True, num_workers=2)
+#     testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size,
+#                                             shuffle=False, num_workers=2)
                                             
-    return [trainloader, testloader]
+#     return [trainloader, testloader]
+
+def createDataLoaders(data):
+    
+    dataset = PlanningDataset(data)
+    validation_split = 0.5
+    batch_size = 128
+    random_seed= 42
+
+    dataset_size = len(dataset)
+    indices = list(range(dataset_size))
+    split = int(np.floor(validation_split * dataset_size))
+
+    np.random.seed(random_seed)
+    np.random.shuffle(indices)
+    train_indices, val_indices = indices[split:], indices[:split]
+
+    train_sampler = SubsetRandomSampler(train_indices)
+    valid_sampler = SubsetRandomSampler(val_indices)
+
+    train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                            sampler=train_sampler, num_workers=2)
+    valid_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                            sampler=valid_sampler, num_workers=2)
+                                            
+    return [train_loader, valid_loader]
 
 # Neural Network architecture
 def get_linear_layer_multiple(value):
@@ -108,7 +137,7 @@ class Net(nn.Module):
 
 def runNetwork(data, bounds, weights_path):
     
-    trainloader, testloader = createDataLoaders(data)
+    train_loader, valid_loader = createDataLoaders(data)
 
     # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net = Net(bounds)
@@ -122,11 +151,17 @@ def runNetwork(data, bounds, weights_path):
 
     # Run network
     start = time.time()
-    loss_values = list()
-    for epoch in range(2):  # loop over the dataset multiple times
+    train_loss_values = list()
+    valid_loss_values = list()
 
-        running_loss = 0.0
-        for i, data in tqdm(enumerate(trainloader, 0)):
+    for epoch in range(2):  # loop over the dataset multiple times
+        
+        # training
+        training_loss = 0.0
+        epoch_training_loss = 0.0
+        epoch_valid_loss = 0.0
+        net.train()
+        for i, data in enumerate(train_loader, 0):
             # get the inputs; data is a list of [inputs, labels]
             # inputs, labels = data[0].to(device), data[1].to(device)
             inputs, labels = data
@@ -144,13 +179,32 @@ def runNetwork(data, bounds, weights_path):
             optimizer.step()
             
             # print statistics
-            running_loss += loss.item()
+            training_loss += loss.item()
+            epoch_training_loss += loss.item()
             if i % 100 == 99:    # print every 100 mini-batches
-                avg_running_loss = running_loss / 100
-                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, avg_running_loss))
-                loss_values.append(avg_running_loss)
-                print("avg_running_lostt: ", avg_running_loss)
-                running_loss = 0.0            
+                avg_training_loss = training_loss / 100
+                print('[%d, %5d] train loss: %.3f' % (epoch + 1, i + 1, avg_training_loss))
+                train_loss_values.append(avg_training_loss)
+                training_loss = 0.0    
+
+        # validation
+        valid_loss = 0.0
+        net.eval()   
+        for i, data in enumerate(valid_loader, 0):
+            data, labels = data
+            target = net(data.float())
+            loss = criterion(target, labels)
+            # valid_loss += loss.item() * data.size(0)
+            valid_loss += loss.item()
+            epoch_valid_loss = loss.item()
+
+            if i % 100 == 99:    # print every 10 mini-batches
+                avg_valid_loss = valid_loss / 100
+                print('[%d, %5d] valid loss: %.3f' % (epoch + 1, i + 1, avg_valid_loss))
+                valid_loss_values.append(avg_valid_loss)
+                valid_loss = 0.0     
+
+        print("Train loss = {}, Valid loss = {}".format(epoch_training_loss, epoch_valid_loss))       
     
     end = time.time()
     time_taken = (end - start)/60
@@ -159,7 +213,9 @@ def runNetwork(data, bounds, weights_path):
     torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata2")
     print('Finished Training')
 
-    loss_values.append(running_loss)
-    plt.plot(loss_values)
-    plt.title("Loss Values, time taken: {:.4f}".format(time_taken))
+    # plot train and valid loss 
+    plt.plot(train_loss_values, label="train loss")
+    plt.plot(valid_loss_values, label="valid loss")
+    plt.legend(loc='best')
+    plt.title("Train Loss vs Valid Loss, time taken: {:.4f}".format(time_taken))
     plt.show()

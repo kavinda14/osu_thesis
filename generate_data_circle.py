@@ -17,16 +17,11 @@ if __name__ == "__main__":
 
     planner_options = ["random", "greedy-o"]
     # planner_options = ["random"]
-    trials = 2
-    # trials = 45
-    # steps = 2500
-    steps = 25
+    # trials = 2
+    trials = 45
+    steps = 2500
+    # steps = 25
     visualize = False
-
-    filename1 = '/home/kavi/thesis/pickles/final_path_matrices_circle_21x21_random_greedyo_t45_s2000'
-    filename2 = '/home/kavi/thesis/pickles/final_partial_info_binary_matrices_random_greedyo_t45_s2000'
-    filename3 = '/home/kavi/thesis/pickles/final_final_actions_binary_matrices_circle_21x21_random_greedyo_t45_s2000'
-    filename4 = '/home/kavi/thesis/pickles/final_final_scores_circle_21x21_random_greedyo_t45_s2000'
     
     for i in tqdm(range(trials)):
         for planner in planner_options: 
@@ -110,26 +105,12 @@ if __name__ == "__main__":
     print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
     print("final_final_scores: ", len(input_scores))
 
-    outfile = open(filename1,'wb')
-    pickle.dump(input_path_matrices, outfile)
+    # generate the list of images
+    data = NeuralNet.datasetGenerator(input_partial_info_binary_matrices, input_path_matrices, input_actions_binary_matrices, input_scores)
+
+    # pickle image data to train later
+    filename = '/home/kavi/thesis/pickles/data_21x21_random_greedyo_t45_s2000'
+    outfile = open(filename,'wb')
+    pickle.dump(data, outfile)
     outfile.close()
-
-    outfile = open(filename2,'wb')
-    pickle.dump(input_partial_info_binary_matrices, outfile)
-    outfile.close()
-
-    outfile = open(filename3,'wb')
-    pickle.dump(input_actions_binary_matrices, outfile)
-    outfile.close()
-
-    outfile = open(filename4,'wb')
-    pickle.dump(input_scores, outfile)
-    outfile.close()
-
-    ## Train network
-    # data = NeuralNet.datasetGenerator(input_partial_info_binary_matrices, input_path_matrices, input_actions_binary_matrices, input_scores)
-    # NeuralNet.runNetwork(data, bounds)
-    
-   
-
 

@@ -63,10 +63,10 @@ if __name__ == "__main__":
                         sensor_model = SensorModel(robot, map)
                         start = time.time()
                         simulator = Simulator(map, robot, sensor_model, planner, rollout_type, reward_type)
-                        # simulator.visualize()
+                        simulator.visualize()
                         simulator.run(steps, False)
                         end = time.time()
-                        # simulator.visualize()
+                        simulator.visualize()
                         score = sum(sensor_model.get_final_scores())                        
                         curr_list.append(score)
                        
