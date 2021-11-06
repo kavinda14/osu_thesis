@@ -48,7 +48,8 @@ def greedy_planner(robot, sensor_model, map, neural_net=False, oracle=False):
     counter = 0
 
     model = NeuralNet.Net(map.get_bounds())
-    model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21"))
+    # model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21"))
+    model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata"))
     # model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2"))
     model.eval()
 

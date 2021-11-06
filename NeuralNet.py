@@ -6,40 +6,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import time
-
-
-# Dataset
-# def datasetGenerator(limit, partial_info_binary_matrices_pickle, path_matricies_pickle, final_actions_binary_matrices_pickle, final_scores_pickle): 
-#     data = list()
-
-#     for i in range(limit):
-
-#         partial_info_pickle_in = open(partial_info_binary_matrices_pickle, "rb")
-#         current_partial_info = pickle.load(partial_info_pickle_in)
-        
-#         path_matrices_pickle_in = open(path_matricies_pickle, "rb")
-#         current_path_matrix = pickle.load(path_matrices_pickle_in)
-#         action_pickle_in = open(final_actions_binary_matrices_pickle, "rb")
-#         current_action = pickle.load(action_pickle_in)
-#         scores_pickle_in = open(final_scores_pickle, "rb")
-#         current_score = pickle.load(scores_pickle_in)
-#         print(len(current_score))
-
-#         for j in range(len(current_partial_info)):
-#             image = list()
-            
-#             for partial_info in current_partial_info[j]:
-#                 image.append(partial_info)
-
-#             image.append(current_path_matrix[j])
-
-#             for action in current_action[j]:
-#                 image.append(action)
-            
-            
-#             data.append([torch.IntTensor(image), current_score[j]])
-
-#     return data
+from tqdm import tqdm
 
 # Dataset
 def datasetGenerator(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices, final_scores): 
@@ -139,7 +106,7 @@ class Net(nn.Module):
         return x
 
 
-def runNetwork(data, bounds):
+def runNetwork(data, bounds, weights_path):
     
     trainloader, testloader = createDataLoaders(data)
 
@@ -159,7 +126,7 @@ def runNetwork(data, bounds):
     for epoch in range(2):  # loop over the dataset multiple times
 
         running_loss = 0.0
-        for i, data in enumerate(trainloader, 0):
+        for i, data in tqdm(enumerate(trainloader, 0)):
             # get the inputs; data is a list of [inputs, labels]
             # inputs, labels = data[0].to(device), data[1].to(device)
             inputs, labels = data
@@ -171,8 +138,6 @@ def runNetwork(data, bounds):
             # REMEMBER TO ADD float()
             outputs = net(inputs.float())
             
-            # print("outputs: ", outputs)
-            # print("labels: ", labels)
             loss = criterion(outputs, labels)
             
             loss.backward()
@@ -180,11 +145,11 @@ def runNetwork(data, bounds):
             
             # print statistics
             running_loss += loss.item()
-            # print(loss.item())
-            if i % 100 == 99:    # print every 10 mini-batches
-                print('[%d, %5d] loss: %.3f' %
-                    (epoch + 1, i + 1, running_loss / 100))
-                loss_values.append(running_loss/100)
+            if i % 100 == 99:    # print every 100 mini-batches
+                avg_running_loss = running_loss / 100
+                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, avg_running_loss))
+                loss_values.append(avg_running_loss)
+                print("avg_running_lostt: ", avg_running_loss)
                 running_loss = 0.0            
     
     end = time.time()
