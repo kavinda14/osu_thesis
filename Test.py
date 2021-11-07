@@ -69,7 +69,8 @@ if __name__ == "__main__":
                         simulator.visualize()
                         score = sum(sensor_model.get_final_scores())                        
                         curr_list.append(score)
-                       
+                        
+                        print(sensor_model.get_final_path())     
                         print("Score: ", score)
                         print("Time taken (secs): ", end - start)
                         print()
@@ -97,7 +98,8 @@ if __name__ == "__main__":
                 simulator.run(steps, False)
                 end = time.time()
                 # simulator.visualize()
-                score = sum(sensor_model.get_final_scores())                        
+                score = sum(sensor_model.get_final_scores())     
+                print(sensor_model.get_final_path())                   
                 print("Score: ", score)
                 print("Time taken (secs): ", end - start)
                 print()

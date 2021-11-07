@@ -62,34 +62,21 @@ class PlanningDataset(Dataset):
 
         return sample
 
-# Dataloaders
-# def createDataLoaders(data):
-    
-#     train_data = PlanningDataset(data)
-#     test_data = PlanningDataset(data)
-
-#     batch_size = 128
-
-#     trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size,
-#                                             shuffle=True, num_workers=2)
-#     testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size,
-#                                             shuffle=False, num_workers=2)
-                                            
-#     return [trainloader, testloader]
-
 def createDataLoaders(data):
     
     dataset = PlanningDataset(data)
     validation_split = 0.5
     batch_size = 128
     random_seed= 42
+    shuffle_dataset = True
 
     dataset_size = len(dataset)
     indices = list(range(dataset_size))
     split = int(np.floor(validation_split * dataset_size))
 
-    np.random.seed(random_seed)
-    np.random.shuffle(indices)
+    if shuffle_dataset :
+        np.random.seed(random_seed)
+        np.random.shuffle(indices)
     train_indices, val_indices = indices[split:], indices[:split]
 
     train_sampler = SubsetRandomSampler(train_indices)
@@ -134,9 +121,8 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
-
 def runNetwork(data, bounds, weights_path):
-    
+
     train_loader, valid_loader = createDataLoaders(data)
 
     # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -187,35 +173,32 @@ def runNetwork(data, bounds, weights_path):
                 train_loss_values.append(avg_training_loss)
                 training_loss = 0.0    
 
-        # validation
-        valid_loss = 0.0
-        net.eval()   
-        for i, data in enumerate(valid_loader, 0):
-            data, labels = data
-            target = net(data.float())
-            loss = criterion(target, labels)
-            # valid_loss += loss.item() * data.size(0)
-            valid_loss += loss.item()
-            epoch_valid_loss = loss.item()
+                # validation
+                valid_loss = 0.0
+                net.eval()   
+                for j, data in enumerate(valid_loader, 0):
+                    inputs, labels = data
+                    target = net(inputs.float())
+                    loss = criterion(target, labels)
+                    # valid_loss += loss.item() * data.size(0)
+                    valid_loss += loss.item()
 
-            if i % 100 == 99:    # print every 10 mini-batches
-                avg_valid_loss = valid_loss / 100
+                avg_valid_loss = valid_loss / len(valid_loader)
                 print('[%d, %5d] valid loss: %.3f' % (epoch + 1, i + 1, avg_valid_loss))
                 valid_loss_values.append(avg_valid_loss)
-                valid_loss = 0.0     
 
-        print("Train loss = {}, Valid loss = {}".format(epoch_training_loss, epoch_valid_loss))       
-    
-    end = time.time()
-    time_taken = (end - start)/60
-    print("Time taken: {:.3f}".format(time_taken))
+        end = time.time()
+        time_taken = (end - start)/60
+        print("Time taken: {:.3f}".format(time_taken))
 
-    torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata2")
-    print('Finished Training')
+        torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata2")
+        print('Finished Training')
 
-    # plot train and valid loss 
-    plt.plot(train_loss_values, label="train loss")
-    plt.plot(valid_loss_values, label="valid loss")
-    plt.legend(loc='best')
-    plt.title("Train Loss vs Valid Loss, time taken: {:.4f}".format(time_taken))
-    plt.show()
+        # plot train and valid loss 
+        plt.plot(train_loss_values, label="train loss")
+        plt.plot(valid_loss_values, label="valid loss")
+        plt.legend(loc='best')
+        plt.title("Train Loss vs Valid Loss, time taken: {:.4f}".format(time_taken))
+        plt.show()
+
+

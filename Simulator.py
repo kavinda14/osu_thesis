@@ -70,6 +70,7 @@ class Simulator:
             while times_visited > 1:
                 solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type)
                 times_visited = self.sensor_model.get_final_path().count(winner_loc)
+                print('times_visited', times_visited)
 
             action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
 
