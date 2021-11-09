@@ -37,12 +37,7 @@ def reward_greedy(rollout_sequence, sensor_model, oracle=False):
 
     return reward
 
-def reward_network(rollout_sequence, sensor_model, world_map):
-    model = NeuralNet.Net(world_map.get_bounds())
-    # put this outside this function
-    model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata2"))
-    model.eval()
-
+def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
     reward_final_path = copy.deepcopy(sensor_model.get_final_path())
     reward_map = copy.deepcopy(world_map)
 
@@ -62,7 +57,7 @@ def reward_network(rollout_sequence, sensor_model, world_map):
         input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices)
         input = input.unsqueeze(0).float()
         
-        reward += model(input).item()
+        reward += neural_model(input).item()
 
     return reward
 

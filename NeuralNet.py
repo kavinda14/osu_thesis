@@ -140,7 +140,7 @@ def runNetwork(data, bounds, weights_path):
     train_loss_values = list()
     valid_loss_values = list()
 
-    for epoch in range(2):  # loop over the dataset multiple times
+    for epoch in range(6):  # loop over the dataset multiple times
         
         # training
         training_loss = 0.0
@@ -187,18 +187,18 @@ def runNetwork(data, bounds, weights_path):
                 print('[%d, %5d] valid loss: %.3f' % (epoch + 1, i + 1, avg_valid_loss))
                 valid_loss_values.append(avg_valid_loss)
 
-        end = time.time()
-        time_taken = (end - start)/60
-        print("Time taken: {:.3f}".format(time_taken))
+    end = time.time()
+    time_taken = (end - start)/60
+    print("Time taken: {:.3f}".format(time_taken))
 
-        torch.save(net.state_dict(), "/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata2")
-        print('Finished Training')
+    torch.save(net.state_dict(), weights_path)
+    print('Finished Training')
 
-        # plot train and valid loss 
-        plt.plot(train_loss_values, label="train loss")
-        plt.plot(valid_loss_values, label="valid loss")
-        plt.legend(loc='best')
-        plt.title("Train Loss vs Valid Loss, time taken: {:.4f}".format(time_taken))
-        plt.show()
+    # plot train and valid loss 
+    plt.plot(train_loss_values, label="train loss")
+    plt.plot(valid_loss_values, label="valid loss")
+    plt.legend(loc='best')
+    plt.title("Train Loss vs Valid Loss, time taken: {:.4f}".format(time_taken))
+    plt.show()
 
 

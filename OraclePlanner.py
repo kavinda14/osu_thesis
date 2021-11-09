@@ -37,77 +37,109 @@ def random_planner(robot, sensor_model):
    
     return action
 
-def greedy_planner(robot, sensor_model, map, neural_net=False, oracle=False):
-    # actions = ['left', 'right', 'backward', 'forward']
-    actions = ['left', 'backward', 'right', 'forward']
-    # actions = ['backward', 'forward']
-    # best_action = random_planner(robot, sensor_model)
-    # best_action = None
-    best_action = random.choice(actions)
-    best_action_score = float('-inf')
-    counter = 0
+# def greedy_planner(robot, sensor_model, map, neural_net=False, oracle=False):
+#     actions = ['left', 'backward', 'right', 'forward']
+#     best_action = random.choice(actions)
+#     best_action_score = float('-inf')
+#     counter = 0
 
-    model = NeuralNet.Net(map.get_bounds())
-    # model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21"))
-    model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata"))
-    # model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2"))
-    model.eval()
+#     model = NeuralNet.Net(map.get_bounds())
+#     model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata"))
+#     model.eval()
+
+#     partial_info = [sensor_model.create_partial_info(False)]
+#     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
+
+#     path_matrix = sensor_model.create_final_path_matrix(False)
+
+#     while True:
+#         for action in actions:
+#             counter += 1
+#             times_visited = sensor_model.get_final_path().count(tuple(robot.get_action_loc(action)))
+#             # if robot.check_valid_move(action) and times_visited < 1: # This means times_visited - 1 is allowed e.g. times_visited < 1 means 0 times allowed
+#             if robot.check_valid_move(action):
+#                 if times_visited < 2: # This means times_visited is allowed e.g. times_visited < 1 means 1 times allowed to be in list
+#                     temp_robot_loc = robot.get_action_loc(action)
+#                     if neural_net:
+#                         # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
+#                         final_actions = [sensor_model.create_action_matrix(action, True)]
+#                         final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
+                    
+#                         input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices)
+
+#                         # The unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
+#                         # By unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 
+#                         input = input.unsqueeze(0).float()
+
+#                         action_score = model(input).item()
+                        
+#                     else:
+#                         # Oracle greedy
+#                         if oracle:
+#                             action_score = len(sensor_model.scan(temp_robot_loc, False)[0])
+#                         else:
+#                             scanned_unobs = sensor_model.scan(temp_robot_loc, False)
+#                             action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
+
+#                     if action_score > best_action_score:
+#                         best_action_score = action_score
+#                         best_action = action
+
+#         if counter > 20:
+#             break
+
+#     return best_action
+
+# model here is the neural net
+def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=False):
+    actions = ['left', 'backward', 'right', 'forward']
+    best_action_score = float('-inf')
+    best_action = random.choice(actions)
+
+    # load neural net with weights and set to forward prop only
+    # model = NeuralNet.Net(map.get_bounds())
+    # model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata2"))
+    # model.eval()
 
     partial_info = [sensor_model.create_partial_info(False)]
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
-
     path_matrix = sensor_model.create_final_path_matrix(False)
 
-    # while counter == 0:
-    # while best_action == None:
-    while True:
-        for action in actions:
-            counter += 1
-            times_visited = sensor_model.get_final_path().count(tuple(robot.get_action_loc(action)))
-            robot_loc_debug = robot.get_loc()
-            action_loc_debug = robot.get_action_loc(action)
-            # if robot.check_valid_move(action) and times_visited < 1: # This means times_visited - 1 is allowed e.g. times_visited < 1 means 0 times allowed
-            if robot.check_valid_move(action):
-                if times_visited < 2: # This means times_visited is allowed e.g. times_visited < 1 means 1 times allowed to be in list
-                    temp_robot_loc = robot.get_action_loc(action)
-                    if neural_net:
-                        # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
-                        final_actions = [sensor_model.create_action_matrix(action, True)]
-                        final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
+    for action in actions:
+        if robot.check_valid_move(action):
+            # tuple is needed here for count()
+            potential_next_loc = tuple(robot.get_action_loc(action))
+            times_visited = sensor_model.get_final_path().count(potential_next_loc)
+            
+            # backtrack possibility
+            if times_visited <= 1: 
+                if neural_net:
+                    # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
+                    final_actions = [sensor_model.create_action_matrix(action, True)]
+                    final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
+                
+                    input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices)
+
+                    # The unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
+                    # By unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 
+                    input = input.unsqueeze(0).float()
+
+                    action_score = neural_model(input).item()
                     
-                        input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices)
-
-                        # The unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
-                        # By unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 
-                        input = input.unsqueeze(0).float()
-
-                        action_score = model(input).item()
-                        # action_score = -1
-                        # print(action_score)
-                        
+                else:
+                    # oracle greedy knows where all the obstacles are
+                    if oracle:
+                        action_score = len(sensor_model.scan(potential_next_loc, False)[0])
                     else:
-                        # counter += 1
-                        # Oracle greedy
-                        if oracle:
-                            action_score = len(sensor_model.scan(temp_robot_loc, False)[0])
-                        else:
-                            scanned_unobs = sensor_model.scan(temp_robot_loc, False)
-                            action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
+                        scanned_unobs = sensor_model.scan(potential_next_loc, False)
+                        action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
 
-                    if action_score > best_action_score:
-                        best_action_score = action_score
-                        best_action = action
+                if action_score > best_action_score:
+                    best_action_score = action_score
+                    best_action = action
 
-        if counter > 20:
-            break
-
+    print('FINAL: ', sensor_model.get_final_path().count(tuple(robot.get_action_loc(best_action))))
     return best_action
-
-# def mcts():
-#     #selection
-#     #expansion
-#     #simulation
-#     #backprop
 
 
 

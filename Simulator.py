@@ -2,6 +2,7 @@ from time import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import sys
+from tqdm import tqdm
 
 import OraclePlanner
 
@@ -32,7 +33,7 @@ class Simulator:
         # actions list was created because we thought the robot was sometimes not moving
         self.actions = list()
 
-    def run(self, duration, visualize=False):
+    def run(self, duration, neural_model):
         self._update_map()
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
@@ -41,37 +42,36 @@ class Simulator:
         # At the start, there is no action, so we just add the initial partial info into the action matrix list
         initial_partial_info_matrix = self.sensor_model.get_final_partial_info()[0]
         self.sensor_model.append_action_matrix(initial_partial_info_matrix)
-        for _ in range(0, duration):
-            end = self.tick(visualize)
+        for _ in tqdm(range(0, duration)):
+            end = self.tick(neural_model)
             if end:
                 break
 
-    def tick(self, visualize=False):
-        self.iterations += 1
-        # print("Step: ", self.iterations)
+    def tick(self, neural_model):
+        self.iterations += 1        
 
         # Generate an action from the robot path
         action = OraclePlanner.random_planner(self.robot, self.sensor_model)
         if self.planner == "random":
             action = OraclePlanner.random_planner(self.robot, self.sensor_model)
         if self.planner == "greedy-o":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, oracle=True)
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, oracle=True)
         if self.planner == "greedy-no":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, oracle=False)
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, oracle=False)
         if self.planner == "network":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, self.map, True)
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, neural_net=True)
         if self.planner == 'mcts':
-            times_visited = 2
+            times_visited = 10
             budget = 10
             # test this at diff values >1000 and test for final reward
             max_iterations = 1000
             exploration_exploitation_parameter = 0.8 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             
-            while times_visited > 1:
-                solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type)
-                times_visited = self.sensor_model.get_final_path().count(winner_loc)
-                print('times_visited', times_visited)
-
+            while times_visited > 2:
+                solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
+                # make sure to include tuple casting for count() to work
+                times_visited = self.sensor_model.get_final_path().count(tuple(winner_loc))
+                
             action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
 
         self.actions.append(action)
@@ -84,12 +84,8 @@ class Simulator:
         self._update_map()
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
-        previous_paths_debug = self.sensor_model.get_final_path()
         self.sensor_model.append_path(self.robot.get_loc())
         self.sensor_model.create_final_path_matrix()
-        
-        if visualize:
-            self.visualize()
 
         # Score is calculated in _update function.
         # It needs to be reset otherwise the score will carry on to the next iteration even if no new obstacles were scanned.

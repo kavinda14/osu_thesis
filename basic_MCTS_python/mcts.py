@@ -42,7 +42,7 @@ def generate_valid_neighbors(current_state, state_sequence, robot):
 
 
 # def mcts(action_set, budget, max_iterations, exploration_exploitation_parameter, robot, input_map):
-def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sensor_model, world_map, rollout_type, reward_type):
+def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sensor_model, world_map, rollout_type, reward_type, neural_model):
 
     ################################
     # Setup
@@ -158,14 +158,14 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
         if rollout_type == 'greedy':
             rollout_sequence = rollout_greedy(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model)
         if rollout_type == 'network':
-            rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map)
+            rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map, neural_model=neural_model)
 
         if reward_type == 'random':
             rollout_reward = reward.reward_random(rollout_sequence)
         if reward_type == 'greedy':
             rollout_reward = reward.reward_greedy(rollout_sequence, sensor_model)
         if reward_type == 'network':
-            rollout_reward = reward.reward_network(rollout_sequence, sensor_model, world_map)
+            rollout_reward = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model)
 
         ################################
         # Back-propagation

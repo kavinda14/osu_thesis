@@ -8,7 +8,8 @@ import numpy as np
 import random as r
 import time as time
 import pickle
-from tqdm import tqdm
+import NeuralNet
+import torch
 
 from basic_MCTS_python.reward import reward_greedy
 
@@ -18,26 +19,36 @@ if __name__ == "__main__":
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
+    # planner_options = ["greedy-no"]
     planner_options = ["mcts"]
     # rollout_options = ["random", "greedy", "network"]
-    rollout_options = ["greedy"]
+    rollout_options = ["network"]
     # reward_options = ["random", "greedy", "network"]
-    reward_options = ["network"]
+    reward_options = ["random"]
     bounds = [21, 21]
     trials = 1
     steps = 60
     # steps = 2
+    visualize = True
 
     # 13 because we have 13 diff planners
     # score_lists = [list() for _ in range(1)]
     score_lists = [list() for _ in range(1)]
     score_list = 0
 
+    # load neural net
+    neural_model = NeuralNet.Net(bounds)
+    neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata2"))
+    neural_model.eval()
+
+    print(type(neural_model))
+
     # this is for pickling the score_lists
     filename = '/home/kavi/thesis/pickles/planner_scores'
 
     test_start_time = time.time()
-    for planner in tqdm(planner_options):
+    for planner in planner_options:
+        # CHECK IF MAP IN CORRECT PLACE
         map = Map(bounds, 7, (), False)
         unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
 
@@ -56,17 +67,19 @@ if __name__ == "__main__":
                     curr_list.append(rollout_type + '_' + reward_type)
                     score_list += 1
 
-                    for i in tqdm(range(trials)):
+                    for i in range(trials):
                         print("Trial no: {}".format(i))
-                        map = Map(bounds, 18, copy.deepcopy(unobs_occupied), True)
+                        map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                         robot = Robot(x, y, bounds, map)
                         sensor_model = SensorModel(robot, map)
                         start = time.time()
                         simulator = Simulator(map, robot, sensor_model, planner, rollout_type, reward_type)
-                        simulator.visualize()
-                        simulator.run(steps, False)
+                        if visualize:
+                            simulator.visualize()
+                        simulator.run(steps, neural_model)
                         end = time.time()
-                        simulator.visualize()
+                        if visualize:
+                            simulator.visualize()
                         score = sum(sensor_model.get_final_scores())                        
                         curr_list.append(score)
                         
@@ -89,15 +102,17 @@ if __name__ == "__main__":
 
             for i in range(trials):
                 print("Trial no: {}".format(i))
-                map = Map(bounds, 18, copy.deepcopy(unobs_occupied), True)
+                map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                 robot = Robot(x, y, bounds, map)
                 sensor_model = SensorModel(robot, map)
                 start = time.time()
                 simulator = Simulator(map, robot, sensor_model, planner)
-                # simulator.visualize()
-                simulator.run(steps, False)
+                if visualize:
+                    simulator.visualize()
+                simulator.run(steps, neural_model)
                 end = time.time()
-                # simulator.visualize()
+                if visualize:
+                    simulator.visualize()
                 score = sum(sensor_model.get_final_scores())     
                 print(sensor_model.get_final_path())                   
                 print("Score: ", score)

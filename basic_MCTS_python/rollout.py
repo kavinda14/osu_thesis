@@ -84,11 +84,7 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, oracle=False):
 
     return sequence
 
-def rollout_network(subsequence, budget, robot, sensor_model, world_map):
-    model = NeuralNet.Net(world_map.get_bounds())
-    model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21"))
-    model.eval()
-
+def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_model):
     rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
     rollout_map = copy.deepcopy(world_map)
     sequence = copy.deepcopy(subsequence)
@@ -114,7 +110,7 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map):
             # The unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
             # By unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 
             input = input.unsqueeze(0).float()
-            action_score = model(input).item()
+            action_score = neural_model(input).item()
             
             if action_score > best_action_score:
                 best_action_score = action_score
