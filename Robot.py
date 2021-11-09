@@ -155,6 +155,10 @@ class Robot:
         elif action == 'forward':
             action_loc = [robot_loc[0], robot_loc[1]-1]
 
+        # this was added for the mcts reward function
+        elif action == 'root':
+            action_loc = robot_loc
+
         return action_loc
 
     def get_direction(self, current_loc, next_loc):

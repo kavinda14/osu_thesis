@@ -7,17 +7,8 @@ def random_planner(robot, sensor_model):
     valid_move = False # Checks if the pixel is free
     visited_before = True # Check if the pixel has been visited before
     action = random.choice(actions)
-    
-    ### Old code used where a check wasn't done to see if it had visited the same location
-    # while not valid_move and tuple(robot.get_action_loc(action)) not in sensor_model.get_final_path():
-    # while not valid_move:
-    #     action = random.choice(actions)
-    #     valid_move = robot.check_valid_move(action) 
-    #     while not loc:
-    #         # loc = tuple(robot.get_action_loc(action)) not in sensor_model.get_final_path()
-    #         loc = sensor_model.get_final_path().count(robot.get_action_loc(action)) < 2
+   
     counter = 0
-
     while True:
         counter += 1
         action = random.choice(actions)
@@ -36,59 +27,6 @@ def random_planner(robot, sensor_model):
             break
    
     return action
-
-# def greedy_planner(robot, sensor_model, map, neural_net=False, oracle=False):
-#     actions = ['left', 'backward', 'right', 'forward']
-#     best_action = random.choice(actions)
-#     best_action_score = float('-inf')
-#     counter = 0
-
-#     model = NeuralNet.Net(map.get_bounds())
-#     model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata"))
-#     model.eval()
-
-#     partial_info = [sensor_model.create_partial_info(False)]
-#     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
-
-#     path_matrix = sensor_model.create_final_path_matrix(False)
-
-#     while True:
-#         for action in actions:
-#             counter += 1
-#             times_visited = sensor_model.get_final_path().count(tuple(robot.get_action_loc(action)))
-#             # if robot.check_valid_move(action) and times_visited < 1: # This means times_visited - 1 is allowed e.g. times_visited < 1 means 0 times allowed
-#             if robot.check_valid_move(action):
-#                 if times_visited < 2: # This means times_visited is allowed e.g. times_visited < 1 means 1 times allowed to be in list
-#                     temp_robot_loc = robot.get_action_loc(action)
-#                     if neural_net:
-#                         # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
-#                         final_actions = [sensor_model.create_action_matrix(action, True)]
-#                         final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
-                    
-#                         input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices)
-
-#                         # The unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
-#                         # By unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 
-#                         input = input.unsqueeze(0).float()
-
-#                         action_score = model(input).item()
-                        
-#                     else:
-#                         # Oracle greedy
-#                         if oracle:
-#                             action_score = len(sensor_model.scan(temp_robot_loc, False)[0])
-#                         else:
-#                             scanned_unobs = sensor_model.scan(temp_robot_loc, False)
-#                             action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
-
-#                     if action_score > best_action_score:
-#                         best_action_score = action_score
-#                         best_action = action
-
-#         if counter > 20:
-#             break
-
-#     return best_action
 
 # model here is the neural net
 def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=False):
@@ -138,7 +76,7 @@ def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=F
                     best_action_score = action_score
                     best_action = action
 
-    print('FINAL: ', sensor_model.get_final_path().count(tuple(robot.get_action_loc(best_action))))
+    # print('Path Debug: ', sensor_model.get_final_path().count(tuple(robot.get_action_loc(best_action))))
     return best_action
 
 

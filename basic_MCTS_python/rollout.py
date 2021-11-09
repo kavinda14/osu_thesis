@@ -26,7 +26,6 @@ def generate_valid_neighbors(current_state, state_sequence, robot):
     neighbors = list()
     current_loc = current_state.get_location()
 
-    sequence = [state.get_location() for state in state_sequence]
     actions = ['left', 'right', 'forward', 'backward']
     for action in actions:
         valid, new_loc = robot.check_valid_move_mcts(action, current_loc, True)
@@ -41,7 +40,6 @@ def generate_valid_neighbors(current_state, state_sequence, robot):
 def rollout_random(subsequence, budget, robot):
     # THESE ARE STATES
     current_state = subsequence[-1]
-    current_loc = subsequence[-1].get_location()
     sequence = copy.deepcopy(subsequence)
     while cost(sequence) < budget:
         neighbors = generate_valid_neighbors(current_state, subsequence, robot)
@@ -52,7 +50,7 @@ def rollout_random(subsequence, budget, robot):
     return sequence
 
 def rollout_greedy(subsequence, budget, robot, sensor_model, oracle=False):
-    rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
+    # rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
     sequence = copy.deepcopy(subsequence)
 
     # THESE ARE STATES
@@ -76,7 +74,7 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, oracle=False):
                 best_state = state
         
         sequence.append(best_state)
-        rollout_final_path.append(best_state.get_location())
+        # rollout_final_path.append(best_state.get_location())
         # this is where the robot "moves"
         current_state = best_state
         best_action_score = float("-inf")

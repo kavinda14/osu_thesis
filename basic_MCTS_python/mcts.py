@@ -26,7 +26,7 @@ class State():
     def get_location(self):
         return self.location
 
-
+# returns valid State objects (contains action and location) from a given position
 def generate_valid_neighbors(current_state, state_sequence, robot):
     neighbors = list()
     current_loc = current_state.get_location()
@@ -46,7 +46,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
 
     ################################
     # Setup
-    # what is a sequence?
+    # *what is a sequence?
     # -> a list to hold the actions, which can be used to calculate the budget left
     # in our case, this sequence is passed to every other node to keep track of history
     # the history will allow us to check if a particular state was previously visited
@@ -76,11 +76,13 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
         while True: 
 
             # Are there any children to be added here?
+            #### SELECTION
             if current.unpicked_child_actions: # if not empty
                 
                 # does this mean that selection happens randomly?
 
-                # Pick one of the children that haven't been added
+                # Pick one of the UNPICKED children that haven't been added
+                # Remember that these child actions are "State" objects - contains action + location
                 # Do this at random
                 num_unpicked_child_actions = len(current.unpicked_child_actions)
                 if num_unpicked_child_actions == 1:
@@ -89,12 +91,13 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
                     child_index = random.randint(0,num_unpicked_child_actions-1)
                 child_action = current.unpicked_child_actions[child_index]
                 child_loc = child_action.get_location()
-                # print('child_loc: ', child_loc)
 
                 # Remove the child form the unpicked list
                 del current.unpicked_child_actions[child_index]
 
                 # Setup the new action sequence
+                # what does it mean to add something to a treenode sequence?
+                # -> is it the order of traversal down the tree?
                 new_sequence = copy.deepcopy(current.sequence)
                 new_sequence.append(child_action)
                 new_budget_left = budget - cost(new_sequence)
@@ -111,8 +114,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
                 new_unpicked_child_actions = [a for a in new_unpicked_child_actions if not is_overbudget(a)]
 
                 # Create the new node and add it to the tree
-                # printActionSequence(new_sequence)
-                # EXPANSION
+                #### EXPANSION
                 new_child_node = TreeNode(parent=current, sequence=new_sequence, budget=new_budget_left, unpicked_child_actions=new_unpicked_child_actions, coords=child_loc)
                 current.children.append(new_child_node)
                 current = new_child_node
@@ -168,7 +170,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
             rollout_reward = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model)
 
         ################################
-        # Back-propagation
+        #### BACK PROPAGATION
         # update stats of all nodes from current back to root node
         parent = current
         while parent: # is not None

@@ -5,16 +5,12 @@ Oregon State University
 Jan 2020
 '''
 
-from action import Action #, printActionSequence
 import random
-import SensorModel
 import NeuralNet
-import torch
 import copy
 
-
 def reward_random(sequence):
-    return random.randint(0, 10) + len(sequence)
+    return random.randint(0, 20) + len(sequence)
 
 def reward_greedy(rollout_sequence, sensor_model, oracle=False):
     reward = 0
@@ -28,6 +24,7 @@ def reward_greedy(rollout_sequence, sensor_model, oracle=False):
             curr_scanned_obstacles = temp_curr_scanned_obstacles[0].union(temp_curr_scanned_obstacles[1])
 
         curr_reward = 0
+        # this makes sure that reward is calculated for total UNIQUE obstacles that are scanned
         for loc in curr_scanned_obstacles:
             if loc not in scanned_obstacles:
                 scanned_obstacles.append(loc)
@@ -38,6 +35,10 @@ def reward_greedy(rollout_sequence, sensor_model, oracle=False):
     return reward
 
 def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
+    # the map should be updating as we are iterating through the sequence
+    # if not, it is taking the old map and just doing that
+    # pass the action_loc to the action matrix function instead of the actual action
+
     reward_final_path = copy.deepcopy(sensor_model.get_final_path())
     reward_map = copy.deepcopy(world_map)
 
@@ -47,13 +48,14 @@ def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
     reward = 0
     for state in rollout_sequence:
         action = state.get_action()
-        # fix this bug where root is being added to rollout sequence
-        if action == "root":
-            break
+        loc = state.get_location()
         reward_final_path.append(state.get_location())
-        path_matrix = sensor_model.create_final_path_matrix_mcts(reward_final_path, False)
-        final_actions = [sensor_model.create_action_matrix(action, True)]
+
+        path_matrix = sensor_model.create_final_path_matrix_mcts(reward_final_path, update=False)
+        
+        final_actions = [sensor_model.create_action_matrix_mcts(loc)]
         final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
+
         input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices)
         input = input.unsqueeze(0).float()
         

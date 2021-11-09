@@ -22,14 +22,14 @@ if __name__ == "__main__":
     # planner_options = ["greedy-no"]
     planner_options = ["mcts"]
     # rollout_options = ["random", "greedy", "network"]
-    rollout_options = ["network"]
+    rollout_options = ["greedy"]
     # reward_options = ["random", "greedy", "network"]
-    reward_options = ["random"]
+    reward_options = ["network"]
     bounds = [21, 21]
     trials = 1
     steps = 60
     # steps = 2
-    visualize = True
+    visualize = False
 
     # 13 because we have 13 diff planners
     # score_lists = [list() for _ in range(1)]
