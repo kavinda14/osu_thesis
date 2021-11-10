@@ -49,11 +49,12 @@ def rollout_random(subsequence, budget, robot):
     
     return sequence
 
-def rollout_greedy(subsequence, budget, robot, sensor_model, oracle=False):
+def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=False):
     # rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
     sequence = copy.deepcopy(subsequence)
-
-    # THESE ARE STATES
+    rollout_map = copy.deepcopy(world_map)
+   
+    # these are State objects
     current_state = subsequence[-1]
    
     while cost(sequence) < budget:
@@ -63,7 +64,7 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, oracle=False):
         best_action_score = float("-inf")
 
         for state in neighbors:
-            scanned_unobs = sensor_model.scan(state.get_location(), False)
+            scanned_unobs = sensor_model.scan_mcts(state.get_location(), rollout_map)
             if oracle: 
                 action_score = len(scanned_unobs[0])
             else:  
@@ -86,11 +87,13 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_
     rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
     rollout_map = copy.deepcopy(world_map)
     sequence = copy.deepcopy(subsequence)
+    # paths already traversed before mcts     
+    executed_paths = sensor_model.get_final_path()
 
     partial_info = [sensor_model.create_partial_info_mcts(rollout_map, False)]
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
 
-    # THESE ARE STATES
+    # these are State objects
     current_state = subsequence[-1]
    
     while cost(sequence) < budget:
@@ -101,6 +104,9 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_
         best_action_score = float("-inf")
 
         for state in neighbors:
+            if tuple(state.get_location()) in executed_paths:
+                print("HERE")
+                continue
             action = state.get_action()
             final_actions = [sensor_model.create_action_matrix(action, True)]
             final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)

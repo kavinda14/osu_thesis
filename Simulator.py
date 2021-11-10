@@ -62,10 +62,11 @@ class Simulator:
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, neural_net=True)
         if self.planner == 'mcts':
             times_visited = 10
-            budget = 10
+            budget = 5
             # test this at diff values >1000 and test for final reward
             max_iterations = 10000
-            exploration_exploitation_parameter = 0.8 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
+            exploration_exploitation_parameter = 25.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
+            # exploration_exploitation_parameter = 1.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             
             while times_visited > 2:
                 solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)

@@ -27,9 +27,8 @@ if __name__ == "__main__":
     reward_options = ["network"]
     bounds = [21, 21]
     trials = 1
-    steps = 60
-    # steps = 2
-    visualize = False
+    steps = 10
+    visualize = True
 
     # 13 because we have 13 diff planners
     # score_lists = [list() for _ in range(1)]
@@ -41,14 +40,12 @@ if __name__ == "__main__":
     neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata2"))
     neural_model.eval()
 
-    print(type(neural_model))
-
     # this is for pickling the score_lists
     filename = '/home/kavi/thesis/pickles/planner_scores'
 
     test_start_time = time.time()
     for planner in planner_options:
-        # CHECK IF MAP IN CORRECT PLACE
+        # CHECK IF MAP IN CORRECT PLACE IN Test.py
         map = Map(bounds, 7, (), False)
         unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
 
@@ -70,7 +67,8 @@ if __name__ == "__main__":
                     for i in range(trials):
                         print("Trial no: {}".format(i))
                         map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
-                        robot = Robot(x, y, bounds, map)
+                        # robot = Robot(x, y, bounds, map)
+                        robot = Robot(10, 7, bounds, map)
                         sensor_model = SensorModel(robot, map)
                         start = time.time()
                         simulator = Simulator(map, robot, sensor_model, planner, rollout_type, reward_type)

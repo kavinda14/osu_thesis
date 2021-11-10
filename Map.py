@@ -1,4 +1,5 @@
 import math
+from random import random
 import numpy as np
 
 class Map:
@@ -52,6 +53,7 @@ class Map:
                         self.unobs_occupied.add((x, y))
 
             # Add obstacles to environment
+            np.random.seed(8)
             for i in range(self.num_obstacles):
                 x = int(np.random.uniform(3, self.bounds[0] - 2, size=1))
                 y = int(np.random.uniform(3, self.bounds[1] - 2, size=1))

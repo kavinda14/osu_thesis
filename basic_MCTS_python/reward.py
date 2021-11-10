@@ -12,15 +12,17 @@ import copy
 def reward_random(sequence):
     return random.randint(0, 20) + len(sequence)
 
-def reward_greedy(rollout_sequence, sensor_model, oracle=False):
-    reward = 0
+def reward_greedy(rollout_sequence, sensor_model, world_map, oracle=False):
     scanned_obstacles = list()
+    reward_map = copy.deepcopy(world_map)
+    reward = 0
     
     for state in rollout_sequence:
+        scanned_unobs = sensor_model.scan_mcts(state.get_location(), reward_map)
         if oracle:
-            curr_scanned_obstacles = sensor_model.scan(state.get_location(), False)[0]
+            curr_scanned_obstacles = scanned_unobs[0]
         else:
-            temp_curr_scanned_obstacles = sensor_model.scan(state.get_location(), False)
+            temp_curr_scanned_obstacles = scanned_unobs
             curr_scanned_obstacles = temp_curr_scanned_obstacles[0].union(temp_curr_scanned_obstacles[1])
 
         curr_reward = 0
@@ -38,7 +40,6 @@ def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
     # the map should be updating as we are iterating through the sequence
     # if not, it is taking the old map and just doing that
     # pass the action_loc to the action matrix function instead of the actual action
-
     reward_final_path = copy.deepcopy(sensor_model.get_final_path())
     reward_map = copy.deepcopy(world_map)
 
@@ -47,7 +48,6 @@ def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
 
     reward = 0
     for state in rollout_sequence:
-        action = state.get_action()
         loc = state.get_location()
         reward_final_path.append(state.get_location())
 

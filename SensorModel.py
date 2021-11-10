@@ -18,7 +18,6 @@ class SensorModel:
     def scan(self, robot_loc, update_map=True):
         scanned_obstacles = set()
         scanned_free = set()
-        # robot_loc = self.robot.get_loc()
 
         for o_loc in set(self.map.unobs_occupied):
             distance = self.euclidean_distance(robot_loc , o_loc)
@@ -33,6 +32,25 @@ class SensorModel:
                 scanned_free.add(f_loc)
                 if update_map:
                     self.map.unobs_free.remove(f_loc)
+
+        return [scanned_obstacles, scanned_free]
+    
+    # this was created for mcts rollout as we are making a copy of the world map for simulations
+    def scan_mcts(self, robot_loc, world_map):
+        scanned_obstacles = set()
+        scanned_free = set()
+
+        for o_loc in set(world_map.unobs_occupied):
+            distance = self.euclidean_distance(robot_loc , o_loc)
+            if distance <= self.sensing_range:
+                scanned_obstacles.add(o_loc)
+                world_map.unobs_occupied.remove(o_loc)
+
+        for f_loc in set(world_map.unobs_free):
+            distance = self.euclidean_distance(robot_loc, f_loc)
+            if distance <= self.sensing_range:
+                scanned_free.add(f_loc)
+                world_map.unobs_free.remove(f_loc)
 
         return [scanned_obstacles, scanned_free]
 
