@@ -51,7 +51,8 @@ if __name__ == "__main__":
 
     test_start_time = time.time()
     for i in range(trials):
-        print("TRIAL NO: {}".format(i))
+        trial_start_time = time.time()
+        print("TRIAL NO: {}".format(i+1))
         map = Map(bounds, 7, (), False)
         unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
         
@@ -133,6 +134,9 @@ if __name__ == "__main__":
                 outfile = open(filename,'wb')
                 pickle.dump(score_lists, outfile)
                 outfile.close()
+
+        trial_end_time = time.time()
+        print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)
     
     test_end_time = time.time()
     print("Total time taken (mins): ", (test_end_time - test_start_time)/60)

@@ -16,7 +16,7 @@ if __name__ == "__main__":
     bars = list()
     scores = list()
 
-    for score_list in score_lists[:-3]:
+    for score_list in score_lists:
         planner_name = score_list[0]
         bars.append(planner_name)
         del score_list[0]
