@@ -13,30 +13,34 @@ import torch
 from basic_MCTS_python.reward import reward_greedy
 
 import cProfile
-import re
-
+import pstats
 
 if __name__ == "__main__":
- 
+
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
-    # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
-    planner_options = ["mcts"]
-    # rollout_options = ["random", "greedy", "network"]
-    rollout_options = ["network"]
-    # reward_options = ["random", "greedy", "network"]
-    reward_options = ["network"]
+    planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
+    # planner_options = ["mcts"]
+    rollout_options = ["random", "greedy", "network"]
+    # rollout_options = ["network"]
+    reward_options = ["random", "greedy", "network"]
+    # reward_options = ["network"]
     bounds = [21, 21]
     trials = 100
-    steps = 1
+    steps = 60
     visualize = False
+    # profiling functions
+    profile = False
+
+    if profile:
+        pr = cProfile.Profile()
+        pr.enable()
 
     # 13 because we have 13 diff planners
-    # score_lists = [list() for _ in range(13)]
-    score_lists = [list() for _ in range(1)]
+    score_lists = [list() for _ in range(13)]
+    # score_lists = [list() for _ in range(1)]
     
-
     # load neural net
     neural_model = NeuralNet.Net(bounds)
     neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata3"))
@@ -47,7 +51,7 @@ if __name__ == "__main__":
 
     test_start_time = time.time()
     for i in range(trials):
-        print("Trial no: {}".format(i))
+        print("TRIAL NO: {}".format(i))
         map = Map(bounds, 7, (), False)
         unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
         
@@ -105,7 +109,6 @@ if __name__ == "__main__":
                 if len(curr_list) == 0:
                     curr_list.append(planner)
                 score_list += 1
-
                 
                 map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                 robot = Robot(x, y, bounds, map)
@@ -134,6 +137,14 @@ if __name__ == "__main__":
     test_end_time = time.time()
     print("Total time taken (mins): ", (test_end_time - test_start_time)/60)
 
+    if profile:
+        pr.disable()
+        pr.print_stats()
+        with open("cProfile_stats.txt", "w") as f:
+            ps = pstats.Stats(pr, stream=f)
+            ps.sort_stats('cumtime')
+            ps.print_stats()
+
     ## Create Bar Graphs
     bars = list()
     scores = list()
@@ -150,6 +161,5 @@ if __name__ == "__main__":
     plt.xticks(x_pos, bars, rotation=45)
     plt.show()
 
-    cProfile.run('re.compile("foo|bar")')
 
 

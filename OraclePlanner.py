@@ -23,7 +23,6 @@ def random_planner(robot, sensor_model):
         if valid_move == True and visited_before == False:
             break
         if counter > 10:
-        # if counter > 100:
             break
    
     return action

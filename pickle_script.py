@@ -24,7 +24,6 @@ if __name__ == "__main__":
         scores.append(curr_score)
 
     x_pos = np.arange(len(bars))
-    # plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320', '#ddceff', '#4000ff', '#ff876f', '#540077'])
     plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320', '#ddceff'])
 
     plt.xticks(x_pos, bars, rotation=45)
