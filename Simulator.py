@@ -63,8 +63,7 @@ class Simulator:
         if self.planner == 'mcts':
             times_visited = 10
             budget = 5
-            # test this at diff values >1000 and test for final reward
-            max_iterations = 10000
+            max_iterations = 1000
             exploration_exploitation_parameter = 25.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             # exploration_exploitation_parameter = 1.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             

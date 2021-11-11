@@ -305,12 +305,5 @@ class SensorModel:
         return math.sqrt((y2-y1)**2 + (x2-x1)**2)
 
 
-# if __name__ == "__main__":
-
-#    mid_point = [2, 2]
-#    action_loc = [1, 1]
-   
-#    displacement = mid_point - action_loc
-#    print(displacement)
 
 

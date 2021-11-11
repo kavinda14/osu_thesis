@@ -164,27 +164,27 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
         if rollout_type == 'network':
             rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map, neural_model=neural_model)
 
-        debug_reward_greedy = reward.reward_greedy(rollout_sequence, sensor_model, world_map, oracle=True)
-        debug_reward_network = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model)
-        debug_reward_greedy_list.append(debug_reward_greedy)
-        debug_reward_network_list.append(debug_reward_network)
+        # debug_reward_greedy = reward.reward_greedy(rollout_sequence, sensor_model, world_map, oracle=True)
+        # debug_reward_network = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model)
+        # debug_reward_greedy_list.append(debug_reward_greedy)
+        # debug_reward_network_list.append(debug_reward_network)
 
         # pickle progress
-        filename1 = '/home/kavi/thesis/pickles/debug_reward_greedy_list'
-        filename2 = '/home/kavi/thesis/pickles/debug_reward_network_list'
-        outfile = open(filename1,'wb')
-        pickle.dump(debug_reward_greedy_list, outfile)
-        outfile.close()
-        outfile = open(filename2,'wb')
-        pickle.dump(debug_reward_network_list, outfile)
-        outfile.close()
+        # filename1 = '/home/kavi/thesis/pickles/debug_reward_greedy_list'
+        # filename2 = '/home/kavi/thesis/pickles/debug_reward_network_list'
+        # outfile = open(filename1,'wb')
+        # pickle.dump(debug_reward_greedy_list, outfile)
+        # outfile.close()
+        # outfile = open(filename2,'wb')
+        # pickle.dump(debug_reward_network_list, outfile)
+        # outfile.close()
 
-        # if reward_type == 'random':
-        #     rollout_reward = reward.reward_random(rollout_sequence)
-        # if reward_type == 'greedy':
-        #     rollout_reward = reward.reward_greedy(rollout_sequence, sensor_model)
-        # if reward_type == 'network':
-        #     rollout_reward = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model)
+        if reward_type == 'random':
+            rollout_reward = reward.reward_random(rollout_sequence)
+        if reward_type == 'greedy':
+            rollout_reward = reward.reward_greedy(rollout_sequence, sensor_model, world_map)
+        if reward_type == 'network':
+            rollout_reward = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model)
 
         ################################
         #### BACK PROPAGATION
@@ -194,7 +194,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
 
             # Update the average
             # parent.updateAverage(rollout_reward)
-            parent.updateAverage(debug_reward_network)
+            parent.updateAverage(rollout_reward)
 
             # Recurse up the tree
             parent = parent.parent

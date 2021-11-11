@@ -16,7 +16,7 @@ if __name__ == "__main__":
     bars = list()
     scores = list()
 
-    for score_list in score_lists:
+    for score_list in score_lists[:-3]:
         planner_name = score_list[0]
         bars.append(planner_name)
         del score_list[0]
@@ -24,6 +24,8 @@ if __name__ == "__main__":
         scores.append(curr_score)
 
     x_pos = np.arange(len(bars))
-    plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320'])
+    # plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320', '#ddceff', '#4000ff', '#ff876f', '#540077'])
+    plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320', '#ddceff'])
+
     plt.xticks(x_pos, bars, rotation=45)
     plt.show()

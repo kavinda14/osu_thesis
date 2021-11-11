@@ -99,13 +99,13 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_
     while cost(sequence) < budget:
         path_matrix = sensor_model.create_final_path_matrix_mcts(rollout_final_path, False)
         neighbors = generate_valid_neighbors(current_state, subsequence, robot)
-        best_state = None
+        # we can't initialize this to None because we are skipping executed_paths in the for loop
+        best_state = neighbors[0]
         # use -infinity because network outputs negative values sometimes
         best_action_score = float("-inf")
 
         for state in neighbors:
             if tuple(state.get_location()) in executed_paths:
-                print("HERE")
                 continue
             action = state.get_action()
             final_actions = [sensor_model.create_action_matrix(action, True)]
@@ -125,7 +125,7 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_
         # this is where the robot "moves"
         current_state = best_state
         best_action_score = float("-inf")
-        best_state = None
+        best_state = neighbors[0]
 
     return sequence
 
