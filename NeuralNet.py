@@ -29,6 +29,11 @@ def datasetGenerator(partial_info_binary_matrices, path_matricies, final_actions
         
         data.append([torch.IntTensor(image), final_scores[i]])
 
+        # pickle current progress
+        outfile = open('/home/kavi/thesis/pickles/image_data','wb')
+        pickle.dump(data, outfile)
+        outfile.close()
+
     return data
 
 # This was created for when using a planner with the network
