@@ -12,14 +12,14 @@ if __name__ == "__main__":
 
     # unpickle all the data
     print("Unpickling started!")
-    filename = '/home/kavi/thesis/pickles/data_21x21_random_greedyo_t45_s2000'
+    filename = '/home/kavi/thesis/pickles/data_21x21_random_greedyo_greedyno_t700_s200'
     infile = open(filename,'rb')
     data = pickle.load(infile)
     infile.close()
     print("Unpickling done!")
 
     # this is the path where the NN weights will be saved
-    weights_path = "/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata3"
+    weights_path = "/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_random_greedyo_greedyno_t700_s200"
     
     # train network
     bounds = [21, 21]

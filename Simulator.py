@@ -42,7 +42,8 @@ class Simulator:
         # At the start, there is no action, so we just add the initial partial info into the action matrix list
         initial_partial_info_matrix = self.sensor_model.get_final_partial_info()[0]
         self.sensor_model.append_action_matrix(initial_partial_info_matrix)
-        for _ in tqdm(range(0, duration)):
+        # for _ in tqdm(range(0, duration)):
+        for _ in (range(0, duration)):
             end = self.tick(neural_model)
             if end:
                 break

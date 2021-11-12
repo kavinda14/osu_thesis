@@ -140,7 +140,7 @@ def runNetwork(data, bounds, weights_path):
     train_loss_values = list()
     valid_loss_values = list()
 
-    for epoch in range(6):  # loop over the dataset multiple times
+    for epoch in tqdm(range(45)):  # loop over the dataset multiple times
         
         # training
         training_loss = 0.0
