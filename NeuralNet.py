@@ -11,31 +11,6 @@ import matplotlib.pyplot as plt
 import time
 from tqdm import tqdm
 
-# Dataset
-def datasetGenerator(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices, final_scores): 
-    data = list()
-
-    for i in tqdm(range(len(partial_info_binary_matrices))):
-        image = list()
-
-        for partial_info in partial_info_binary_matrices[i]:
-            image.append(partial_info)
-
-        image.append(path_matricies[i])
-
-        for action in final_actions_binary_matrices[i]:
-            image.append(action)
-        
-        
-        data.append([torch.IntTensor(image), final_scores[i]])
-
-        # pickle current progress
-        outfile = open('/home/kavi/thesis/pickles/image_data','wb')
-        pickle.dump(data, outfile)
-        outfile.close()
-
-    return data
-
 # This was created for when using a planner with the network
 def create_image(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices):
     image = list()
@@ -51,7 +26,6 @@ def create_image(partial_info_binary_matrices, path_matricies, final_actions_bin
             image.append(action)
         
     return torch.IntTensor(image)
-
 
 
 class PlanningDataset(Dataset):

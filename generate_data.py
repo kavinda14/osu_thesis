@@ -2,13 +2,13 @@ from SensorModel import SensorModel
 from Map import Map
 from Robot import Robot
 from Simulator import Simulator
-import NeuralNet
 import random
 import time
 from tqdm import tqdm
 import pickle
+import torch
 
-def generate_data_matrices():
+def generate_data_matrices(outfile1, outfile2, outfile3, outfile4):
     input_partial_info_binary_matrices = list()
     input_path_matrices = list()
     input_actions_binary_matrices = list()
@@ -16,7 +16,7 @@ def generate_data_matrices():
 
     planner_options = ["random", "greedy-o", "greedy-no"]
     # planner_options = ["random"]
-    trials = 600
+    trials = 500
     steps = 200
     visualize = False
     train = True
@@ -76,35 +76,27 @@ def generate_data_matrices():
 
         # pickle all the data before rollout
         print("Pickling started!")
-        outfile = open('/home/kavi/thesis/pickles/input_path_matrices','wb')
-        pickle.dump(input_path_matrices, outfile)
-        outfile.close()
-        outfile = open('/home/kavi/thesis/pickles/input_partial_info_binary_matrices','wb')
-        pickle.dump(input_partial_info_binary_matrices, outfile)
-        outfile.close()
-        outfile = open('/home/kavi/thesis/pickles/input_actions_binary_matrices','wb')
-        pickle.dump(input_actions_binary_matrices, outfile)
-        outfile.close()
-        outfile = open('/home/kavi/thesis/pickles/input_scores','wb')
-        pickle.dump(input_scores, outfile)
-        outfile.close()
+        pickle.dump(input_path_matrices, outfile1)
+        outfile1.close()
+        pickle.dump(input_partial_info_binary_matrices, outfile2)
+        outfile2.close()
+        pickle.dump(input_actions_binary_matrices, outfile3)
+        outfile3.close()
+        pickle.dump(input_scores, outfile4)
+        outfile4.close()
         print("Pickling done!")
 
-def generate_data_rollout():
+def generate_data_rollout(infile1, infile2, infile3, infile4, outfile1_rollout1, outfile1_rollout2, outfile1_rollout3, outfile1_rollout4):
     # unpickle scores
     print("Unpickling started!")
-    infile = open('/home/kavi/thesis/pickles/input_path_matrices','rb')
-    input_path_matrices = pickle.load(infile)
-    infile.close()
-    infile = open('/home/kavi/thesis/pickles/input_partial_info_binary_matrices','rb')
-    input_partial_info_binary_matrices = pickle.load(infile)
-    infile.close()
-    infile = open('/home/kavi/thesis/pickles/input_actions_binary_matrices','rb')
-    input_actions_binary_matrices = pickle.load(infile)
-    infile.close()
-    infile = open('/home/kavi/thesis/pickles/input_scores','rb')
-    input_scores = pickle.load(infile)
-    infile.close()
+    input_path_matrices = pickle.load(infile1)
+    infile1.close()
+    input_partial_info_binary_matrices = pickle.load(infile2)
+    infile2.close()
+    input_actions_binary_matrices = pickle.load(infile3)
+    infile3.close()
+    input_scores = pickle.load(infile4)
+    infile4.close()
     print("Unpickling done!")
 
     temp_input_partial_info_binary_matrices = list()
@@ -135,50 +127,77 @@ def generate_data_rollout():
     print("final_final_scores: ", len(input_scores))
 
     # pickle all the data after rollout
-    outfile = open('/home/kavi/thesis/pickles/input_path_matrices_rollout','wb')
-    pickle.dump(input_path_matrices, outfile)
-    outfile.close()
-    outfile = open('/home/kavi/thesis/pickles/input_partial_info_binary_matrices_rollout','wb')
-    pickle.dump(input_partial_info_binary_matrices, outfile)
-    outfile.close()
-    outfile = open('/home/kavi/thesis/pickles/input_actions_binary_matrices_rollout','wb')
-    pickle.dump(input_actions_binary_matrices, outfile)
-    outfile.close()
-    outfile = open('/home/kavi/thesis/pickles/input_scores_rollout','wb')
-    pickle.dump(input_scores, outfile)
-    outfile.close()
+    pickle.dump(input_path_matrices, outfile1_rollout1)
+    outfile1_rollout1.close()
+    pickle.dump(input_partial_info_binary_matrices, outfile1_rollout2)
+    outfile1_rollout2.close()
+    pickle.dump(input_actions_binary_matrices, outfile1_rollout3)
+    outfile1_rollout3.close()
+    pickle.dump(input_scores, outfile1_rollout4)
+    outfile1_rollout4.close()
 
-
-def generate_data_images():
+def generate_data_images(infile1_rollout1, infile1_rollout2, infile1_rollout3, infile1_rollout4, outfile_tensor_images):
     # unpickle scores
     print("Unpickling started!")
-    infile = open('/home/kavi/thesis/pickles/input_path_matrices_rollout','rb')
-    input_path_matrices = pickle.load(infile)
-    infile.close()
-    infile = open('/home/kavi/thesis/pickles/input_partial_info_binary_matrices_rollout','rb')
-    input_partial_info_binary_matrices = pickle.load(infile)
-    infile.close()
-    infile = open('/home/kavi/thesis/pickles/input_actions_binary_matrices_rollout','rb')
-    input_actions_binary_matrices = pickle.load(infile)
-    infile.close()
-    infile = open('/home/kavi/thesis/pickles/input_scores_rollout','rb')
-    input_scores = pickle.load(infile)
-    infile.close()
+    input_path_matrices = pickle.load(infile1_rollout1)
+    infile1_rollout1.close()
+    input_partial_info_binary_matrices = pickle.load(infile1_rollout2)
+    infile1_rollout2.close()
+    input_actions_binary_matrices = pickle.load(infile1_rollout3)
+    infile1_rollout3.close()
+    input_scores = pickle.load(infile1_rollout4)
+    infile1_rollout4.close()
     print("Unpickling done!")
 
     # generate the list of images
-    data = NeuralNet.datasetGenerator(input_partial_info_binary_matrices, input_path_matrices, input_actions_binary_matrices, input_scores)
+    generate_tensor_images(input_partial_info_binary_matrices, input_path_matrices, input_actions_binary_matrices, input_scores)
 
-    # pickle image data to train later
-    filename = '/home/kavi/thesis/pickles/data_21x21_random_greedyo_greedyno_t700_s200'
-    outfile = open(filename,'wb')
-    pickle.dump(data, outfile)
-    outfile.close()
 
+def generate_tensor_images(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices, final_scores, outfile_tensor_images): 
+    data = list()
+
+    for i in tqdm(range(len(partial_info_binary_matrices))):
+        image = list()
+
+        for partial_info in partial_info_binary_matrices[i]:
+            image.append(partial_info)
+
+        image.append(path_matricies[i])
+
+        for action in final_actions_binary_matrices[i]:
+            image.append(action)
+        
+        
+        data.append([torch.IntTensor(image), final_scores[i]])
+
+    # pickle progress
+    print("Pickling started!")
+    pickle.dump(data, outfile_tensor_images)
+    outfile_tensor_images.close()
+    print("Pickling done!")
 
 
 if __name__ == "__main__":
 
-    generate_data_matrices()
-    generate_data_rollout()
-    generate_data_images()
+    # pickle directories
+    file1 = open('/home/kavi/thesis/pickles/input_path_matrices','wb')
+    file2 = open('/home/kavi/thesis/pickles/input_partial_info_binary_matrices','wb')
+    file3 = open('/home/kavi/thesis/pickles/input_actions_binary_matrices','wb')
+    file4 = open('/home/kavi/thesis/pickles/input_scores','wb')
+
+    file1_rollout = open('/home/kavi/thesis/pickles/input_path_matrices_rollout','wb')
+    file2_rollout = open('/home/kavi/thesis/pickles/input_partial_info_binary_matrices_rollout','wb')
+    file3_rollout = open('/home/kavi/thesis/pickles/input_actions_binary_matrices_rollout','wb')
+    file4_rollout = open('/home/kavi/thesis/pickles/input_scores_rollout','wb')
+
+    outfile_tensor_images = open('/home/kavi/thesis/pickles/data_21x21_random_greedyo_greedyno_t500_s200','wb')
+    
+    # generate data
+    print("Generating matrices")
+    generate_data_matrices(file1, file1, file1, file1)
+    print()
+    print("Generating rollout data")
+    generate_data_rollout(file1, file1, file1, file1, file1_rollout, file2_rollout, file3_rollout, file4_rollout)
+    print()
+    print("Generating images")
+    generate_data_images(outfile_tensor_images)
