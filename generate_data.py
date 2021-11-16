@@ -10,22 +10,15 @@ import torch
 
 # rollout produces the unique data needed for mcts rollout
 # this is done because in rollout, belief map stays the same even though path and actions change
-def generate_data_matrices(outfile, rollout=True):
+def generate_data_matrices(trials, steps, planner_options, visualize, outfile, rollout=True):
     input_partial_info_binary_matrices = list()
     input_path_matrices = list()
     input_actions_binary_matrices = list()
     input_scores = list()
 
-    planner_options = ["random", "greedy-o", "greedy-no"]
-    # planner_options = ["random"]
-    # trials = 600
-    trials = 6
-    # steps = 150
-    steps = 15
-    visualize = False
-    train = True
-    
     for i in tqdm(range(trials)):
+        # leaving this print statement out because tqdm takes care of progress
+        # print("Trial: ", i)
         for planner in planner_options: 
             start = time.time()
             # Bounds need to be an odd number for the action to always be in the middle
@@ -127,8 +120,6 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, final_a
         for action in final_actions_binary_matrices[i]:
             image.append(action)
         
-        # print(image)
-        
         data.append([torch.IntTensor(image), final_scores[i]])
 
     # pickle progress
@@ -142,10 +133,11 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, final_a
 if __name__ == "__main__":
 
     # for pickling
-    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_random_greedyo_greedyno_t600_s150'
+    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_random_greedyo_greedyno_t1200_s150_norollout'
     
     # generate data
     print("Generating matrices")
-    generate_data_matrices(outfile_tensor_images, rollout=False)
+    planner_options = ["random", "greedy-o", "greedy-no"]
+    generate_data_matrices(trials=1200, steps=150, planner_options=planner_options, visualize=False, outfile=outfile_tensor_images, rollout=False)
     print()
     

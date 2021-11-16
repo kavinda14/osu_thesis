@@ -8,6 +8,8 @@ from tqdm import tqdm
 import pickle
 import torch
 
+# THIS DOESN'T WORK BECAUSE PICKLING MESSES WITH THE NUMPY ARRAY TO CONVERT TO TORCH ARRAYS
+
 def generate_data_matrices(outfile1, outfile2, outfile3, outfile4):
     input_partial_info_binary_matrices = list()
     input_path_matrices = list()
