@@ -1,3 +1,8 @@
 # Don't track the content of these folders:
 __pycache__/
 .vscode/
+pickles/
+neural_net_weights/
+notes
+cProfile_stats.txt
+

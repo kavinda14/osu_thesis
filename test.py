@@ -20,15 +20,16 @@ if __name__ == "__main__":
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
-    planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
+    # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
+    planner_options = ["random", "greedy-o", "greedy-no", "network"]
     # planner_options = ["mcts"]
     rollout_options = ["random", "greedy", "network"]
     # rollout_options = ["network"]
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 100
-    steps = 60
+    trials = 1000
+    steps = 100
     visualize = False
     # profiling functions
     profile = False
@@ -37,13 +38,15 @@ if __name__ == "__main__":
         pr = cProfile.Profile()
         pr.enable()
 
-    # 13 because we have 13 diff planners
-    score_lists = [list() for _ in range(13)]
-    # score_lists = [list() for _ in range(1)]
+    # this is for pickling and visualizing the data -> check pickle_script.py
+    if "mcts" in planner_options:
+        score_lists = [list() for _ in range((len(planner_options)-1)+(len(rollout_options)*len(reward_options)))]
+    else:
+        score_lists = [list() for _ in range(len(planner_options))]
     
     # load neural net
     neural_model = NeuralNet.Net(bounds)
-    neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata3"))
+    neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_random_greedyo_greedyno_t500_s200"))
     neural_model.eval()
 
     # this is for pickling the score_lists

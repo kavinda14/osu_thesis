@@ -41,7 +41,7 @@ class PlanningDataset(Dataset):
 
         return sample
 
-def createDataLoaders(data):
+def create_data_loaders(data):
     
     dataset = PlanningDataset(data)
     validation_split = 0.5
@@ -100,9 +100,9 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
-def runNetwork(data, bounds, weights_path):
+def run_network(data, bounds, weights_path):
 
-    train_loader, valid_loader = createDataLoaders(data)
+    train_loader, valid_loader = create_data_loaders(data)
 
     # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net = Net(bounds)
@@ -119,12 +119,10 @@ def runNetwork(data, bounds, weights_path):
     train_loss_values = list()
     valid_loss_values = list()
 
-    for epoch in tqdm(range(45)):  # loop over the dataset multiple times
+    for epoch in tqdm(range(10)):  # loop over the dataset multiple times
         
         # training
         training_loss = 0.0
-        epoch_training_loss = 0.0
-        epoch_valid_loss = 0.0
         net.train()
         for i, data in enumerate(train_loader, 0):
             # get the inputs; data is a list of [inputs, labels]
@@ -145,7 +143,6 @@ def runNetwork(data, bounds, weights_path):
             
             # print statistics
             training_loss += loss.item()
-            epoch_training_loss += loss.item()
             if i % 100 == 99:    # print every 100 mini-batches
                 avg_training_loss = training_loss / 100
                 print('[%d, %5d] train loss: %.3f' % (epoch + 1, i + 1, avg_training_loss))
@@ -155,11 +152,10 @@ def runNetwork(data, bounds, weights_path):
                 # validation
                 valid_loss = 0.0
                 net.eval()   
-                for j, data in enumerate(valid_loader, 0):
+                for _, data in enumerate(valid_loader, 0):
                     inputs, labels = data
                     target = net(inputs.float())
                     loss = criterion(target, labels)
-                    # valid_loss += loss.item() * data.size(0)
                     valid_loss += loss.item()
 
                 avg_valid_loss = valid_loss / len(valid_loader)

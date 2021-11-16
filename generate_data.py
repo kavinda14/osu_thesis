@@ -8,7 +8,9 @@ from tqdm import tqdm
 import pickle
 import torch
 
-def generate_data_matrices(outfile1, outfile2, outfile3, outfile4):
+# rollout produces the unique data needed for mcts rollout
+# this is done because in rollout, belief map stays the same even though path and actions change
+def generate_data_matrices(outfile, rollout=True):
     input_partial_info_binary_matrices = list()
     input_path_matrices = list()
     input_actions_binary_matrices = list()
@@ -16,8 +18,10 @@ def generate_data_matrices(outfile1, outfile2, outfile3, outfile4):
 
     planner_options = ["random", "greedy-o", "greedy-no"]
     # planner_options = ["random"]
-    trials = 500
-    steps = 200
+    # trials = 600
+    trials = 6
+    # steps = 150
+    steps = 15
     visualize = False
     train = True
     
@@ -47,64 +51,44 @@ def generate_data_matrices(outfile1, outfile2, outfile3, outfile4):
             if visualize: 
                 simulator.visualize()
             
-            if train:
-                ### TRAINING DATA
-                path_matricies = sensor_model.get_final_path_matrices()
+            ### TRAINING DATA
+            path_matricies = sensor_model.get_final_path_matrices()
 
-                final_partial_info = sensor_model.get_final_partial_info()
-                partial_info_binary_matrices = sensor_model.create_binary_matrices(final_partial_info)
+            final_partial_info = sensor_model.get_final_partial_info()
+            partial_info_binary_matrices = sensor_model.create_binary_matrices(final_partial_info)
 
-                final_actions = sensor_model.get_final_actions()
-                final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
+            final_actions = sensor_model.get_final_actions()
+            final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
 
-                final_scores = sensor_model.get_final_scores()
+            final_scores = sensor_model.get_final_scores()
 
-                input_path_matrices = input_path_matrices + path_matricies
-                input_partial_info_binary_matrices = input_partial_info_binary_matrices + partial_info_binary_matrices
-                input_actions_binary_matrices = input_actions_binary_matrices + final_actions_binary_matrices
-                input_scores = input_scores + final_scores
+            input_path_matrices = input_path_matrices + path_matricies
+            input_partial_info_binary_matrices = input_partial_info_binary_matrices + partial_info_binary_matrices
+            input_actions_binary_matrices = input_actions_binary_matrices + final_actions_binary_matrices
+            input_scores = input_scores + final_scores
 
-                end = time.time()
-                time_taken = (end - start)/60
-                # print("Iteration: {}, Planner: {}, Time taken: {:.3f}".format(i, planner, time_taken))
+            end = time.time()
+            time_taken = (end - start)/60
+            # print("Iteration: {}, Planner: {}, Time taken: {:.3f}".format(i, planner, time_taken))
     
-    if train:
-        print("final_path_matrices: ", len(input_path_matrices))
-        print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
-        print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
-        print("final_final_scores: ", len(input_scores))
+    
+    print("final_path_matrices: ", len(input_path_matrices))
+    print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
+    print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
+    print("final_final_scores: ", len(input_scores))
 
-        # pickle all the data before rollout
-        print("Pickling started!")
-        pickle.dump(input_path_matrices, outfile1)
-        outfile1.close()
-        pickle.dump(input_partial_info_binary_matrices, outfile2)
-        outfile2.close()
-        pickle.dump(input_actions_binary_matrices, outfile3)
-        outfile3.close()
-        pickle.dump(input_scores, outfile4)
-        outfile4.close()
-        print("Pickling done!")
+    if rollout:
+        generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
+    else: 
+        generate_tensor_images(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
 
-def generate_data_rollout(infile1, infile2, infile3, infile4, outfile1_rollout1, outfile1_rollout2, outfile1_rollout3, outfile1_rollout4):
-    # unpickle scores
-    print("Unpickling started!")
-    input_path_matrices = pickle.load(infile1)
-    infile1.close()
-    input_partial_info_binary_matrices = pickle.load(infile2)
-    infile2.close()
-    input_actions_binary_matrices = pickle.load(infile3)
-    infile3.close()
-    input_scores = pickle.load(infile4)
-    infile4.close()
-    print("Unpickling done!")
 
+def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile):
     temp_input_partial_info_binary_matrices = list()
     temp_input_path_matrices = list()
     temp_input_actions_binary_matrices = list()
     temp_input_scores = list()
 
-    # visited = list() 
     # integer divide by two because we don't want to double the dataset size, but just a decent amount of samples
     # -5 because index 2 has to choose values ahead of index1
     for index1 in tqdm(range((len(input_partial_info_binary_matrices)-5)//(4//3))):
@@ -126,34 +110,10 @@ def generate_data_rollout(infile1, infile2, infile3, infile4, outfile1_rollout1,
     print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
     print("final_final_scores: ", len(input_scores))
 
-    # pickle all the data after rollout
-    pickle.dump(input_path_matrices, outfile1_rollout1)
-    outfile1_rollout1.close()
-    pickle.dump(input_partial_info_binary_matrices, outfile1_rollout2)
-    outfile1_rollout2.close()
-    pickle.dump(input_actions_binary_matrices, outfile1_rollout3)
-    outfile1_rollout3.close()
-    pickle.dump(input_scores, outfile1_rollout4)
-    outfile1_rollout4.close()
-
-def generate_data_images(infile1_rollout1, infile1_rollout2, infile1_rollout3, infile1_rollout4, outfile_tensor_images):
-    # unpickle scores
-    print("Unpickling started!")
-    input_path_matrices = pickle.load(infile1_rollout1)
-    infile1_rollout1.close()
-    input_partial_info_binary_matrices = pickle.load(infile1_rollout2)
-    infile1_rollout2.close()
-    input_actions_binary_matrices = pickle.load(infile1_rollout3)
-    infile1_rollout3.close()
-    input_scores = pickle.load(infile1_rollout4)
-    infile1_rollout4.close()
-    print("Unpickling done!")
-
-    # generate the list of images
-    generate_tensor_images(input_partial_info_binary_matrices, input_path_matrices, input_actions_binary_matrices, input_scores)
+    generate_tensor_images(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
 
 
-def generate_tensor_images(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices, final_scores, outfile_tensor_images): 
+def generate_tensor_images(path_matricies, partial_info_binary_matrices, final_actions_binary_matrices, final_scores, outfile): 
     data = list()
 
     for i in tqdm(range(len(partial_info_binary_matrices))):
@@ -167,11 +127,13 @@ def generate_tensor_images(partial_info_binary_matrices, path_matricies, final_a
         for action in final_actions_binary_matrices[i]:
             image.append(action)
         
+        # print(image)
         
         data.append([torch.IntTensor(image), final_scores[i]])
 
     # pickle progress
     print("Pickling started!")
+    outfile_tensor_images = open(outfile, 'wb')
     pickle.dump(data, outfile_tensor_images)
     outfile_tensor_images.close()
     print("Pickling done!")
@@ -179,25 +141,11 @@ def generate_tensor_images(partial_info_binary_matrices, path_matricies, final_a
 
 if __name__ == "__main__":
 
-    # pickle directories
-    file1 = open('/home/kavi/thesis/pickles/input_path_matrices','wb')
-    file2 = open('/home/kavi/thesis/pickles/input_partial_info_binary_matrices','wb')
-    file3 = open('/home/kavi/thesis/pickles/input_actions_binary_matrices','wb')
-    file4 = open('/home/kavi/thesis/pickles/input_scores','wb')
-
-    file1_rollout = open('/home/kavi/thesis/pickles/input_path_matrices_rollout','wb')
-    file2_rollout = open('/home/kavi/thesis/pickles/input_partial_info_binary_matrices_rollout','wb')
-    file3_rollout = open('/home/kavi/thesis/pickles/input_actions_binary_matrices_rollout','wb')
-    file4_rollout = open('/home/kavi/thesis/pickles/input_scores_rollout','wb')
-
-    outfile_tensor_images = open('/home/kavi/thesis/pickles/data_21x21_random_greedyo_greedyno_t500_s200','wb')
+    # for pickling
+    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_random_greedyo_greedyno_t600_s150'
     
     # generate data
     print("Generating matrices")
-    generate_data_matrices(file1, file1, file1, file1)
+    generate_data_matrices(outfile_tensor_images, rollout=False)
     print()
-    print("Generating rollout data")
-    generate_data_rollout(file1, file1, file1, file1, file1_rollout, file2_rollout, file3_rollout, file4_rollout)
-    print()
-    print("Generating images")
-    generate_data_images(outfile_tensor_images)
+    

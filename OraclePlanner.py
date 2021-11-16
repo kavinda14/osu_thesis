@@ -14,8 +14,6 @@ def random_planner(robot, sensor_model):
         action = random.choice(actions)
         valid_move = robot.check_valid_move(action) 
         times_visited = sensor_model.get_final_path().count(tuple(robot.get_action_loc(action)))
-        robot_loc_debug = robot.get_loc()
-        action_loc_debug = robot.get_action_loc(action)
         if times_visited > 1: # This means that the same action is allowed x + 1 times
             visited_before = True
         else: 
@@ -33,11 +31,6 @@ def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=F
     best_action_score = float('-inf')
     best_action = random.choice(actions)
 
-    # load neural net with weights and set to forward prop only
-    # model = NeuralNet.Net(map.get_bounds())
-    # model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_mctsrolloutdata2"))
-    # model.eval()
-
     partial_info = [sensor_model.create_partial_info(False)]
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
     path_matrix = sensor_model.create_final_path_matrix(False)
@@ -46,8 +39,7 @@ def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=F
         if robot.check_valid_move(action):
             # tuple is needed here for count()
             potential_next_loc = tuple(robot.get_action_loc(action))
-            times_visited = sensor_model.get_final_path().count(potential_next_loc)
-            
+            times_visited = sensor_model.get_final_path().count(potential_next_loc)     
             
             # backtrack possibility
             if times_visited <= 1: 
