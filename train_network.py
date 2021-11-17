@@ -1,29 +1,23 @@
-from SensorModel import SensorModel
-from Map import Map
-from Robot import Robot
-from Simulator import Simulator
 import NeuralNet
-import random
-import time
-from tqdm import tqdm
 import pickle
 
 if __name__ == "__main__":
 
     # unpickle all the data
     print("Unpickling started!")
-    filename = '/home/kavi/thesis/pickles/data_21x21_random_greedyo_greedyno_t600_s150'
+    filename = '/home/kavi/thesis/pickles/data_21x21_circles_random_t600_s1000'
     infile = open(filename,'rb')
     data = pickle.load(infile)
     infile.close()
     print("Unpickling done!")
 
     # this is the path where the NN weights will be saved
-    weights_path = "/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch9_random_greedyo_greedyno_t600_s150"
+    weights_path = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch10_random_t600_s1000"
     
     # train network
     bounds = [21, 21]
-    NeuralNet.run_network(data, bounds, weights_path)
+    epochs = 10
+    NeuralNet.run_network(data, bounds, epochs, weights_path)
     
    
 

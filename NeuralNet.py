@@ -1,4 +1,3 @@
-import pickle
 import torch
 from torch.utils.data import Dataset, DataLoader
 import torch.nn as nn
@@ -100,7 +99,7 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
-def run_network(data, bounds, weights_path):
+def run_network(data, bounds, epochs, weights_path):
 
     train_loader, valid_loader = create_data_loaders(data)
 
@@ -119,7 +118,7 @@ def run_network(data, bounds, weights_path):
     train_loss_values = list()
     valid_loss_values = list()
 
-    for epoch in tqdm(range(10)):  # loop over the dataset multiple times
+    for epoch in tqdm(range(epochs)):  # loop over the dataset multiple times
         
         # training
         training_loss = 0.0

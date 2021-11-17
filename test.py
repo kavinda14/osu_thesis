@@ -28,8 +28,8 @@ if __name__ == "__main__":
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 1000
-    steps = 100
+    trials = 100
+    steps = 60
     visualize = False
     # profiling functions
     profile = False
@@ -46,7 +46,8 @@ if __name__ == "__main__":
     
     # load neural net
     neural_model = NeuralNet.Net(bounds)
-    neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_random_greedyo_greedyno_t500_s200"))
+    # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_random_greedyo_greedyno_t500_s200"))
+    neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch10_random_greedyo_greedyno_t450_s200_rollout"))    
     neural_model.eval()
 
     # this is for pickling the score_lists
