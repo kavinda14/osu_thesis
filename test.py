@@ -28,7 +28,7 @@ if __name__ == "__main__":
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 100
+    trials = 200
     steps = 60
     visualize = False
     # profiling functions
@@ -45,13 +45,15 @@ if __name__ == "__main__":
         score_lists = [list() for _ in range(len(planner_options))]
     
     # load neural net
+    weight_file = "circles_21x21_epoch3_random_greedyo_greedyno_t450_s200_rollout"
     neural_model = NeuralNet.Net(bounds)
     # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_random_greedyo_greedyno_t500_s200"))
-    neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch10_random_greedyo_greedyno_t450_s200_rollout"))    
+    # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_21x21_epoch3_random_t600_s1000"))    
+    neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/"+weight_file))    
     neural_model.eval()
 
     # this is for pickling the score_lists
-    filename = '/home/kavi/thesis/pickles/planner_scores'
+    filename = '/home/kavi/thesis/pickles/planner_scores_test'
 
     test_start_time = time.time()
     for i in range(trials):
@@ -165,8 +167,29 @@ if __name__ == "__main__":
         scores.append(curr_score)
 
     x_pos = np.arange(len(bars))
-    plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320', '#ddceff', '#4000ff', '#ff876f', '#540077'])
+    # plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320', '#ddceff', '#4000ff', '#ff876f', '#540077'])
+    # plt.xticks(x_pos, bars, rotation=45)
+    # plt.title(weight_file)
+    
+    # # puts the value on top of each bar
+    # for i in range(len(bars)):
+    #     plt.text(i, scores[i], scores[i], ha = 'center')
+
+    # plt.show()
+
+    # Box plot
+    score_lists_copy = score_lists
+    for score_list in score_lists_copy:
+        score_list.remove(score_list[0])   
+
+    # do this otherwise x axis is not correct
+    for i in x_pos:
+        x_pos[i] += 1
+
+    fig = plt.figure(figsize =(10, 7))
+    plt.boxplot(score_lists_copy)
     plt.xticks(x_pos, bars, rotation=45)
+    plt.title(weight_file+"_trials:"+str(trials)+"_steps:"+str(steps))
     plt.show()
 
 

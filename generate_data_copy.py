@@ -153,11 +153,11 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, final_a
 if __name__ == "__main__":
 
     # for pickling
-    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_t600_s1000'
+    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedy-no_t150_s1800'
     
     # generate data
     print("Generating matrices")
     # planner_options = ["random", "greedy-o", "greedy-no"]
-    planner_options = ["random"]
-    generate_data_matrices(trials=600, steps=900, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
+    planner_options = ["random", "greedy-no"]
+    generate_data_matrices(trials=150, steps=1800, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
     

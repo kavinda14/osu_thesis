@@ -76,7 +76,7 @@ class Simulator:
                 # make sure to include tuple casting for count() to work
                 times_visited = self.sensor_model.get_final_path().count(tuple(winner_loc))
                 # in case all directions are backtracked to the maximum number of times 
-                if counter == 11:
+                if counter == 5:
                     print('breaking mcts Simulator.py while loop')
                     break
                 
