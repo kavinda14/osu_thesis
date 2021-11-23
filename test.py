@@ -10,6 +10,7 @@ import time as time
 import pickle
 import NeuralNet
 import torch
+from tqdm import tqdm
 from basic_MCTS_python.reward import reward_greedy
 
 import cProfile
@@ -20,15 +21,15 @@ if __name__ == "__main__":
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
-    # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
-    planner_options = ["random", "greedy-o", "greedy-no", "network"]
+    planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
+    # planner_options = ["random", "greedy-o", "greedy-no", "network"]
     # planner_options = ["mcts"]
     rollout_options = ["random", "greedy", "network"]
     # rollout_options = ["network"]
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 100
+    trials = 400
     steps = 60
     visualize = False
     # profiling functions
@@ -53,10 +54,10 @@ if __name__ == "__main__":
     neural_model.eval()
 
     # this is for pickling the score_lists
-    filename = '/home/kavi/thesis/pickles/planner_scores_test'
+    filename = '/home/kavi/thesis/pickles/planner_scores'
 
     test_start_time = time.time()
-    for i in range(trials):
+    for i in tqdm(range(trials)):
         trial_start_time = time.time()
         print("TRIAL NO: {}".format(i+1))
         map = Map(bounds, 7, (), False)

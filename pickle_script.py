@@ -11,7 +11,7 @@ if __name__ == "__main__":
     score_lists = pickle.load(infile)
     infile.close()
 
-    print(score_lists)
+    # print(score_lists)
 
     ## Bar graphs
     bars = list()
@@ -25,14 +25,14 @@ if __name__ == "__main__":
         scores.append(curr_score)
 
     x_pos = np.arange(len(bars))
-    plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320', '#ddceff'])
-    plt.xticks(x_pos, bars, rotation=45)
+    # plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320', '#ddceff'])
+    # plt.xticks(x_pos, bars, rotation=45)
 
-    # puts the value on top of each bar
-    for i in range(len(bars)):
-        plt.text(i, scores[i], scores[i], ha = 'center')
+    # # puts the value on top of each bar
+    # for i in range(len(bars)):
+    #     plt.text(i, scores[i], scores[i], ha = 'center')
 
-    plt.show()
+    # plt.show()
 
     # Box plot
     score_lists_copy = score_lists

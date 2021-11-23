@@ -42,8 +42,8 @@ class Simulator:
         # At the start, there is no action, so we just add the initial partial info into the action matrix list
         initial_partial_info_matrix = self.sensor_model.get_final_partial_info()[0]
         self.sensor_model.append_action_matrix(initial_partial_info_matrix)
-        # for _ in tqdm(range(0, duration)):
-        for _ in (range(0, duration)):
+        for _ in tqdm(range(0, duration)):
+        # for _ in (range(0, duration)):
             end = self.tick(neural_model)
             if end:
                 break
@@ -63,8 +63,8 @@ class Simulator:
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, neural_net=True)
         if self.planner == 'mcts':
             budget = 5
-            # max_iterations = 1000
-            max_iterations = 1
+            max_iterations = 1000
+            # max_iterations = 1
             exploration_exploitation_parameter = 25.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
             action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
