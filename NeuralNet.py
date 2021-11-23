@@ -46,7 +46,7 @@ def create_data_loaders(data):
     validation_split = 0.5
     batch_size = 128
     random_seed= 42
-    shuffle_dataset = True
+    shuffle_dataset = False
 
     dataset_size = len(dataset)
     indices = list(range(dataset_size))

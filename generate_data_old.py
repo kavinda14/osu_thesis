@@ -62,8 +62,6 @@ def generate_data_matrices(trials, steps, planner_options, visualize, bounds, ou
             input_actions_binary_matrices = input_actions_binary_matrices + final_actions_binary_matrices
             input_scores = input_scores + final_scores
 
-            generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, outfile)
-            
             end = time.time()
             time_taken = (end - start)/60
             # print("Iteration: {}, Planner: {}, Time taken: {:.3f}".format(i, planner, time_taken))
@@ -73,7 +71,10 @@ def generate_data_matrices(trials, steps, planner_options, visualize, bounds, ou
     print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
     print("final_final_scores: ", len(input_scores))
 
-    generate_tensor_images(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
+    if rollout:
+        generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, outfile)
+    else: 
+        generate_tensor_images(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
 
 
 def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, outfile):
@@ -82,42 +83,43 @@ def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrice
     temp_input_actions_binary_matrices = list()
     temp_input_scores = list()
 
+    print(len(input_path_matrices))
     # integer divide by two because we don't want to double the dataset size, but just a decent amount of samples
     # -5 because index 2 has to choose values ahead of index1
-    # boundary = steps+1
+    boundary = steps+1
+    # for index1 in tqdm(range((len(input_partial_info_binary_matrices)-5)//(4//3))):
+    for index1 in tqdm(range(len(input_partial_info_binary_matrices))):
+        # if not randint() will complain that start and end point at the same
+        if index1 == boundary:
+            boundary += steps+1
 
-    index1 = len(input_partial_info_binary_matrices) - steps
-    boundary = index1 + steps
-
-    while index1 < (len(input_partial_info_binary_matrices) - (steps//4)):
+        if index1 == boundary-1:
+            continue
+        
         temp_input_partial_info_binary_matrices.append(input_partial_info_binary_matrices[index1])
         # +1 because we don't want the same idx as index and -1 because it goes outside array otherwise
-        index2 = random.randint(index1, boundary-2)
-        # debug
-        # print()
-        # print("index1: ", index1)
-        # print("index2: ", index2)
-        # print("boundary: ", boundary)
-        # print()
+        index2 = random.randint(index1, boundary-1)
+        print()
+        print("index1: ", index1)
+        print("index2: ", index2)
+        print("boundary: ", boundary)
+        print()
         
         temp_input_path_matrices.append(input_path_matrices[index2])
         temp_input_actions_binary_matrices.append(input_actions_binary_matrices[index2])
         temp_input_scores.append(input_scores[index2])
-
-        index1 += 1
 
     input_partial_info_binary_matrices += temp_input_partial_info_binary_matrices
     input_path_matrices += temp_input_path_matrices
     input_actions_binary_matrices += temp_input_actions_binary_matrices
     input_scores += temp_input_scores
 
-    # print("After rollout data: ")
-    # print("final_path_matrices: ", len(input_path_matrices))
-    # print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
-    # print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
-    # print("final_final_scores: ", len(input_scores))
+    print("final_path_matrices: ", len(input_path_matrices))
+    print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
+    print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
+    print("final_final_scores: ", len(input_scores))
 
-    # generate_tensor_images(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
+    generate_tensor_images(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
 
 
 def generate_tensor_images(path_matricies, partial_info_binary_matrices, final_actions_binary_matrices, final_scores, outfile): 
@@ -147,12 +149,11 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, final_a
 if __name__ == "__main__":
 
     # for pickling
-    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_t800_s200_rollout'
+    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedy-no_t150_s1800'
+    
     # generate data
     print("Generating matrices")
     # planner_options = ["random", "greedy-o", "greedy-no"]
     planner_options = ["random", "greedy-no"]
-    # planner_options = ["random", "greedy-no"]
-    # planner_options = ["random"]
-    generate_data_matrices(trials=800, steps=200, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
+    generate_data_matrices(trials=150, steps=1800, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
     

@@ -51,7 +51,7 @@ def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
     for state in rollout_sequence:
         loc = state.get_location()
         if tuple(loc) in reward_final_path:
-                continue
+            continue
         reward_final_path.append(state.get_location())
 
         path_matrix = sensor_model.create_final_path_matrix_mcts(reward_final_path, update=False)

@@ -28,7 +28,7 @@ if __name__ == "__main__":
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 200
+    trials = 100
     steps = 60
     visualize = False
     # profiling functions
@@ -45,7 +45,7 @@ if __name__ == "__main__":
         score_lists = [list() for _ in range(len(planner_options))]
     
     # load neural net
-    weight_file = "circles_21x21_epoch3_random_greedyo_greedyno_t450_s200_rollout"
+    weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
     neural_model = NeuralNet.Net(bounds)
     # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_random_greedyo_greedyno_t500_s200"))
     # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_21x21_epoch3_random_t600_s1000"))    
