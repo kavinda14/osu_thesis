@@ -62,24 +62,11 @@ class Simulator:
         if self.planner == "network":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, neural_net=True)
         if self.planner == 'mcts':
-            times_visited = 10
             budget = 5
-            max_iterations = 1000
-            # max_iterations = 1
+            # max_iterations = 1000
+            max_iterations = 1
             exploration_exploitation_parameter = 25.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-            # exploration_exploitation_parameter = 1.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-            counter = 0
-
-            while times_visited > 2:
-                counter += 1
-                solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
-                # make sure to include tuple casting for count() to work
-                times_visited = self.sensor_model.get_final_path().count(tuple(winner_loc))
-                # in case all directions are backtracked to the maximum number of times 
-                if counter == 5:
-                    print('breaking mcts Simulator.py while loop')
-                    break
-                
+            solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
             action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
 
         self.actions.append(action)
