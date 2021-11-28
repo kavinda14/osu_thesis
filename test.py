@@ -21,17 +21,17 @@ if __name__ == "__main__":
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
-    planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
-    # planner_options = ["random", "greedy-o", "greedy-no", "network"]
+    # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
+    planner_options = ["random", "greedy-o", "greedy-no", "network"]
     # planner_options = ["mcts"]
     rollout_options = ["random", "greedy", "network"]
     # rollout_options = ["network"]
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 400
+    trials = 100
     steps = 60
-    visualize = False
+    visualize = True
     # profiling functions
     profile = False
 
@@ -46,7 +46,8 @@ if __name__ == "__main__":
         score_lists = [list() for _ in range(len(planner_options))]
     
     # load neural net
-    weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
+    # weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
+    weight_file = "circles_21x21_epoch10_random_greedy-no_t300_s9000"
     neural_model = NeuralNet.Net(bounds)
     # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_random_greedyo_greedyno_t500_s200"))
     # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_21x21_epoch3_random_t600_s1000"))    
@@ -54,7 +55,7 @@ if __name__ == "__main__":
     neural_model.eval()
 
     # this is for pickling the score_lists
-    filename = '/home/kavi/thesis/pickles/planner_scores'
+    filename = '/home/kavi/thesis/pickles/planner_scores_test'
 
     test_start_time = time.time()
     for i in tqdm(range(trials)):
