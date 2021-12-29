@@ -89,9 +89,8 @@ if __name__ == "__main__":
         for planner in planner_options:
             print("Planner: {}".format(planner))
             # the map has to be the same for each planner
-            map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
-            
             for bot in robots:
+                map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                 sensor_model = SensorModel(bot, map)
                 simulator = Simulator(map, bot, sensor_model, planner)
                 bot.add_map(map)
@@ -147,6 +146,7 @@ if __name__ == "__main__":
                         
                         # map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                         start = time.time()
+                        simulator.print_obs_free()
                         if visualize:
                             simulator.visualize()
 
@@ -155,6 +155,7 @@ if __name__ == "__main__":
                         end = time.time()
                         if visualize:
                             simulator.visualize()
+
                         score = sum(sensor_model.get_final_scores())     
                         print("Score: ", score)
                         print("Time taken (secs): ", end - start)

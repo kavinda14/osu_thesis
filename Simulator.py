@@ -23,6 +23,7 @@ class Simulator:
         # The following identify what has been seen by the robot
         self.obs_occupied = set()
         self.obs_free = set()
+
         self.score = 0
         self.iterations = 0
 
@@ -167,3 +168,6 @@ class Simulator:
 
 
         plt.show()
+
+    def print_obs_free(self):
+        print(self.obs_free)
