@@ -27,7 +27,6 @@ def get_random_loc(map, bounds):
 
     return [x, y]
 
- # oracle map
 def oracle_visualize(robots, bounds, map):
     plt.xlim(0, bounds[0])
     plt.ylim(0, bounds[1])
@@ -62,12 +61,12 @@ def oracle_visualize(robots, bounds, map):
         g = random.random()
         bot_color = (r, g, b)
 
-        # Plot robot
+        # plot robot
         robot_x = bot.get_loc()[0] + 0.5
         robot_y = bot.get_loc()[1] + 0.5
         plt.scatter(robot_x, robot_y, color=bot_color, zorder=5)
 
-        # Plot robot path
+        # plot robot path
         x_values = list()
         y_values = list()
         for path in bot.get_sensor_model().get_final_path():
@@ -84,13 +83,26 @@ def oracle_visualize(robots, bounds, map):
     for spot in obs_free:
         hole = patches.Rectangle(spot, 1, 1, facecolor='white')
         ax.add_patch(hole)
-    
-    # for spot in obs_occupied:
-    #     hole = patches.Rectangle(spot, 1, 1, facecolor='green')
-    #     ax.add_patch(hole)
 
     plt.show()
 
+def communicate(robots):
+    for bot1 in robots:
+        sensor_model_bot1 = bot1.get_sensor_model()
+        final_path_bot1 = sensor_model_bot1.get_final_path()
+        print("final_path_bot1", final_path_bot1)
+        for bot2 in robots:
+            if bot1 is not bot2:
+                sensor_model_bot2 = bot2.get_sensor_model()
+                final_path_bot2 = sensor_model_bot2.get_final_path()
+                final_other_path_bot2 = sensor_model_bot2.get_final_other_path()
+                for path in final_path_bot1:
+                    if path not in final_other_path_bot2 and final_path_bot2:
+                        final_other_path_bot2.append(path)
+                # print("final_path_bot2", final_path_bot2)
+                print("final_other_path_bot2", final_other_path_bot2)
+        print()
+        
 if __name__ == "__main__":
 
     # Bounds need to be an odd number for the action to always be in the middle
@@ -98,16 +110,17 @@ if __name__ == "__main__":
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
     # planner_options = ["random", "greedy-o", "greedy-no", "network"]
-    planner_options = ["random"]
+    # planner_options = ["random"]
+    planner_options = ["greedy-o"]
     # planner_options = ["mcts"]
     rollout_options = ["random", "greedy", "network"]
     # rollout_options = ["network"]
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 2
-    steps = 5
-    num_robots = 3
+    trials = 10
+    steps = 30
+    num_robots = 2
     visualize = False
     # profiling functions
     profile = False
@@ -231,6 +244,8 @@ if __name__ == "__main__":
                         outfile = open(filename,'wb')
                         pickle.dump(score_lists, outfile)
                         outfile.close()
+
+                communicate(robots)
 
         oracle_visualize(robots, bounds, map)
 

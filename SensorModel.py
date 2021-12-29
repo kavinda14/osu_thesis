@@ -11,6 +11,7 @@ class SensorModel:
         self.final_partial_info = list()
         self.final_scores = list()
         self.final_path = list()
+        self.final_other_path = list() # this is for communicate() with other robots
         self.final_path_matrices = list()
         self.final_actions = list()
 
@@ -281,6 +282,9 @@ class SensorModel:
 
     def get_final_path(self):
         return self.final_path
+
+    def get_final_other_path(self):
+        return self.final_other_path
 
     def get_final_partial_info(self):
         return self.final_partial_info

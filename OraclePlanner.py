@@ -7,17 +7,20 @@ def random_planner(robot, sensor_model):
     valid_move = False # Checks if the pixel is free
     visited_before = True # Check if the pixel has been visited before
     action = random.choice(actions)
+    action = random.choice(actions)
    
     counter = 0
     while True:
         counter += 1
         action = random.choice(actions)
         valid_move = robot.check_valid_move(action) 
-        times_visited = sensor_model.get_final_path().count(tuple(robot.get_action_loc(action)))
-        if times_visited > 1: # This means that the same action is allowed x + 1 times
-            visited_before = True
+        potential_next_loc = robot.get_action_loc(action)
+        times_visited = sensor_model.get_final_path().count(tuple(potential_next_loc))
+        + sensor_model.get_final_other_path().count(tuple(potential_next_loc))
+        if times_visited <= 0: # This means that the same action is allowed x + 1 times
+            visited_before = False            
         else: 
-            visited_before = False
+            visited_before = True
         if valid_move == True and visited_before == False:
             break
         if counter > 10:
@@ -39,10 +42,12 @@ def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=F
         if robot.check_valid_move(action):
             # tuple is needed here for count()
             potential_next_loc = tuple(robot.get_action_loc(action))
-            times_visited = sensor_model.get_final_path().count(potential_next_loc)     
+            # times_visited = sensor_model.get_final_path().count(potential_next_loc)    
+            times_visited = sensor_model.get_final_path().count(potential_next_loc)
+            + sensor_model.get_final_other_path().count(potential_next_loc)
             
             # backtrack possibility
-            if times_visited <= 1: 
+            if times_visited <= 0: 
                 if neural_net:
                     # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
                     final_actions = [sensor_model.create_action_matrix(action, True)]
