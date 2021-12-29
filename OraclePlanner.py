@@ -43,8 +43,11 @@ def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=F
             # tuple is needed here for count()
             potential_next_loc = tuple(robot.get_action_loc(action))
             # times_visited = sensor_model.get_final_path().count(potential_next_loc)    
-            times_visited = sensor_model.get_final_path().count(potential_next_loc)
-            + sensor_model.get_final_other_path().count(potential_next_loc)
+            times_visited = sensor_model.get_final_path().count(potential_next_loc) + sensor_model.get_final_other_path().count(potential_next_loc)
+            # print("loc1", potential_next_loc)
+            # print("action: ", action)
+            print("TIMES VISTED", times_visited)
+            # print("final_other_path: ", sensor_model.get_final_other_path())
             
             # backtrack possibility
             if times_visited <= 0: 
@@ -72,8 +75,11 @@ def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=F
                 if action_score > best_action_score:
                     best_action_score = action_score
                     best_action = action
-
-    # print('Path Debug: ', sensor_model.get_final_path().count(tuple(robot.get_action_loc(best_action))))
+    
+    print("best_loc", robot.get_action_loc(best_action))
+    print("best action", best_action)
+    print('Path Debug: ', sensor_model.get_final_path().count(tuple(robot.get_action_loc(best_action)))
+    + sensor_model.get_final_other_path().count(tuple(robot.get_action_loc(best_action))))
     # print('Count Debug: '. len(sensor_model.get_final_path()))
     return best_action
 

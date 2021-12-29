@@ -90,18 +90,16 @@ def communicate(robots):
     for bot1 in robots:
         sensor_model_bot1 = bot1.get_sensor_model()
         final_path_bot1 = sensor_model_bot1.get_final_path()
-        print("final_path_bot1", final_path_bot1)
+        # print("final_path_bot1", final_path_bot1)
         for bot2 in robots:
             if bot1 is not bot2:
                 sensor_model_bot2 = bot2.get_sensor_model()
-                final_path_bot2 = sensor_model_bot2.get_final_path()
-                final_other_path_bot2 = sensor_model_bot2.get_final_other_path()
-                for path in final_path_bot1:
-                    if path not in final_other_path_bot2 and final_path_bot2:
-                        final_other_path_bot2.append(path)
+                final_other_path_bot2 = sensor_model_bot2.get_final_other_path() + final_path_bot1          
+                sensor_model_bot2.set_final_other_path(final_other_path_bot2)
+
                 # print("final_path_bot2", final_path_bot2)
-                print("final_other_path_bot2", final_other_path_bot2)
-        print()
+                # print("final_other_path_bot2", final_other_path_bot2)
+        # print()
         
 if __name__ == "__main__":
 
@@ -120,7 +118,7 @@ if __name__ == "__main__":
     bounds = [21, 21]
     trials = 10
     steps = 30
-    num_robots = 2
+    num_robots = 5
     visualize = False
     # profiling functions
     profile = False

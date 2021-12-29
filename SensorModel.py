@@ -298,6 +298,9 @@ class SensorModel:
     def get_final_path_matrices(self):
         return self.final_path_matrices
 
+    def set_final_other_path(self, final_other_path):
+        self.final_other_path = final_other_path
+
     @staticmethod
     def euclidean_distance(p1, p2):
         x1 = p1[0]
