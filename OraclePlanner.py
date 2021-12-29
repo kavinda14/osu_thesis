@@ -15,8 +15,7 @@ def random_planner(robot, sensor_model):
         action = random.choice(actions)
         valid_move = robot.check_valid_move(action) 
         potential_next_loc = robot.get_action_loc(action)
-        times_visited = sensor_model.get_final_path().count(tuple(potential_next_loc))
-        + sensor_model.get_final_other_path().count(tuple(potential_next_loc))
+        times_visited = sensor_model.get_final_path().count(tuple(potential_next_loc)) + sensor_model.get_final_other_path().count(tuple(potential_next_loc))
         if times_visited <= 0: # This means that the same action is allowed x + 1 times
             visited_before = False            
         else: 

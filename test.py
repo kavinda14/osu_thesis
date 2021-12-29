@@ -108,16 +108,16 @@ if __name__ == "__main__":
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
     # planner_options = ["random", "greedy-o", "greedy-no", "network"]
-    # planner_options = ["random"]
-    planner_options = ["greedy-o"]
+    planner_options = ["random"]
+    # planner_options = ["greedy-o"]
     # planner_options = ["mcts"]
     rollout_options = ["random", "greedy", "network"]
     # rollout_options = ["network"]
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 2
-    steps = 4
+    trials = 5
+    steps = 50
     num_robots = 2
     obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
