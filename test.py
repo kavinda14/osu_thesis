@@ -4,6 +4,7 @@ from Robot import Robot
 from Simulator import Simulator
 import copy
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import numpy as np
 import random as r
 import time as time
@@ -26,6 +27,57 @@ def get_random_loc(map, bounds):
 
     return [x, y]
 
+ # *How do I get a map with all the robots showing?
+def visualize1(robots, bounds, map):
+    plt.xlim(0, bounds[0])
+    plt.ylim(0, bounds[1])
+    # plt.title("Planner: {}, Score: {}".format(self.planner, sum(self.sensor_model.get_final_scores())))
+
+    ax = plt.gca()
+    ax.set_aspect('equal', 'box')
+    
+    # get all the observed locations from all robots
+    obs_free = set()
+    obs_occupied = set()
+    for bot in robots:
+        simulator = bot.get_simulator()
+        map = bot.get_map()
+
+        obs_free = obs_free.union(simulator.get_obs_free())
+        obs_occupied = obs_occupied.union(simulator.get_obs_occupied())
+
+        # Plot robot
+        robot_x = bot.get_loc()[0] + 0.5
+        robot_y = bot.get_loc()[1] + 0.5
+        plt.scatter(robot_x, robot_y, color='purple', zorder=5)
+
+        # Plot robot path
+        x_values = list()
+        y_values = list()
+        for path in bot.get_sensor_model().get_final_path():
+            x_values.append(path[0] + 0.5)
+            y_values.append(path[1] + 0.5)
+        plt.plot(x_values, y_values)
+        
+    for spot in map.unobs_occupied:
+        hole = patches.Rectangle(spot, 1, 1, facecolor='red')
+        ax.add_patch(hole)
+
+    for spot in map.unobs_free:
+        hole = patches.Rectangle(spot, 1, 1, facecolor='black')
+        ax.add_patch(hole)
+    
+    print("HERE", obs_free)
+    for spot in obs_free:
+        hole = patches.Rectangle(spot, 1, 1, facecolor='white')
+        ax.add_patch(hole)
+    
+    for spot in obs_occupied:
+        hole = patches.Rectangle(spot, 1, 1, facecolor='green')
+        ax.add_patch(hole)
+
+    plt.show()
+
 if __name__ == "__main__":
 
     # Bounds need to be an odd number for the action to always be in the middle
@@ -40,10 +92,10 @@ if __name__ == "__main__":
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 100
-    steps = 60
+    trials = 2
+    steps = 5
     num_robots = 3
-    visualize = True
+    visualize = False
     # profiling functions
     profile = False
 
@@ -146,7 +198,6 @@ if __name__ == "__main__":
                         
                         # map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                         start = time.time()
-                        simulator.print_obs_free()
                         if visualize:
                             simulator.visualize()
 
@@ -167,6 +218,8 @@ if __name__ == "__main__":
                         outfile = open(filename,'wb')
                         pickle.dump(score_lists, outfile)
                         outfile.close()
+
+        visualize1(robots, bounds, map)
 
         trial_end_time = time.time()
         print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)

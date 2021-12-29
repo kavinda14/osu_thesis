@@ -114,6 +114,12 @@ class Simulator:
     def get_actions(self):
         return self.actions
 
+    def get_obs_free(self):
+        return self.obs_free
+    
+    def get_obs_occupied(self):
+        return self.obs_occupied
+
     def _update_map(self):
         # Sanity check the robot is in bounds
         if not self.robot.check_valid_loc():
@@ -168,6 +174,3 @@ class Simulator:
 
 
         plt.show()
-
-    def print_obs_free(self):
-        print(self.obs_free)
