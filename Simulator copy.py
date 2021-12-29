@@ -33,7 +33,7 @@ class Simulator:
         # actions list was created because we thought the robot was sometimes not moving
         self.actions = list()
 
-    def run(self, neural_model):
+    def run(self, duration, neural_model):
         self._update_map()
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
@@ -42,11 +42,11 @@ class Simulator:
         # At the start, there is no action, so we just add the initial partial info into the action matrix list
         initial_partial_info_matrix = self.sensor_model.get_final_partial_info()[0]
         self.sensor_model.append_action_matrix(initial_partial_info_matrix)
-        # for _ in tqdm(range(0, duration)):
-
-        self.tick(neural_model)
-        # if end:
-                # break
+        for _ in tqdm(range(0, duration)):
+        # for _ in (range(0, duration)):
+            end = self.tick(neural_model)
+            if end:
+                break
 
     def tick(self, neural_model):
         self.iterations += 1        
@@ -86,11 +86,11 @@ class Simulator:
         # It needs to be reset otherwise the score will carry on to the next iteration even if no new obstacles were scanned.
         self.reset_score()
 
-        # End when all objects have been observed
-        # if (len(self.obs_occupied) == self.map.unobs_occupied):
-        #     return True
-        # else:
-        #     return False
+        # End when all objects have been observed OR 1,000 iterations
+        if (len(self.obs_occupied) == self.map.unobs_occupied) or (self.iterations == 1000000):
+            return True
+        else:
+            return False
 
     def reset_game(self):
         self.iterations = 0

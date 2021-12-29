@@ -13,6 +13,8 @@ class Robot:
         # self.sensing_range = 4.3 # Range for circles with bounds 41, 41
         self.lim = bounds
         self.map = map
+        self.sensor_model = None
+        self.simulator = None
 
     def reset_robot(self):
         self.x_loc = self.start_loc[0]
@@ -175,3 +177,21 @@ class Robot:
     
     def get_bounds(self):
         return self.lim
+
+    def get_map(self):
+        return self.map
+
+    def get_sensor_model(self):
+        return self.sensor_model
+
+    def get_simulator(self):
+        return self.simulator
+    
+    def add_map(self, map):
+        self.map = map
+
+    def add_sensor_model(self, sensor_model):
+        self.sensor_model = sensor_model
+
+    def add_simulator(self, simulator):
+        self.simulator = simulator

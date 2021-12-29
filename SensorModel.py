@@ -11,7 +11,6 @@ class SensorModel:
         self.final_partial_info = list()
         self.final_scores = list()
         self.final_path = list()
-        # self.final_path = set()
         self.final_path_matrices = list()
         self.final_actions = list()
 

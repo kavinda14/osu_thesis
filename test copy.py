@@ -16,24 +16,13 @@ from basic_MCTS_python.reward import reward_greedy
 import cProfile
 import pstats
 
-# used to create random, valid starting locs
-def get_random_loc(map, bounds):
-    valid_starting_loc = False
-    while not valid_starting_loc:
-        x = r.randint(0, bounds[0]-1)
-        y = r.randint(0, bounds[0]-1)
-        valid_starting_loc = map.check_loc(x, y)
-
-    return [x, y]
-
 if __name__ == "__main__":
 
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
-    # planner_options = ["random", "greedy-o", "greedy-no", "network"]
-    planner_options = ["random"]
+    planner_options = ["random", "greedy-o", "greedy-no", "network"]
     # planner_options = ["mcts"]
     rollout_options = ["random", "greedy", "network"]
     # rollout_options = ["network"]
@@ -42,7 +31,6 @@ if __name__ == "__main__":
     bounds = [21, 21]
     trials = 100
     steps = 60
-    num_robots = 3
     visualize = True
     # profiling functions
     profile = False
@@ -79,93 +67,83 @@ if __name__ == "__main__":
         # for pickling data
         score_list = 0
 
-        # create robots
-        robots = list()
-        for _ in range(num_robots):
-            start_loc = get_random_loc(map, bounds)
-            bot = Robot(start_loc[0], start_loc[1], bounds, map)
-            robots.append(bot)
+        # start robot at random valid location on map
+        valid_starting_loc = False
+        while not valid_starting_loc:
+            x = r.randint(0, bounds[0]-1)
+            y = r.randint(0, bounds[0]-1)
+            valid_starting_loc = map.check_loc(x, y)
 
         for planner in planner_options:
             print("Planner: {}".format(planner))
-            # the map has to be the same for each planner
-            map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
-            
-            for bot in robots:
-                sensor_model = SensorModel(bot, map)
-                simulator = Simulator(map, bot, sensor_model, planner)
-                bot.add_map(map)
-                bot.add_sensor_model(sensor_model)
-                bot.add_simulator(simulator)
 
-            for step in range(steps):
+            for bot in robots: 
 
-                # run multiple robots in same map
-                for bot in robots:
-                    simulator = bot.get_simulator()
+            if planner == "mcts":
+                for rollout_type in rollout_options:
+                    for reward_type in reward_options:
+                        print("Rollout: {}, Reward: {}".format(rollout_type, reward_type))
+                        # this is for pickling the data
+                        curr_list = score_lists[score_list]
+                        if len(curr_list) == 0:
+                            curr_list.append(rollout_type + '_' + reward_type)
+                        score_list += 1
 
-                    if planner == "mcts":
-                        for rollout_type in rollout_options:
-                            for reward_type in reward_options:
-                                print("Rollout: {}, Reward: {}".format(rollout_type, reward_type))
-                                # this is for pickling the data
-                                curr_list = score_lists[score_list]
-                                if len(curr_list) == 0:
-                                    curr_list.append(rollout_type + '_' + reward_type)
-                                score_list += 1
-
-                                # map object is here as well just to reset the map to its initial state
-                                map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
-                                sensor_model = SensorModel(bot, map)
-                                start = time.time()
-                                simulator = Simulator(map, bot, sensor_model, planner, rollout_type, reward_type)
-                                if visualize:
-                                    simulator.visualize()
-                                simulator.run(steps, neural_model)
-                                end = time.time()
-                                if visualize:
-                                    simulator.visualize()
-                                score = sum(sensor_model.get_final_scores())                        
-                                curr_list.append(score)
-                                
-                                print("Score: ", score)
-                                print("Time taken (secs): ", end - start)
-                                print()
-                                
-                                # pickle progress
-                                outfile = open(filename,'wb')
-                                pickle.dump(score_lists, outfile)
-                                outfile.close()
-
-
-                    else: # these are the myopic planners
-                        # TODO: add this back after all multi-robot code is working
-                        # curr_list = score_lists[score_list]
-                        # if len(curr_list) == 0:
-                        #     curr_list.append(planner)
-                        # score_list += 1
-                        
-                        # map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
+                        # map object is here as well just to reset the map to its initial state
+                        map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
+                        robot = Robot(x, y, bounds, map)
+                        # robot = Robot(9, 1, bounds, map)
+                        sensor_model = SensorModel(robot, map)
                         start = time.time()
+                        simulator = Simulator(map, robot, sensor_model, planner, rollout_type, reward_type)
                         if visualize:
                             simulator.visualize()
-
-                        simulator.run(neural_model)
-
+                        simulator.run(steps, neural_model)
                         end = time.time()
                         if visualize:
                             simulator.visualize()
-                        score = sum(sensor_model.get_final_scores())     
+                        score = sum(sensor_model.get_final_scores())                        
+                        curr_list.append(score)
+                        
                         print("Score: ", score)
                         print("Time taken (secs): ", end - start)
                         print()
-                        
-                        # curr_list.append(score)
                         
                         # pickle progress
                         outfile = open(filename,'wb')
                         pickle.dump(score_lists, outfile)
                         outfile.close()
+
+
+            else: # these are the myopic planners
+                curr_list = score_lists[score_list]
+                if len(curr_list) == 0:
+                    curr_list.append(planner)
+                score_list += 1
+                
+                map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
+                robot = Robot(x, y, bounds, map)
+                # robot = Robot(9, 1, bounds, map)
+                sensor_model = SensorModel(robot, map)
+                start = time.time()
+                simulator = Simulator(map, robot, sensor_model, planner)
+                if visualize:
+                    simulator.visualize()
+                simulator.run(steps, neural_model)
+                end = time.time()
+                if visualize:
+                    simulator.visualize()
+                score = sum(sensor_model.get_final_scores())     
+                print("Score: ", score)
+                print("Time taken (secs): ", end - start)
+                print()
+                
+                curr_list.append(score)
+                
+                # pickle progress
+                outfile = open(filename,'wb')
+                pickle.dump(score_lists, outfile)
+                outfile.close()
 
         trial_end_time = time.time()
         print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)
