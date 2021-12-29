@@ -116,9 +116,10 @@ if __name__ == "__main__":
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 10
-    steps = 30
-    num_robots = 5
+    trials = 2
+    steps = 4
+    num_robots = 2
+    obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
     # profiling functions
     profile = False
@@ -134,16 +135,20 @@ if __name__ == "__main__":
         score_lists = [list() for _ in range(len(planner_options))]
     
     # load neural net
-    # weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
-    weight_file = "circles_21x21_epoch10_random_greedy-no_t300_s9000"
+    weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
+    # weight_file = "circles_21x21_epoch10_random_greedy-no_t300_s9000"
+
     neural_model = NeuralNet.Net(bounds)
     # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_random_greedyo_greedyno_t500_s200"))
     # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_21x21_epoch3_random_t600_s1000"))    
-    neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/"+weight_file))    
+    # alienware
+    # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/"+weight_file)) 
+    # macbook 
+    neural_model.load_state_dict(torch.load("/Users/kavisen/osu_thesis/"+weight_file))    
     neural_model.eval()
 
     # this is for pickling the score_lists
-    filename = '/home/kavi/thesis/pickles/planner_scores_test'
+    # filename = '/home/kavi/thesis/pickles/planner_scores_test'
 
     test_start_time = time.time()
     for i in tqdm(range(trials)):
@@ -178,6 +183,8 @@ if __name__ == "__main__":
                 # run multiple robots in same map
                 for bot in robots:
                     simulator = bot.get_simulator()
+                    # to keep track of score
+                    obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
 
                     if planner == "mcts":
                         for rollout_type in rollout_options:
@@ -208,9 +215,9 @@ if __name__ == "__main__":
                                 print()
                                 
                                 # pickle progress
-                                outfile = open(filename,'wb')
-                                pickle.dump(score_lists, outfile)
-                                outfile.close()
+                                # outfile = open(filename,'wb')
+                                # pickle.dump(score_lists, outfile)
+                                # outfile.close()
 
 
                     else: # these are the myopic planners
@@ -232,18 +239,19 @@ if __name__ == "__main__":
                             simulator.visualize()
 
                         score = sum(sensor_model.get_final_scores())     
-                        print("Score: ", score)
                         print("Time taken (secs): ", end - start)
                         print()
                         
                         # curr_list.append(score)
                         
                         # pickle progress
-                        outfile = open(filename,'wb')
-                        pickle.dump(score_lists, outfile)
-                        outfile.close()
+                        # outfile = open(filename,'wb')
+                        # pickle.dump(score_lists, outfile)
+                        # outfile.close()
 
                 communicate(robots)
+            
+            print("Score: ", len(obs_occupied_oracle))
 
         oracle_visualize(robots, bounds, map)
 
