@@ -6,7 +6,7 @@ import copy
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
-import random as r
+import random as random
 import time as time
 import pickle
 import NeuralNet
@@ -21,20 +21,30 @@ import pstats
 def get_random_loc(map, bounds):
     valid_starting_loc = False
     while not valid_starting_loc:
-        x = r.randint(0, bounds[0]-1)
-        y = r.randint(0, bounds[0]-1)
+        x = random.randint(0, bounds[0]-1)
+        y = random.randint(0, bounds[0]-1)
         valid_starting_loc = map.check_loc(x, y)
 
     return [x, y]
 
- # *How do I get a map with all the robots showing?
-def visualize1(robots, bounds, map):
+ # oracle map
+def oracle_visualize(robots, bounds, map):
     plt.xlim(0, bounds[0])
     plt.ylim(0, bounds[1])
     # plt.title("Planner: {}, Score: {}".format(self.planner, sum(self.sensor_model.get_final_scores())))
 
     ax = plt.gca()
     ax.set_aspect('equal', 'box')
+
+    # this has to be done before the bot for loop to avoid red patches
+    # ..going over the other obs_occupied patches
+    for spot in map.unobs_occupied:
+        hole = patches.Rectangle(spot, 1, 1, facecolor='red')
+        ax.add_patch(hole)
+
+    for spot in map.unobs_free:
+        hole = patches.Rectangle(spot, 1, 1, facecolor='black')
+        ax.add_patch(hole)
     
     # get all the observed locations from all robots
     obs_free = set()
@@ -46,10 +56,16 @@ def visualize1(robots, bounds, map):
         obs_free = obs_free.union(simulator.get_obs_free())
         obs_occupied = obs_occupied.union(simulator.get_obs_occupied())
 
+        # add unique color for robot
+        r = random.random()
+        b = random.random()
+        g = random.random()
+        bot_color = (r, g, b)
+
         # Plot robot
         robot_x = bot.get_loc()[0] + 0.5
         robot_y = bot.get_loc()[1] + 0.5
-        plt.scatter(robot_x, robot_y, color='purple', zorder=5)
+        plt.scatter(robot_x, robot_y, color=bot_color, zorder=5)
 
         # Plot robot path
         x_values = list()
@@ -57,24 +73,21 @@ def visualize1(robots, bounds, map):
         for path in bot.get_sensor_model().get_final_path():
             x_values.append(path[0] + 0.5)
             y_values.append(path[1] + 0.5)
-        plt.plot(x_values, y_values)
-        
-    for spot in map.unobs_occupied:
-        hole = patches.Rectangle(spot, 1, 1, facecolor='red')
-        ax.add_patch(hole)
+        plt.plot(x_values, y_values, color=bot_color)
 
-    for spot in map.unobs_free:
-        hole = patches.Rectangle(spot, 1, 1, facecolor='black')
-        ax.add_patch(hole)
+        for spot in obs_occupied:
+            hole = patches.Rectangle(spot, 1, 1, facecolor=bot_color)
+            ax.add_patch(hole)
+        print(obs_occupied)
+        obs_occupied = set()
     
-    print("HERE", obs_free)
     for spot in obs_free:
         hole = patches.Rectangle(spot, 1, 1, facecolor='white')
         ax.add_patch(hole)
     
-    for spot in obs_occupied:
-        hole = patches.Rectangle(spot, 1, 1, facecolor='green')
-        ax.add_patch(hole)
+    # for spot in obs_occupied:
+    #     hole = patches.Rectangle(spot, 1, 1, facecolor='green')
+    #     ax.add_patch(hole)
 
     plt.show()
 
@@ -219,7 +232,7 @@ if __name__ == "__main__":
                         pickle.dump(score_lists, outfile)
                         outfile.close()
 
-        visualize1(robots, bounds, map)
+        oracle_visualize(robots, bounds, map)
 
         trial_end_time = time.time()
         print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)

@@ -195,3 +195,4 @@ class Robot:
 
     def add_simulator(self, simulator):
         self.simulator = simulator
+
