@@ -32,15 +32,24 @@ class Simulator:
         self.reward_type = reward_type
 
     # new addition to multi-robot code
-    def initialize_data(self):
+    def initialize_data(self, bots_starting_loc):
         self._update_map()
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
         self.sensor_model.append_path(self.robot.get_loc())
+
         self.sensor_model.create_final_path_matrix()
         # At the start, there is no action, so we just add the initial partial info into the action matrix list
         initial_partial_info_matrix = self.sensor_model.get_final_partial_info()[0]
+       
         self.sensor_model.append_action_matrix(initial_partial_info_matrix)
+
+        # this adds the starting location of the other robots into the initial path matrix
+        path_matrix = self.sensor_model.get_final_path_matrices()[0]
+        for loc in bots_starting_loc:
+            path_matrix[loc[0]][loc[1]] = 1
+        # print("THIS: ", self.sensor_model.get_final_path_matrices()[0])
+        
 
     def run(self, neural_model):
         self.iterations += 1        

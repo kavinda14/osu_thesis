@@ -99,13 +99,8 @@ def communicate(robots):
                 final_path_bot2 = sensor_model_bot2.get_final_path()
                 other_paths = other_paths + final_path_bot2
 
-        # modifies path matrix at that time step to incooperate the other_paths
-        sensor_model_bot1.set_final_other_path(other_paths)
-        path_matrix = sensor_model_bot1.get_final_path_matrices()[-1]
-        new_path_matrix = sensor_model_bot1.add_other_paths(other_paths, path_matrix)
-        sensor_model_bot1.set_final_path_matrix(new_path_matrix)
-
-
+        final_other_path_bot1 = sensor_model_bot1.get_final_other_path() + other_paths
+        sensor_model_bot1.set_final_other_path(final_other_path_bot1)
         
         
 if __name__ == "__main__":
@@ -123,9 +118,9 @@ if __name__ == "__main__":
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 5
-    steps = 10
-    num_robots =2
+    trials = 3
+    steps = 30
+    num_robots = 4 
     obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
     # profiling functions
@@ -163,6 +158,7 @@ if __name__ == "__main__":
         print("TRIAL NO: {}".format(i+1))
         map = Map(bounds, 7, (), False)
         unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
+        bots_starting_locs = list()
         
         # for pickling data
         score_list = 0
@@ -173,6 +169,7 @@ if __name__ == "__main__":
             start_loc = get_random_loc(map, bounds)
             bot = Robot(start_loc[0], start_loc[1], bounds, map)
             robots.append(bot)
+            bots_starting_locs.append(start_loc)
 
         for planner in planner_options:
             print("Planner: {}".format(planner))
@@ -185,7 +182,7 @@ if __name__ == "__main__":
                 bot.add_sensor_model(sensor_model)
                 bot.add_simulator(simulator)
                 # this adds the initial matrices to appropriate lists
-                bot.get_simulator().initialize_data()
+                bot.get_simulator().initialize_data(bots_starting_locs)
 
             for step in range(steps):
 
@@ -195,6 +192,8 @@ if __name__ == "__main__":
                     sensor_model = bot.get_sensor_model()
                     # to keep track of score
                     obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
+                    # print("BOT: ", bot)
+                    # print("DEBUG PATH MATRIX: ", sensor_model.get_final_path_matrices()[0])
 
                     if planner == "mcts":
                         for rollout_type in rollout_options:
@@ -221,7 +220,7 @@ if __name__ == "__main__":
                                 curr_list.append(score)
                                 
                                 print("Score: ", score)
-                                print("Time taken (secs): ", end - start)
+                                # print("Time taken (secs): ", end - start)
                                 print()
                                 
                                 # pickle progress
@@ -249,7 +248,7 @@ if __name__ == "__main__":
                             simulator.visualize()
 
                         score = sum(sensor_model.get_final_scores())     
-                        print("Time taken (secs): ", end - start)
+                        # print("Time taken (secs): ", end - start)
                         print()  
                         
                         # curr_list.append(score)
@@ -266,10 +265,10 @@ if __name__ == "__main__":
         oracle_visualize(robots, bounds, map)
 
         trial_end_time = time.time()
-        print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)
+        # print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)
     
     test_end_time = time.time()
-    print("Total time taken (mins): ", (test_end_time - test_start_time)/60)
+    # print("Total time taken (mins): ", (test_end_time - test_start_time)/60)
 
     if profile:
         pr.disable()

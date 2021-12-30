@@ -92,8 +92,6 @@ def communicate(robots):
                 final_other_path_bot2 = sensor_model_bot2.get_final_other_path() + final_path_bot1          
                 sensor_model_bot2.set_final_other_path(final_other_path_bot2)
 
-                sensor_model_bot2.get_final_other_path_list()
-
                 # print("final_path_bot2", final_path_bot2)
                 # print("final_other_path_bot2", final_other_path_bot2)
         # print()
@@ -157,9 +155,8 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 sensor_model = bot.get_sensor_model()
 
                 path_matricies = sensor_model.get_final_path_matrices()
-
+                         
                 final_other_paths = sensor_model.get_final_other_path()
-
 
                 final_partial_info = sensor_model.get_final_partial_info()
                 partial_info_binary_matrices = sensor_model.create_binary_matrices(final_partial_info)
