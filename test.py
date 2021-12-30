@@ -77,7 +77,6 @@ def oracle_visualize(robots, bounds, map):
         for spot in obs_occupied:
             hole = patches.Rectangle(spot, 1, 1, facecolor=bot_color)
             ax.add_patch(hole)
-        print(obs_occupied)
         obs_occupied = set()
     
     for spot in obs_free:
@@ -109,19 +108,18 @@ if __name__ == "__main__":
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
-    # planner_options = ["random", "greedy-o", "greedy-no", "network"]
-    planner_options = ["random"]
-    # planner_options = ["greedy-o"]
-    # planner_options = ["mcts"]
+    planner_options = ["random", "greedy-o", "greedy-no", "network"]
+    # planner_options = ["random"]
+    # planner_options = ["random", "greedy-o", "greedy-no"]
     rollout_options = ["random", "greedy", "network"]
     # rollout_options = ["network"]
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 3
-    steps = 30
+    trials = 200
+    steps = 20
     num_robots = 4 
-    obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
+    # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
     # profiling functions
     profile = False
@@ -137,8 +135,8 @@ if __name__ == "__main__":
         score_lists = [list() for _ in range(len(planner_options))]
     
     # load neural net
-    weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
-    # weight_file = "circles_21x21_epoch10_random_greedy-no_t300_s9000"
+    # weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
+    weight_file = "circles_21x21_epoch10_random_greedy-no_t300_s9000"
 
     neural_model = NeuralNet.Net(bounds)
     # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_random_greedyo_greedyno_t500_s200"))
@@ -150,7 +148,11 @@ if __name__ == "__main__":
     neural_model.eval()
 
     # this is for pickling the score_lists
+    # alienware
     # filename = '/home/kavi/thesis/pickles/planner_scores_test'
+    # macbook
+    filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
+
 
     test_start_time = time.time()
     for i in tqdm(range(trials)):
@@ -173,6 +175,14 @@ if __name__ == "__main__":
 
         for planner in planner_options:
             print("Planner: {}".format(planner))
+            obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
+            
+            # adds planner name to the visualization list
+            curr_list = score_lists[score_list]
+            if len(curr_list) == 0:
+                curr_list.append(planner)
+            score_list += 1
+
             # the map has to be the same for each planner
             for bot in robots:
                 map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
@@ -184,6 +194,7 @@ if __name__ == "__main__":
                 # this adds the initial matrices to appropriate lists
                 bot.get_simulator().initialize_data(bots_starting_locs)
 
+            steps_start = time.time()
             for step in range(steps):
 
                 # run multiple robots in same map
@@ -192,8 +203,6 @@ if __name__ == "__main__":
                     sensor_model = bot.get_sensor_model()
                     # to keep track of score
                     obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
-                    # print("BOT: ", bot)
-                    # print("DEBUG PATH MATRIX: ", sensor_model.get_final_path_matrices()[0])
 
                     if planner == "mcts":
                         for rollout_type in rollout_options:
@@ -221,7 +230,7 @@ if __name__ == "__main__":
                                 
                                 print("Score: ", score)
                                 # print("Time taken (secs): ", end - start)
-                                print()
+                                # print()
                                 
                                 # pickle progress
                                 # outfile = open(filename,'wb')
@@ -230,13 +239,6 @@ if __name__ == "__main__":
 
 
                     else: # these are the myopic planners
-                        # TODO: add this back after all multi-robot code is working
-                        # curr_list = score_lists[score_list]
-                        # if len(curr_list) == 0:
-                        #     curr_list.append(planner)
-                        # score_list += 1
-                        
-                        # map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                         start = time.time()
                         if visualize:
                             simulator.visualize()
@@ -247,28 +249,32 @@ if __name__ == "__main__":
                         if visualize:
                             simulator.visualize()
 
-                        score = sum(sensor_model.get_final_scores())     
+                        # score = sum(sensor_model.get_final_scores())  
+                        score = len(obs_occupied_oracle)     
+
                         # print("Time taken (secs): ", end - start)
-                        print()  
+                        # print()  
                         
-                        # curr_list.append(score)
-                        
-                        # pickle progress
-                        # outfile = open(filename,'wb')
-                        # pickle.dump(score_lists, outfile)
-                        # outfile.close()
-
                 communicate(robots)
-            
-            print("Score: ", len(obs_occupied_oracle))
+                steps_end = time.time()
 
-        oracle_visualize(robots, bounds, map)
+                
+     
+            print("Score: ", len(obs_occupied_oracle))
+            curr_list.append(score)
+            # pickle progress
+            outfile = open(filename,'wb')
+            pickle.dump(score_lists, outfile)
+            outfile.close()
+
+
+        # oracle_visualize(robots, bounds, map)
 
         trial_end_time = time.time()
-        # print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)
+        print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)
     
     test_end_time = time.time()
-    # print("Total time taken (mins): ", (test_end_time - test_start_time)/60)
+    print("Total time taken (mins): ", (test_end_time - test_start_time)/60)
 
     if profile:
         pr.disable()

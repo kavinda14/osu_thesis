@@ -86,15 +86,16 @@ def communicate(robots):
         sensor_model_bot1 = bot1.get_sensor_model()
         final_path_bot1 = sensor_model_bot1.get_final_path()
         # print("final_path_bot1", final_path_bot1)
+        other_paths = list()
         for bot2 in robots:
             if bot1 is not bot2:
                 sensor_model_bot2 = bot2.get_sensor_model()
-                final_other_path_bot2 = sensor_model_bot2.get_final_other_path() + final_path_bot1          
-                sensor_model_bot2.set_final_other_path(final_other_path_bot2)
+                # final_other_path_bot2 = sensor_model_bot2.get_final_other_path() + final_path_bot1     
+                final_path_bot2 = sensor_model_bot2.get_final_path()
+                other_paths = other_paths + final_path_bot2
 
-                # print("final_path_bot2", final_path_bot2)
-                # print("final_other_path_bot2", final_other_path_bot2)
-        # print()
+        final_other_path_bot1 = sensor_model_bot1.get_final_other_path() + other_paths
+        sensor_model_bot1.set_final_other_path(final_other_path_bot1)
 
 # rollout produces the unique data needed for mcts rollout
 # this is done because in rollout, belief map stays the same even though path and actions change
@@ -110,6 +111,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
         # print("Trial: ", i)
         map = Map(bounds, 7, (), False)
         unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
+        bots_starting_locs = list()
 
         # create robots
         robots = list()
@@ -117,6 +119,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
             start_loc = get_random_loc(map, bounds)
             bot = Robot(start_loc[0], start_loc[1], bounds, map)
             robots.append(bot)
+            bots_starting_locs.append(start_loc)
 
         for planner in planner_options: 
             start = time.time()
@@ -129,7 +132,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 bot.add_sensor_model(sensor_model)
                 bot.add_simulator(simulator)
                 # this adds the initial matrices to appropriate lists
-                bot.get_simulator().initialize_data()
+                bot.get_simulator().initialize_data(bots_starting_locs)
 
             for step in range(steps):
                 # run multiple robots in same map
@@ -272,7 +275,7 @@ if __name__ == "__main__":
     # alienware
     # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_t800_s200_rollout'
     # macbook
-    outfile_tensor_images = '/Users/kavisen/osu_thesis/test'
+    outfile_tensor_images = '/Users/kavisen/osu_thesis/data/circles_21x21_random_greedy-no_t300_s9000'
     
     # generate data
     print("Generating matrices")
