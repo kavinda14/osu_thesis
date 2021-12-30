@@ -12,6 +12,7 @@ class SensorModel:
         self.final_scores = list()
         self.final_path = list()
         self.final_other_path = list() # this is for communicate() with other robots
+        self.final_other_path_lists = list() # this is to make createing rollout data easier
         self.final_path_matrices = list()
         self.final_actions = list()
 
@@ -111,6 +112,13 @@ class SensorModel:
             self.final_path_matrices.append(path_matrix)
         else:
             return path_matrix
+
+    # this is for adding communicated paths to path matrix of that time step
+    def add_other_paths(self, other_paths, path_matrix):
+        for path in other_paths:
+            path_matrix[path] = 1
+
+        return path_matrix
 
     def create_final_path_matrix_mcts(self, input_final_path_matrix, update=True):
         bounds = self.map.get_bounds()
@@ -278,7 +286,6 @@ class SensorModel:
 
     def append_path(self, path):
         self.final_path.append(path)
-        # self.final_path.add(path)
 
     def get_final_path(self):
         return self.final_path
@@ -298,8 +305,15 @@ class SensorModel:
     def get_final_path_matrices(self):
         return self.final_path_matrices
 
+    # for modifying path matrix after commmunicating
+    def set_final_path_matrix(self, path_matrix):
+        self.final_path_matrices[-1] = path_matrix
+
     def set_final_other_path(self, final_other_path):
         self.final_other_path = final_other_path
+
+    # def set_final_other_path(self, final_other_path):
+    #     self.final_other_path = self.final_other_path + final_other_path
 
     @staticmethod
     def euclidean_distance(p1, p2):

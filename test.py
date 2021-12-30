@@ -91,15 +91,22 @@ def communicate(robots):
         sensor_model_bot1 = bot1.get_sensor_model()
         final_path_bot1 = sensor_model_bot1.get_final_path()
         # print("final_path_bot1", final_path_bot1)
+        other_paths = list()
         for bot2 in robots:
             if bot1 is not bot2:
                 sensor_model_bot2 = bot2.get_sensor_model()
-                final_other_path_bot2 = sensor_model_bot2.get_final_other_path() + final_path_bot1          
-                sensor_model_bot2.set_final_other_path(final_other_path_bot2)
+                # final_other_path_bot2 = sensor_model_bot2.get_final_other_path() + final_path_bot1     
+                final_path_bot2 = sensor_model_bot2.get_final_path()
+                other_paths = other_paths + final_path_bot2
 
-                # print("final_path_bot2", final_path_bot2)
-                # print("final_other_path_bot2", final_other_path_bot2)
-        # print()
+        # modifies path matrix at that time step to incooperate the other_paths
+        sensor_model_bot1.set_final_other_path(other_paths)
+        path_matrix = sensor_model_bot1.get_final_path_matrices()[-1]
+        new_path_matrix = sensor_model_bot1.add_other_paths(other_paths, path_matrix)
+        sensor_model_bot1.set_final_path_matrix(new_path_matrix)
+
+
+        
         
 if __name__ == "__main__":
 
@@ -116,9 +123,9 @@ if __name__ == "__main__":
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 1
+    trials = 5
     steps = 10
-    num_robots = 2
+    num_robots =2
     obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
     # profiling functions
