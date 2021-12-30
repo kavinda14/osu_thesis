@@ -116,8 +116,8 @@ if __name__ == "__main__":
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 5
-    steps = 50
+    trials = 1
+    steps = 10
     num_robots = 2
     obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
@@ -177,12 +177,15 @@ if __name__ == "__main__":
                 bot.add_map(map)
                 bot.add_sensor_model(sensor_model)
                 bot.add_simulator(simulator)
+                # this adds the initial matrices to appropriate lists
+                bot.get_simulator().initialize_data()
 
             for step in range(steps):
 
                 # run multiple robots in same map
                 for bot in robots:
                     simulator = bot.get_simulator()
+                    sensor_model = bot.get_sensor_model()
                     # to keep track of score
                     obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
 
@@ -240,7 +243,7 @@ if __name__ == "__main__":
 
                         score = sum(sensor_model.get_final_scores())     
                         print("Time taken (secs): ", end - start)
-                        print()
+                        print()  
                         
                         # curr_list.append(score)
                         

@@ -30,11 +30,9 @@ class Simulator:
         self.planner = planner
         self.rollout_type = rollout_type
         self.reward_type = reward_type
-        
-        # actions list was created because we thought the robot was sometimes not moving
-        self.actions = list()
 
-    def run(self, neural_model):
+    # new addition to multi-robot code
+    def initialize_data(self):
         self._update_map()
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
@@ -43,13 +41,8 @@ class Simulator:
         # At the start, there is no action, so we just add the initial partial info into the action matrix list
         initial_partial_info_matrix = self.sensor_model.get_final_partial_info()[0]
         self.sensor_model.append_action_matrix(initial_partial_info_matrix)
-        # for _ in tqdm(range(0, duration)):
 
-        self.tick(neural_model)
-        # if end:
-                # break
-
-    def tick(self, neural_model):
+    def run(self, neural_model):
         self.iterations += 1        
 
         # Generate an action from the robot path
@@ -69,9 +62,6 @@ class Simulator:
             exploration_exploitation_parameter = 25.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
             action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
-
-        self.actions.append(action)
-        # print("sensor path: ", self.sensor_model.get_final_path())
 
         self.sensor_model.create_action_matrix(action)
         # Move the robot

@@ -127,26 +127,34 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 bot.add_map(map)
                 bot.add_sensor_model(sensor_model)
                 bot.add_simulator(simulator)
+                # this adds the initial matrices to appropriate lists
+                bot.get_simulator().initialize_data()
 
             for step in range(steps):
-
                 # run multiple robots in same map
                 for bot in robots:
                     simulator = bot.get_simulator()
+                    sensor_model = bot.get_sensor_model()
 
                     if visualize:
                         simulator.visualize()
 
+                    # false can be used as argument here because we don't need mcts here
                     simulator.run(False)
                     
                     if visualize: 
-                        simulator.visualize()
+                        simulator.visualize() 
 
-            ### TRAINING DATA    
+                communicate(robots)
+            
+            oracle_visualize(robots, bounds, map)
+
+            ### DATA MATRICES
             for bot in robots:
                 sensor_model = bot.get_sensor_model()
 
                 path_matricies = sensor_model.get_final_path_matrices()
+                # print("path_matricies_DEBUG: ", len(path_matricies))
 
                 final_partial_info = sensor_model.get_final_partial_info()
                 partial_info_binary_matrices = sensor_model.create_binary_matrices(final_partial_info)
@@ -161,43 +169,46 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 input_actions_binary_matrices = input_actions_binary_matrices + final_actions_binary_matrices
                 input_scores = input_scores + final_scores
 
-                # generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, outfile)        
-                    
-                # end = time.time()
-                # time_taken = (end - start)/60
-                # print("Iteration: {}, Planner: {}, Time taken: {:.3f}".format(i, planner, time_taken))
-
                 print("final_path_matrices: ", len(input_path_matrices))
                 print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
                 print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
                 print("final_final_scores: ", len(input_scores))
 
-                communicate(robots)
+            # rollout data is generated after the normal data of each map..
+            # ..because when splitting the data at training, if the the normal data is created and the then the rollout..
+            # .., the training and validation sets will have the same maps
+            print("Generating rollout data...")
+            generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile)        
+        
+            print("final_path_matrices: ", len(input_path_matrices))
+            print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
+            print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
+            print("final_final_scores: ", len(input_scores))
 
-        oracle_visualize(robots, bounds, map)
-                  
-    print("final_path_matrices: ", len(input_path_matrices))
-    print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
-    print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
-    print("final_final_scores: ", len(input_scores))
+    # end = time.time()
+    # time_taken = (end - start)/60
+    # print("Iteration: {}, Planner: {}, Time taken: {:.3f}".format(i, planner, time_taken))
 
+    print("Creating Torch tensors...")
     generate_tensor_images(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
 
 
-def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, outfile):
+def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile):
     temp_input_partial_info_binary_matrices = list()
     temp_input_path_matrices = list()
     temp_input_actions_binary_matrices = list()
     temp_input_scores = list()
 
-    # integer divide by two because we don't want to double the dataset size, but just a decent amount of samples
-    # -5 because index 2 has to choose values ahead of index1
-    # boundary = steps+1
+    # index1 is the starting belief map in that iteration
+    index1 = len(input_partial_info_binary_matrices) - (steps * num_robots)
+    # print("index1", index1)
+    # boundary is the ending datapoint of that iteration
+    boundary = index1 + (steps * num_robots)
+    # print("boundary", boundary)
 
-    index1 = len(input_partial_info_binary_matrices) - steps
-    boundary = index1 + steps
-
-    while index1 < (len(input_partial_info_binary_matrices) - (steps//4)):
+    # the while loop is to make sure we don't iterate through the entire dataset to create..
+    # ..rollout data because we are matching current data with future data
+    while index1 < (len(input_partial_info_binary_matrices) - ((steps * num_robots)//4)):
         temp_input_partial_info_binary_matrices.append(input_partial_info_binary_matrices[index1])
         # +1 because we don't want the same idx as index and -1 because it goes outside array otherwise
         index2 = random.randint(index1, boundary-2)
@@ -225,6 +236,7 @@ def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrice
     # print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
     # print("final_final_scores: ", len(input_scores))
 
+    # generate_tensor_images() is being done in generate_data_matrices() itself
     # generate_tensor_images(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
 
 
@@ -264,7 +276,6 @@ if __name__ == "__main__":
     print("Generating matrices")
     # planner_options = ["random", "greedy-o", "greedy-no"]
     # planner_options = ["random", "greedy-no"]
-    # planner_options = ["random", "greedy-no"]
     planner_options = ["random"]
-    generate_data_matrices(trials=3, steps=2, num_robots=2, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
+    generate_data_matrices(trials=3, steps=10, num_robots=2, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
     
