@@ -6,7 +6,10 @@ import numpy as np
 if __name__ == "__main__":
 
     # unpickle scores
-    filename = '/home/kavi/thesis/pickles/planner_scores'
+    # alienware
+    # filename = '/home/kavi/thesis/pickles/planner_scores'
+    # macbook
+    filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
     infile = open(filename,'rb')
     score_lists = pickle.load(infile)
     infile.close()

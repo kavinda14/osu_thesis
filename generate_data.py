@@ -72,7 +72,6 @@ def oracle_visualize(robots, bounds, map):
         for spot in obs_occupied:
             hole = patches.Rectangle(spot, 1, 1, facecolor=bot_color)
             ax.add_patch(hole)
-        print(obs_occupied)
         obs_occupied = set()
     
     for spot in obs_free:
@@ -151,7 +150,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
 
                 communicate(robots)
             
-            oracle_visualize(robots, bounds, map)
+            # oracle_visualize(robots, bounds, map)
 
             ### DATA MATRICES
             for bot in robots:
@@ -174,11 +173,6 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 input_actions_binary_matrices = input_actions_binary_matrices + final_actions_binary_matrices
                 input_scores = input_scores + final_scores
 
-                print("final_path_matrices: ", len(input_path_matrices))
-                print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
-                print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
-                print("final_final_scores: ", len(input_scores))
-
             # rollout data is generated after the normal data of each map..
             # ..because when splitting the data at training, if the the normal data is created and the then the rollout..
             # .., the training and validation sets will have the same maps
@@ -193,6 +187,11 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
     # end = time.time()
     # time_taken = (end - start)/60
     # print("Iteration: {}, Planner: {}, Time taken: {:.3f}".format(i, planner, time_taken))
+
+    print("final_path_matrices: ", len(input_path_matrices))
+    print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
+    print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
+    print("final_final_scores: ", len(input_scores))
 
     print("Creating Torch tensors...")
     generate_tensor_images(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
@@ -275,12 +274,12 @@ if __name__ == "__main__":
     # alienware
     # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_t800_s200_rollout'
     # macbook
-    outfile_tensor_images = '/Users/kavisen/osu_thesis/data/circles_21x21_random_greedy-no_t300_s9000'
+    outfile_tensor_images = '/Users/kavisen/osu_thesis/data/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
     
     # generate data
     print("Generating matrices")
     # planner_options = ["random", "greedy-o", "greedy-no"]
-    # planner_options = ["random", "greedy-no"]
-    planner_options = ["random"]
-    generate_data_matrices(trials=3, steps=10, num_robots=2, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
+    planner_options = ["random", "greedy-no"]
+    # planner_options = ["random"]
+    generate_data_matrices(trials=800, steps=50, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
     
