@@ -13,15 +13,19 @@ class SensorModel:
         self.final_path = list()
         self.final_other_path = list() # this is for communicate() with other robots
         self.final_path_matrices = list()
+        self.final_other_path_matrices = list()
         self.final_actions = list()
 
-    def scan(self, robot_loc, update_map=True):
+    # update_map is there because in OraclePlanner, we use scan without updating the map
+    # in Simulator with _update_map(), we use the update_map as True
+    def scan(self, robot_loc, obs_occupied_oracle, update_map=True):
         scanned_obstacles = set()
         scanned_free = set()
 
         for o_loc in set(self.map.unobs_occupied):
             distance = self.euclidean_distance(robot_loc , o_loc)
-            if distance <= self.sensing_range:
+            # the second part of the if statement was added for calculating unique reward
+            if distance <= self.sensing_range and o_loc not in obs_occupied_oracle:
                 scanned_obstacles.add(o_loc)
                 if update_map:
                     self.map.unobs_occupied.remove(o_loc)
@@ -116,6 +120,19 @@ class SensorModel:
 
         else:
             return path_matrix
+
+    # def create_final_other_path_matrix(self, update=True):
+    #     bounds = self.map.get_bounds()
+    #     path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+
+    #     for path in self.final_other_path:
+    #         path_matrix[path] = 1
+
+    #     if update:
+    #         self.final_other_path_matrices.append(path_matrix)
+
+    #     else:
+    #         return path_matrix
 
     def create_final_path_matrix_mcts(self, input_final_path_matrix, update=True):
         bounds = self.map.get_bounds()

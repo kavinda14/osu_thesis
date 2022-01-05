@@ -2,7 +2,7 @@ import random
 import torch
 import NeuralNet
 
-def random_planner(robot, sensor_model):
+def random_planner(robot, sensor_model, train):
     actions = ['left', 'right', 'backward', 'forward']
     valid_move = False # Checks if the pixel is free
     visited_before = True # Check if the pixel has been visited before
@@ -15,7 +15,14 @@ def random_planner(robot, sensor_model):
         action = random.choice(actions)
         valid_move = robot.check_valid_move(action) 
         potential_next_loc = robot.get_action_loc(action)
-        times_visited = sensor_model.get_final_path().count(tuple(potential_next_loc)) + sensor_model.get_final_other_path().count(tuple(potential_next_loc))
+
+        # only in data generation do we want the backtracking to help with the coordination
+        # for testing, we want to see if the network implicitly coordinates the robots
+        if train:
+            times_visited = sensor_model.get_final_path().count(tuple(potential_next_loc)) + sensor_model.get_final_other_path().count(tuple(potential_next_loc))
+        else:
+            times_visited = sensor_model.get_final_path().count(tuple(potential_next_loc)) 
+
         if times_visited <= 0: # This means that the same action is allowed x + 1 times
             visited_before = False            
         else: 
@@ -28,7 +35,7 @@ def random_planner(robot, sensor_model):
     return action
 
 # model here is the neural net
-def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=False):
+def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, train, neural_net=False, oracle=False, ):
     actions = ['left', 'backward', 'right', 'forward']
     best_action_score = float('-inf')
     best_action = random.choice(actions)
@@ -41,8 +48,13 @@ def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=F
         if robot.check_valid_move(action):
             # tuple is needed here for count()
             potential_next_loc = tuple(robot.get_action_loc(action))
-            # times_visited = sensor_model.get_final_path().count(potential_next_loc)    
-            times_visited = sensor_model.get_final_path().count(potential_next_loc) + sensor_model.get_final_other_path().count(potential_next_loc)
+
+            # only in data generation do we want the backtracking to help with the coordination
+            # for testing, we want to see if the network implicitly coordinates the robots
+            if train:
+                times_visited = sensor_model.get_final_path().count(potential_next_loc) + sensor_model.get_final_other_path().count(potential_next_loc)
+            else:
+                times_visited = sensor_model.get_final_path().count(potential_next_loc) 
             
             # backtrack possibility
             if times_visited <= 0: 
@@ -62,9 +74,9 @@ def greedy_planner(robot, sensor_model, neural_model, neural_net=False, oracle=F
                 else:
                     # oracle greedy knows where all the obstacles are
                     if oracle:
-                        action_score = len(sensor_model.scan(potential_next_loc, False)[0])
+                        action_score = len(sensor_model.scan(potential_next_loc, obs_occupied_oracle, False)[0])
                     else:
-                        scanned_unobs = sensor_model.scan(potential_next_loc, False)
+                        scanned_unobs = sensor_model.scan(potential_next_loc, obs_occupied_oracle, False)
                         action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
 
                 if action_score > best_action_score:

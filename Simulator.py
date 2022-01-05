@@ -32,8 +32,8 @@ class Simulator:
         self.reward_type = reward_type
 
     # new addition to multi-robot code
-    def initialize_data(self, bots_starting_loc):
-        self._update_map()
+    def initialize_data(self, bots_starting_loc, obs_occupied_oracle=set()):
+        self._update_map(obs_occupied_oracle)
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
         self.sensor_model.append_path(self.robot.get_loc())
@@ -48,22 +48,30 @@ class Simulator:
         path_matrix = self.sensor_model.get_final_path_matrices()[0]
         for loc in bots_starting_loc:
             path_matrix[loc[0]][loc[1]] = 1
-        # print("THIS: ", self.sensor_model.get_final_path_matrices()[0])
         
-
-    def run(self, neural_model):
+    # train is there because of the backtracking condition in each planner 
+    def run(self, neural_model, obs_occupied_oracle=set(), train=False):
         self.iterations += 1        
 
         # Generate an action from the robot path
-        action = OraclePlanner.random_planner(self.robot, self.sensor_model)
+        action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
         if self.planner == "random":
-            action = OraclePlanner.random_planner(self.robot, self.sensor_model)
+            action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
         if self.planner == "greedy-o":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, oracle=True)
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, train, oracle=True)
         if self.planner == "greedy-no":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, oracle=False)
-        if self.planner == "network":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, neural_net=True)
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, train, oracle=False)
+        if self.planner == "network" or self.planner == "network_wo_path":
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, train, neural_net=True)
+        # this is to check weights created with single robot case and multi robot case
+        # if self.planner == "network_wo_path":
+        #     import torch
+        #     import NeuralNet
+        #     bounds = [21, 21]
+        #     neural_model = NeuralNet.Net(bounds)
+        #     neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_21x21_epoch3_random_greedyno_t800_s200_rollout")) 
+        #     neural_model.eval()
+        #     action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, neural_net=True)
         if self.planner == 'mcts':
             budget = 5
             max_iterations = 1000
@@ -76,7 +84,7 @@ class Simulator:
         # Move the robot
         self.robot.move(action)
         # Update the explored map based on robot position
-        self._update_map()
+        self._update_map(obs_occupied_oracle)
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
         self.sensor_model.append_path(self.robot.get_loc())
@@ -119,13 +127,13 @@ class Simulator:
     def get_obs_occupied(self):
         return self.obs_occupied
 
-    def _update_map(self):
+    def _update_map(self, obs_occupied_oracle):
         # Sanity check the robot is in bounds
         if not self.robot.check_valid_loc():
             print(self.robot.get_loc())
             raise ValueError(f"Robot has left the map. It is at position: {self.robot.get_loc()}, outside of the map boundary")
         
-        new_observations = self.sensor_model.scan(self.robot.get_loc())
+        new_observations = self.sensor_model.scan(self.robot.get_loc(), obs_occupied_oracle)
         # Score is the number of new obstacles found
         self.set_score(len(new_observations[0]))
         self.obs_occupied = self.obs_occupied.union(new_observations[0])

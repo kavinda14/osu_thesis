@@ -27,7 +27,7 @@ def get_random_loc(map, bounds):
 
     return [x, y]
 
-def oracle_visualize(robots, bounds, map):
+def oracle_visualize(robots, bounds, map, planner):
     plt.xlim(0, bounds[0])
     plt.ylim(0, bounds[1])
     # plt.title("Planner: {}, Score: {}".format(self.planner, sum(self.sensor_model.get_final_scores())))
@@ -83,6 +83,8 @@ def oracle_visualize(robots, bounds, map):
         hole = patches.Rectangle(spot, 1, 1, facecolor='white')
         ax.add_patch(hole)
 
+    plt.title(planner)
+
     plt.show()
 
 def communicate(robots):
@@ -108,7 +110,8 @@ if __name__ == "__main__":
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
-    planner_options = ["random", "greedy-o", "greedy-no", "network"]
+    planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "network"]
+    # planner_options = ["random", "greedy-o", "greedy-no", "network"]
     # planner_options = ["random"]
     # planner_options = ["random", "greedy-o", "greedy-no"]
     rollout_options = ["random", "greedy", "network"]
@@ -116,9 +119,9 @@ if __name__ == "__main__":
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 200
-    steps = 20
-    num_robots = 4 
+    trials = 100
+    steps = 70
+    num_robots = 4
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
     # profiling functions
@@ -135,23 +138,21 @@ if __name__ == "__main__":
         score_lists = [list() for _ in range(len(planner_options))]
     
     # load neural net
+    weight_file = "circles_21x21_epoch2_random_greedyno_r4_t800_s50_rollout"
     # weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
-    weight_file = "circles_21x21_epoch10_random_greedy-no_t300_s9000"
 
     neural_model = NeuralNet.Net(bounds)
-    # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_random_21x21_epoch2_random_greedyo_greedyno_t500_s200"))
-    # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_21x21_epoch3_random_t600_s1000"))    
     # alienware
-    # neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/"+weight_file)) 
+    neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/"+weight_file)) 
     # macbook 
-    neural_model.load_state_dict(torch.load("/Users/kavisen/osu_thesis/"+weight_file))    
+    # neural_model.load_state_dict(torch.load("/Users/kavisen/osu_thesis/"+weight_file))    
     neural_model.eval()
 
     # this is for pickling the score_lists
     # alienware
-    # filename = '/home/kavi/thesis/pickles/planner_scores_test'
+    filename = '/home/kavi/thesis/pickles/planner_scores_test'
     # macbook
-    filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
+    # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
 
 
     test_start_time = time.time()
@@ -167,8 +168,10 @@ if __name__ == "__main__":
 
         # create robots
         robots = list()
+        # give all robots the same start loc to force communication for testing
+        start_loc = get_random_loc(map, bounds)
         for _ in range(num_robots):
-            start_loc = get_random_loc(map, bounds)
+            # start_loc = get_random_loc(map, bounds)
             bot = Robot(start_loc[0], start_loc[1], bounds, map)
             robots.append(bot)
             bots_starting_locs.append(start_loc)
@@ -188,6 +191,7 @@ if __name__ == "__main__":
                 map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                 sensor_model = SensorModel(bot, map)
                 simulator = Simulator(map, bot, sensor_model, planner)
+                bot.set_loc(start_loc[0], start_loc[1])
                 bot.add_map(map)
                 bot.add_sensor_model(sensor_model)
                 bot.add_simulator(simulator)
@@ -254,21 +258,21 @@ if __name__ == "__main__":
 
                         # print("Time taken (secs): ", end - start)
                         # print()  
-                        
-                communicate(robots)
+
+                if planner == "network":    
+                    communicate(robots)
                 steps_end = time.time()
 
-                
-     
+
             print("Score: ", len(obs_occupied_oracle))
             curr_list.append(score)
+
             # pickle progress
             outfile = open(filename,'wb')
             pickle.dump(score_lists, outfile)
             outfile.close()
 
-
-        # oracle_visualize(robots, bounds, map)
+            oracle_visualize(robots, bounds, map, planner)
 
         trial_end_time = time.time()
         print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)

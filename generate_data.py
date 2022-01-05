@@ -22,7 +22,7 @@ def get_random_loc(map, bounds):
 
     return [x, y]
 
-def oracle_visualize(robots, bounds, map):
+def oracle_visualize(robots, bounds, map, planner):
     plt.xlim(0, bounds[0])
     plt.ylim(0, bounds[1])
     # plt.title("Planner: {}, Score: {}".format(self.planner, sum(self.sensor_model.get_final_scores())))
@@ -78,6 +78,8 @@ def oracle_visualize(robots, bounds, map):
         hole = patches.Rectangle(spot, 1, 1, facecolor='white')
         ax.add_patch(hole)
 
+    plt.title(planner)
+
     plt.show()
 
 def communicate(robots):
@@ -122,6 +124,8 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
 
         for planner in planner_options: 
             start = time.time()
+            obs_occupied_oracle = set()
+
             # Bounds need to be an odd number for the action to always be in the middle
             for bot in robots:
                 map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
@@ -131,7 +135,10 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 bot.add_sensor_model(sensor_model)
                 bot.add_simulator(simulator)
                 # this adds the initial matrices to appropriate lists
-                bot.get_simulator().initialize_data(bots_starting_locs)
+                bot_simulator = bot.get_simulator()
+                bot_simulator.initialize_data(bots_starting_locs, obs_occupied_oracle)
+                # this is needed incase any locations are scanned in the initial position
+                obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
 
             for step in range(steps):
                 # run multiple robots in same map
@@ -143,14 +150,16 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                         simulator.visualize()
 
                     # false can be used as argument here because we don't need mcts here
-                    simulator.run(False)
+                    # obs_occupied_oracle is passed in so that scan() will calc the unique reward
+                    simulator.run(False, obs_occupied_oracle, train=True)
+                    obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
                     
                     if visualize: 
                         simulator.visualize() 
 
                 communicate(robots)
             
-            # oracle_visualize(robots, bounds, map)
+            oracle_visualize(robots, bounds, map, planner)
 
             ### DATA MATRICES
             for bot in robots:
@@ -272,14 +281,14 @@ if __name__ == "__main__":
 
     # for pickling
     # alienware
-    # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_t800_s200_rollout'
+    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
     # macbook
-    outfile_tensor_images = '/Users/kavisen/osu_thesis/data/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
+    # outfile_tensor_images = '/Users/kavisen/osu_thesis/data/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
     
     # generate data
     print("Generating matrices")
     # planner_options = ["random", "greedy-o", "greedy-no"]
-    planner_options = ["random", "greedy-no"]
+    planner_options = ["random", "greedy-o"]
     # planner_options = ["random"]
     generate_data_matrices(trials=800, steps=50, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
     
