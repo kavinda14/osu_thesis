@@ -11,9 +11,8 @@ class SensorModel:
         self.final_partial_info = list()
         self.final_scores = list()
         self.final_path = list()
-        self.final_other_path = list() # this is for communicate() with other robots
+        self.final_other_path = set() # this is for communicate() with other robots
         self.final_path_matrices = list()
-        self.final_other_path_matrices = list()
         self.final_actions = list()
 
     # update_map is there because in OraclePlanner, we use scan without updating the map
@@ -64,17 +63,17 @@ class SensorModel:
         bounds = self.map.get_bounds()
         partial_info = np.empty((bounds[0], bounds[1]), dtype=int)
 
-        for obs_free_loc in self.map.obs_free:
-            partial_info[obs_free_loc] = 0
-
-        for obs_occupied_loc in self.map.obs_occupied:
-            partial_info[obs_occupied_loc] = 1
-
         for unobs_free_loc in self.map.unobs_free:
             partial_info[unobs_free_loc] = 2
 
         for unobs_occupied_loc in self.map.unobs_occupied:
             partial_info[unobs_occupied_loc] = 2
+
+        for obs_free_loc in self.map.obs_free:
+            partial_info[obs_free_loc] = 0
+
+        for obs_occupied_loc in self.map.obs_occupied:
+            partial_info[obs_occupied_loc] = 1
         
         if update:
             self.final_partial_info.append(partial_info)
@@ -86,17 +85,17 @@ class SensorModel:
         bounds = map.get_bounds()
         partial_info = np.empty((bounds[0], bounds[1]), dtype=int)
 
-        for obs_free_loc in map.obs_free:
-            partial_info[obs_free_loc] = 0
-
-        for obs_occupied_loc in map.obs_occupied:
-            partial_info[obs_occupied_loc] = 1
-
         for unobs_free_loc in map.unobs_free:
             partial_info[unobs_free_loc] = 2
 
         for unobs_occupied_loc in map.unobs_occupied:
             partial_info[unobs_occupied_loc] = 2
+
+        for obs_free_loc in map.obs_free:
+            partial_info[obs_free_loc] = 0
+
+        for obs_occupied_loc in map.obs_occupied:
+            partial_info[obs_occupied_loc] = 1
         
         if update:
             self.final_partial_info.append(partial_info)
@@ -107,10 +106,12 @@ class SensorModel:
     def create_final_path_matrix(self, update=True):
         bounds = self.map.get_bounds()
         path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+        debug_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
 
         for path in self.final_path:
             path_matrix[path] = 1
-
+            debug_matrix[path] = 1
+        
         # this is for multi-robot when communication of other_paths is done
         for path in self.final_other_path:
             path_matrix[path] = 1
@@ -120,19 +121,6 @@ class SensorModel:
 
         else:
             return path_matrix
-
-    # def create_final_other_path_matrix(self, update=True):
-    #     bounds = self.map.get_bounds()
-    #     path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
-
-    #     for path in self.final_other_path:
-    #         path_matrix[path] = 1
-
-    #     if update:
-    #         self.final_other_path_matrices.append(path_matrix)
-
-    #     else:
-    #         return path_matrix
 
     def create_final_path_matrix_mcts(self, input_final_path_matrix, update=True):
         bounds = self.map.get_bounds()

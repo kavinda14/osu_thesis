@@ -138,8 +138,8 @@ class Simulator:
         self.set_score(len(new_observations[0]))
         self.obs_occupied = self.obs_occupied.union(new_observations[0])
         self.obs_free = self.obs_free.union(new_observations[1])
-        self.map.obs_occupied = self.obs_occupied
-        self.map.obs_free = self.obs_free
+        self.map.obs_occupied = self.map.obs_occupied.union(self.obs_occupied)
+        self.map.obs_free = self.map.obs_free.union(self.obs_free)
 
     def visualize(self):
         plt.xlim(0, self.map.bounds[0])

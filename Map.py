@@ -133,12 +133,25 @@ class Map:
 
         return math.sqrt((y2-y1)**2 + (x2-x1)**2)
     
+    # these two are for the communicate() in multi-robot case
+    def add_oracle_obs_free(self, obs_free_oracle):
+        self.obs_free = self.obs_free.union(obs_free_oracle)
+    
+    def add_oracle_obs_occupied(self, obs_occupied_oracle):
+        self.obs_occupied = self.obs_occupied.union(obs_occupied_oracle)
+
     def get_unobs_free(self):
         return self.unobs_free
 
     def get_unobs_occupied(self):
         return self.unobs_occupied
 
+    def get_obs_occupied(self):
+        return self.obs_occupied
+
+    def get_obs_free(self):
+        return self.obs_free
+    
     def set_unobs_free(self, unobs_free_set):
         self.unobs_free = unobs_free_set
         

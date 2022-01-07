@@ -87,20 +87,24 @@ def oracle_visualize(robots, bounds, map, planner):
 
     plt.show()
 
-def communicate(robots):
+def communicate(robots, obs_occupied_oracle, obs_free_oracle):
     for bot1 in robots:
         sensor_model_bot1 = bot1.get_sensor_model()
-        final_path_bot1 = sensor_model_bot1.get_final_path()
-        # print("final_path_bot1", final_path_bot1)
-        other_paths = list()
+        map_bot1 = bot1.get_map()
+        other_paths = set()
+
+        # for communicating the belief maps
+        # by communicating these sets, the maps will contain these updates
+        map_bot1.add_oracle_obs_free(obs_free_oracle)
+        map_bot1.add_oracle_obs_occupied(obs_occupied_oracle)
+
         for bot2 in robots:
             if bot1 is not bot2:
                 sensor_model_bot2 = bot2.get_sensor_model()
-                # final_other_path_bot2 = sensor_model_bot2.get_final_other_path() + final_path_bot1     
                 final_path_bot2 = sensor_model_bot2.get_final_path()
-                other_paths = other_paths + final_path_bot2
+                other_paths = other_paths.union(final_path_bot2)
 
-        final_other_path_bot1 = sensor_model_bot1.get_final_other_path() + other_paths
+        final_other_path_bot1 = sensor_model_bot1.get_final_other_path().union(other_paths)
         sensor_model_bot1.set_final_other_path(final_other_path_bot1)
         
         
@@ -120,7 +124,7 @@ if __name__ == "__main__":
     # reward_options = ["network"]
     bounds = [21, 21]
     trials = 100
-    steps = 70
+    steps = 25
     num_robots = 4
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
@@ -138,7 +142,10 @@ if __name__ == "__main__":
         score_lists = [list() for _ in range(len(planner_options))]
     
     # load neural net
+    # weight_file = "circles_21x21_epoch2_random_greedyno_r4_t800_s50_rollout"
+    # weight_file = "circles_21x21_epoch2_random_greedyo_r4_t800_s50_norollout"
     weight_file = "circles_21x21_epoch2_random_greedyno_r4_t800_s50_rollout"
+
     # weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
 
     neural_model = NeuralNet.Net(bounds)
@@ -179,7 +186,8 @@ if __name__ == "__main__":
         for planner in planner_options:
             print("Planner: {}".format(planner))
             obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
-            
+            obs_free_oracle = set()
+
             # adds planner name to the visualization list
             curr_list = score_lists[score_list]
             if len(curr_list) == 0:
@@ -196,17 +204,21 @@ if __name__ == "__main__":
                 bot.add_sensor_model(sensor_model)
                 bot.add_simulator(simulator)
                 # this adds the initial matrices to appropriate lists
-                bot.get_simulator().initialize_data(bots_starting_locs)
+                bot_simulator = bot.get_simulator()
+                bot_simulator.initialize_data(bots_starting_locs, obs_occupied_oracle)
+                # this is needed incase any locations are scanned in the initial position
+                obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
+                obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+                
 
             steps_start = time.time()
             for step in range(steps):
 
                 # run multiple robots in same map
+                print()
                 for bot in robots:
                     simulator = bot.get_simulator()
                     sensor_model = bot.get_sensor_model()
-                    # to keep track of score
-                    obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
 
                     if planner == "mcts":
                         for rollout_type in rollout_options:
@@ -248,7 +260,16 @@ if __name__ == "__main__":
                             simulator.visualize()
 
                         simulator.run(neural_model)
-
+                        # print("OBS OCCUPIED: ", map.get_obs_occupied())
+                        # print("OBS FREE: ", map.get_obs_free())
+                        print("PARTIAL IMAGE: ", sensor_model.get_final_partial_info()[-1])
+                        
+                        # to keep track of score
+                        obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
+                        obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+                        # print("DEBUG obs_free_oracle: ", len(obs_free_oracle))
+                        # print("DEBUG obs_free_oracle: ", obs_free_oracle)
+                        
                         end = time.time()
                         if visualize:
                             simulator.visualize()
@@ -259,8 +280,25 @@ if __name__ == "__main__":
                         # print("Time taken (secs): ", end - start)
                         # print()  
 
+                # if planner == "network":
+                #     print("DEBUG PATH: ", sensor_model.get_final_path())
+                #     # print("DEBUG PATH: ", sensor_model.get_final_scores())
+                #     print("DEBUG OTHER PATH: ", sensor_model.get_final_other_path())
+                #     print("PATH COUNT: ", len(sensor_model.get_final_path())+len(sensor_model.get_final_other_path()))
+                #     matrix = sensor_model.get_final_other_path_matrices()[-1]
+                #     print("DEBUG INITIAL PATH MATRICES: ", matrix)
+                #     next_matrix = sensor_model.get_final_path_matrices()[-1]
+                #     print("DEBUG PATH MATRICES: ", next_matrix)
+                #     # count = 0
+                #     # for row in matrix:
+                #     #     for col in matrix:
+                #     #         val = matrix[row][col]
+                #     #         if val.all()==1:
+                #     #             count+=1
+                #     # print("DEBUG MATRIX 1 COUNT: ", count)
+                        
                 if planner == "network":    
-                    communicate(robots)
+                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
                 steps_end = time.time()
 
 
@@ -272,7 +310,9 @@ if __name__ == "__main__":
             pickle.dump(score_lists, outfile)
             outfile.close()
 
-            oracle_visualize(robots, bounds, map, planner)
+            if planner == "network_wo_path" or planner == "network":
+            # if planner == "network":
+                oracle_visualize(robots, bounds, map, planner)
 
         trial_end_time = time.time()
         print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)

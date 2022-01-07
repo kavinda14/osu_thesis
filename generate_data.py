@@ -82,20 +82,24 @@ def oracle_visualize(robots, bounds, map, planner):
 
     plt.show()
 
-def communicate(robots):
+def communicate(robots, obs_occupied_oracle, obs_free_oracle):
     for bot1 in robots:
         sensor_model_bot1 = bot1.get_sensor_model()
-        final_path_bot1 = sensor_model_bot1.get_final_path()
-        # print("final_path_bot1", final_path_bot1)
-        other_paths = list()
+        map_bot1 = bot1.get_map()
+        other_paths = set()
+
+        # for communicating the belief maps
+        # by communicating these sets, the maps will contain these updates
+        map_bot1.add_oracle_obs_free(obs_free_oracle)
+        map_bot1.add_oracle_obs_occupied(obs_occupied_oracle)
+
         for bot2 in robots:
             if bot1 is not bot2:
                 sensor_model_bot2 = bot2.get_sensor_model()
-                # final_other_path_bot2 = sensor_model_bot2.get_final_other_path() + final_path_bot1     
                 final_path_bot2 = sensor_model_bot2.get_final_path()
-                other_paths = other_paths + final_path_bot2
+                other_paths = other_paths.union(final_path_bot2)
 
-        final_other_path_bot1 = sensor_model_bot1.get_final_other_path() + other_paths
+        final_other_path_bot1 = sensor_model_bot1.get_final_other_path().union(other_paths)
         sensor_model_bot1.set_final_other_path(final_other_path_bot1)
 
 # rollout produces the unique data needed for mcts rollout
@@ -125,6 +129,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
         for planner in planner_options: 
             start = time.time()
             obs_occupied_oracle = set()
+            obs_free_oracle = set()
 
             # Bounds need to be an odd number for the action to always be in the middle
             for bot in robots:
@@ -139,6 +144,8 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 bot_simulator.initialize_data(bots_starting_locs, obs_occupied_oracle)
                 # this is needed incase any locations are scanned in the initial position
                 obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
+                obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+    
 
             for step in range(steps):
                 # run multiple robots in same map
@@ -149,17 +156,21 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                     if visualize:
                         simulator.visualize()
 
-                    # false can be used as argument here because we don't need mcts here
+                    # false can be used as argument for neural_model here because we don't need mcts here
                     # obs_occupied_oracle is passed in so that scan() will calc the unique reward
-                    simulator.run(False, obs_occupied_oracle, train=True)
+                    # using true for train will make sure that the backtracking will consider other bot paths
+                    simulator.run(False, obs_occupied_oracle, train=False)
+                    # print("DEBUG PARTIAL IMAGE: ", sensor_model.get_final_partial_info()[-1])
+
                     obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
+                    obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
                     
                     if visualize: 
                         simulator.visualize() 
 
-                communicate(robots)
+                communicate(robots, obs_occupied_oracle, obs_free_oracle)
             
-            oracle_visualize(robots, bounds, map, planner)
+            # oracle_visualize(robots, bounds, map, planner)
 
             ### DATA MATRICES
             for bot in robots:
@@ -185,13 +196,13 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
             # rollout data is generated after the normal data of each map..
             # ..because when splitting the data at training, if the the normal data is created and the then the rollout..
             # .., the training and validation sets will have the same maps
-            print("Generating rollout data...")
-            generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile)        
+            # print("Generating rollout data...")
+            # generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile)        
         
-            print("final_path_matrices: ", len(input_path_matrices))
-            print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
-            print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
-            print("final_final_scores: ", len(input_scores))
+            # print("final_path_matrices: ", len(input_path_matrices))
+            # print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
+            # print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
+            # print("final_final_scores: ", len(input_scores))
 
     # end = time.time()
     # time_taken = (end - start)/60
@@ -281,7 +292,7 @@ if __name__ == "__main__":
 
     # for pickling
     # alienware
-    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
+    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyo_r4_t800_s50_norollout'
     # macbook
     # outfile_tensor_images = '/Users/kavisen/osu_thesis/data/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
     
