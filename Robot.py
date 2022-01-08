@@ -1,3 +1,5 @@
+import random as random
+
 class Robot:
     def __init__(self, x, y, bounds, map):
         # Variables that changes
@@ -15,6 +17,12 @@ class Robot:
         self.map = map
         self.sensor_model = None
         self.simulator = None
+
+        # for oracle visualization
+        r = random.random()
+        b = random.random()
+        g = random.random()
+        self.color = (r, g, b)
 
     def reset_robot(self):
         self.x_loc = self.start_loc[0]
@@ -186,6 +194,12 @@ class Robot:
 
     def get_simulator(self):
         return self.simulator
+
+    def get_color(self):
+        return self.color
+    
+    def set_color(self, color):
+        self.color = color
     
     def add_map(self, map):
         self.map = map

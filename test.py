@@ -55,11 +55,7 @@ def oracle_visualize(robots, bounds, map, planner):
         obs_free = obs_free.union(simulator.get_obs_free())
         obs_occupied = obs_occupied.union(simulator.get_obs_occupied())
 
-        # add unique color for robot
-        r = random.random()
-        b = random.random()
-        g = random.random()
-        bot_color = (r, g, b)
+        bot_color = bot.get_color()
 
         # plot robot
         robot_x = bot.get_loc()[0] + 0.5
@@ -124,7 +120,7 @@ if __name__ == "__main__":
     # reward_options = ["network"]
     bounds = [21, 21]
     trials = 100
-    steps = 25
+    steps = 15
     num_robots = 4
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
@@ -144,7 +140,7 @@ if __name__ == "__main__":
     # load neural net
     # weight_file = "circles_21x21_epoch2_random_greedyno_r4_t800_s50_rollout"
     # weight_file = "circles_21x21_epoch2_random_greedyo_r4_t800_s50_norollout"
-    weight_file = "circles_21x21_epoch2_random_greedyno_r4_t800_s50_rollout"
+    weight_file = "circles_21x21_epoch2_random_greedyo_r4_t1200_s50_norollout_samestartloc"
 
     # weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
 
@@ -176,9 +172,9 @@ if __name__ == "__main__":
         # create robots
         robots = list()
         # give all robots the same start loc to force communication for testing
-        start_loc = get_random_loc(map, bounds)
+        # start_loc = get_random_loc(map, bounds)
         for _ in range(num_robots):
-            # start_loc = get_random_loc(map, bounds)
+            start_loc = get_random_loc(map, bounds)
             bot = Robot(start_loc[0], start_loc[1], bounds, map)
             robots.append(bot)
             bots_starting_locs.append(start_loc)
@@ -199,7 +195,7 @@ if __name__ == "__main__":
                 map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                 sensor_model = SensorModel(bot, map)
                 simulator = Simulator(map, bot, sensor_model, planner)
-                bot.set_loc(start_loc[0], start_loc[1])
+                # bot.set_loc(start_loc[0], start_loc[1])
                 bot.add_map(map)
                 bot.add_sensor_model(sensor_model)
                 bot.add_simulator(simulator)
@@ -215,7 +211,7 @@ if __name__ == "__main__":
             for step in range(steps):
 
                 # run multiple robots in same map
-                print()
+                # print()
                 for bot in robots:
                     simulator = bot.get_simulator()
                     sensor_model = bot.get_sensor_model()
@@ -262,7 +258,7 @@ if __name__ == "__main__":
                         simulator.run(neural_model)
                         # print("OBS OCCUPIED: ", map.get_obs_occupied())
                         # print("OBS FREE: ", map.get_obs_free())
-                        print("PARTIAL IMAGE: ", sensor_model.get_final_partial_info()[-1])
+                        # print("PARTIAL IMAGE: ", sensor_model.get_final_partial_info()[-1])
                         
                         # to keep track of score
                         obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
