@@ -87,7 +87,7 @@ def communicate(robots, obs_occupied_oracle, obs_free_oracle):
     for bot1 in robots:
         sensor_model_bot1 = bot1.get_sensor_model()
         map_bot1 = bot1.get_map()
-        other_paths = set()
+        other_paths = list()
 
         # for communicating the belief maps
         # by communicating these sets, the maps will contain these updates
@@ -98,9 +98,10 @@ def communicate(robots, obs_occupied_oracle, obs_free_oracle):
             if bot1 is not bot2:
                 sensor_model_bot2 = bot2.get_sensor_model()
                 final_path_bot2 = sensor_model_bot2.get_final_path()
-                other_paths = other_paths.union(final_path_bot2)
-
-        final_other_path_bot1 = sensor_model_bot1.get_final_other_path().union(other_paths)
+                other_paths += final_path_bot2
+                
+        final_other_path_bot1 = sensor_model_bot1.get_final_other_path() + other_paths
+        # final_other_path_bot1 = sensor_model_bot1.get_final_other_path().union(other_paths)
         sensor_model_bot1.set_final_other_path(final_other_path_bot1)
         
         
@@ -111,6 +112,8 @@ if __name__ == "__main__":
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
     planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "network"]
+    # planner_options = ["network"]
+    # planner_options = ["greedy-o", "network"]
     # planner_options = ["random", "greedy-o", "greedy-no", "network"]
     # planner_options = ["random"]
     # planner_options = ["random", "greedy-o", "greedy-no"]
@@ -120,7 +123,7 @@ if __name__ == "__main__":
     # reward_options = ["network"]
     bounds = [21, 21]
     trials = 100
-    steps = 15
+    steps = 25
     num_robots = 4
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
@@ -140,7 +143,10 @@ if __name__ == "__main__":
     # load neural net
     # weight_file = "circles_21x21_epoch2_random_greedyno_r4_t800_s50_rollout"
     # weight_file = "circles_21x21_epoch2_random_greedyo_r4_t800_s50_norollout"
-    weight_file = "circles_21x21_epoch2_random_greedyo_r4_t1200_s50_norollout_samestartloc"
+    # weight_file = "circles_21x21_epoch2_greedyo_r4_t2000_s50_norollout_diffstartloc"
+    # weight_file = "circles_21x21_epoch3_random_greedyo_r4_t1000_s50_norollout_diffstartloc"
+    weight_file = "circles_21x21_epoch3_random_greedyo_r4_t1000_s50_norollout_diffstartloc"
+    # weight_file = "circles_21x21_epoch2_greedyo_r4_t2000_s50_norollout_diffstartloc"
 
     # weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
 
@@ -172,12 +178,15 @@ if __name__ == "__main__":
         # create robots
         robots = list()
         # give all robots the same start loc to force communication for testing
-        # start_loc = get_random_loc(map, bounds)
+        start_loc = get_random_loc(map, bounds)
         for _ in range(num_robots):
-            start_loc = get_random_loc(map, bounds)
+            # start_loc = get_random_loc(map, bounds)
             bot = Robot(start_loc[0], start_loc[1], bounds, map)
             robots.append(bot)
             bots_starting_locs.append(start_loc)
+
+        debug_greedy_list = list()
+        debug_network_list = list()
 
         for planner in planner_options:
             print("Planner: {}".format(planner))
@@ -195,7 +204,8 @@ if __name__ == "__main__":
                 map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                 sensor_model = SensorModel(bot, map)
                 simulator = Simulator(map, bot, sensor_model, planner)
-                # bot.set_loc(start_loc[0], start_loc[1])
+                # start_loc = bot.get_start_loc()
+                bot.set_loc(start_loc[0], start_loc[1])
                 bot.add_map(map)
                 bot.add_sensor_model(sensor_model)
                 bot.add_simulator(simulator)
@@ -205,13 +215,17 @@ if __name__ == "__main__":
                 # this is needed incase any locations are scanned in the initial position
                 obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
                 obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
-                
+
+                # debug_score_greedy = sensor_model.get_final_scores()[-1]
+                # debug_score_network = bot_simulator.debug_get_net_score()[-1]
+                # debug_greedy_list.append(debug_score)
+                # debug_network_list.append(debug_score)        
 
             steps_start = time.time()
             for step in range(steps):
+                curr_robot_positions = set()
 
                 # run multiple robots in same map
-                # print()
                 for bot in robots:
                     simulator = bot.get_simulator()
                     sensor_model = bot.get_sensor_model()
@@ -255,14 +269,26 @@ if __name__ == "__main__":
                         if visualize:
                             simulator.visualize()
 
-                        simulator.run(neural_model)
+                        # simulator.run(neural_model, obs_occupied_oracle)
+                        # we run it out obs_occupied_oracle because if not the normal planners have oracle info
+                        simulator.run(neural_model, curr_robot_positions, train=False)
+
                         # print("OBS OCCUPIED: ", map.get_obs_occupied())
                         # print("OBS FREE: ", map.get_obs_free())
                         # print("PARTIAL IMAGE: ", sensor_model.get_final_partial_info()[-1])
+
+                        # debug_score_network = simulator.debug_get_net_score()[-1]
+                        # debug_score_greedy = simulator.debug_get_greedy_score()[-1]
+                        # debug_greedy_list.append(debug_score_greedy)
+                        # debug_network_list.append(debug_score_network) 
                         
                         # to keep track of score
                         obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
                         obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+
+                        if planner == "network":
+                            communicate(robots, obs_occupied_oracle, obs_free_oracle)
+
                         # print("DEBUG obs_free_oracle: ", len(obs_free_oracle))
                         # print("DEBUG obs_free_oracle: ", obs_free_oracle)
                         
@@ -293,10 +319,14 @@ if __name__ == "__main__":
                 #     #             count+=1
                 #     # print("DEBUG MATRIX 1 COUNT: ", count)
                         
-                if planner == "network":    
-                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                # if planner == "network":    
+                #     communicate(robots, obs_occupied_oracle, obs_free_oracle)
                 steps_end = time.time()
-
+            
+            for bot in robots:
+                sensor_model = bot.get_sensor_model()
+                # print("bot: ", bot)
+                # print("score: ", sensor_model.get_final_scores())
 
             print("Score: ", len(obs_occupied_oracle))
             curr_list.append(score)
@@ -306,9 +336,50 @@ if __name__ == "__main__":
             pickle.dump(score_lists, outfile)
             outfile.close()
 
-            if planner == "network_wo_path" or planner == "network":
+            # if planner == "network_wo_path" or planner == "network":
             # if planner == "network":
-                oracle_visualize(robots, bounds, map, planner)
+                # oracle_visualize(robots, bounds, map, planner)
+
+        # print("debug_greedy_list: ", len(debug_greedy_list))
+        # print("debug_network_list: ", len(debug_network_list))
+
+        # x = np.array(debug_greedy_list)
+        # y = np.array(debug_network_list)
+        # plt.xlabel("greedy")
+        # plt.ylabel("network")
+        # plt.scatter(x, y)
+        # plt.show()
+
+        # x = list()
+        # for i, val in enumerate(debug_greedy_list):
+        #     x.append(i)
+        # y = np.array(debug_network_list)
+        # plt.xlabel("steps")
+        # plt.ylabel("debug_network_list")
+        # plt.scatter(x, y)
+        # plt.show()
+
+        # x = list()
+        # for i, val in enumerate(debug_greedy_list):
+        #     x.append(i)
+        # y = np.array(debug_greedy_list)
+        # plt.xlabel("steps")
+        # plt.ylabel("debug_greedy_list")
+        # plt.scatter(x, y)
+        # plt.show()
+
+        # x = list()
+        # for i, val in enumerate(debug_greedy_list):
+        #     x.append(i)
+        # y1 = np.array(debug_greedy_list)
+        # y2 = np.array(debug_network_list)
+        # plt.xlabel("steps")
+        # plt.ylabel("scores")
+        # plt.scatter(x, y1, c='b', marker='x', label='greedy')
+        # plt.scatter(x, y2, c='r', marker='s', label='network')
+        # plt.legend(loc="upper right")
+        # plt.show()
+
 
         trial_end_time = time.time()
         print("Trial time taken (mins): ", (trial_end_time - trial_start_time)/60)

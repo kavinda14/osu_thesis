@@ -3,8 +3,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import sys
 from tqdm import tqdm
+import random as random
 
 import OraclePlanner
+import NeuralNet
 
 sys.path.insert(0, './basic_MCTS_python')
 from basic_MCTS_python import mcts
@@ -31,6 +33,15 @@ class Simulator:
         self.rollout_type = rollout_type
         self.reward_type = reward_type
 
+        self.debug_network_score = list()
+        self.debug_greedy_score = list()
+    
+    def debug_get_net_score(self):
+        return self.debug_network_score
+
+    def debug_get_greedy_score(self):
+        return self.debug_greedy_score
+
     # new addition to multi-robot code
     def initialize_data(self, bots_starting_loc, obs_occupied_oracle=set()):
         self._update_map(obs_occupied_oracle)
@@ -50,7 +61,7 @@ class Simulator:
             path_matrix[loc[0]][loc[1]] = 1
         
     # train is there because of the backtracking condition in each planner 
-    def run(self, neural_model, obs_occupied_oracle=set(), train=False):
+    def run(self, neural_model, curr_robot_positions, obs_occupied_oracle=set(), train=False):
         self.iterations += 1        
 
         # Generate an action from the robot path
@@ -58,11 +69,19 @@ class Simulator:
         if self.planner == "random":
             action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
         if self.planner == "greedy-o":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, train, oracle=True)
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=True)                                    
+            # results = OraclePlanner.debug_greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, train, self.debug_greedy_score, self.debug_network_score, oracle=True)
+            # action = results[0]
+            # self.debug_network_score = results[1]
+            # self.debug_greedy_score = results[2]
+
+
         if self.planner == "greedy-no":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, train, oracle=False)
-        if self.planner == "network" or self.planner == "network_wo_path":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, train, neural_net=True)
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=False)
+        if self.planner == "network":
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True)
+        if self.planner == "network_wo_path":
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, neural_net=True)
         # this is to check weights created with single robot case and multi robot case
         # if self.planner == "network_wo_path":
         #     import torch
@@ -135,6 +154,9 @@ class Simulator:
         
         new_observations = self.sensor_model.scan(self.robot.get_loc(), obs_occupied_oracle)
         # Score is the number of new obstacles found
+        # random thing is just for debugging - delete after testing
+        # score = random.uniform(len(new_observations[0]), len(new_observations[0])+0.3)
+        # self.set_score(score)
         self.set_score(len(new_observations[0]))
         self.obs_occupied = self.obs_occupied.union(new_observations[0])
         self.obs_free = self.obs_free.union(new_observations[1])

@@ -35,7 +35,7 @@ def random_planner(robot, sensor_model, train):
     return action
 
 # model here is the neural net
-def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, train, neural_net=False, oracle=False):
+def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, neural_net=False, oracle=False):
     actions = ['left', 'backward', 'right', 'forward']
     best_action_score = float('-inf')
     best_action = random.choice(actions)
@@ -58,7 +58,7 @@ def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, train
                 times_visited = sensor_model.get_final_path().count(potential_next_loc) 
             
             # backtrack possibility
-            if times_visited <= 1: 
+            if times_visited <= 1 and potential_next_loc not in curr_robot_positions: 
                 if neural_net:
                     # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
                     final_actions = [sensor_model.create_action_matrix(action, True)]
@@ -89,6 +89,8 @@ def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, train
     # print('Path Debug: ', sensor_model.get_final_path().count(tuple(robot.get_action_loc(best_action)))
     # + sensor_model.get_final_other_path().count(tuple(robot.get_action_loc(best_action))))
     # print('Count Debug: '. len(sensor_model.get_final_path()))
+
+    curr_robot_positions.add(tuple(robot.get_action_loc(best_action)))
     return best_action
 
 
