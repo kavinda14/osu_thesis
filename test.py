@@ -111,7 +111,8 @@ if __name__ == "__main__":
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "network", "mcts"]
-    planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "network"]
+    # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "network"]
+    planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "network_step5", "network_everystep"]
     # planner_options = ["network"]
     # planner_options = ["greedy-o", "network"]
     # planner_options = ["random", "greedy-o", "greedy-no", "network"]
@@ -122,9 +123,10 @@ if __name__ == "__main__":
     reward_options = ["random", "greedy", "network"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 100
+    trials = 20
     steps = 25
     num_robots = 4
+    communicate_step = 5
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
     # profiling functions
@@ -222,6 +224,7 @@ if __name__ == "__main__":
                 # debug_network_list.append(debug_score)        
 
             steps_start = time.time()
+            steps_count = 0
             for step in range(steps):
                 curr_robot_positions = set()
 
@@ -286,8 +289,8 @@ if __name__ == "__main__":
                         obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
                         obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
 
-                        if planner == "network":
-                            communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                        # if planner == "network":
+                            # communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
                         # print("DEBUG obs_free_oracle: ", len(obs_free_oracle))
                         # print("DEBUG obs_free_oracle: ", obs_free_oracle)
@@ -318,13 +321,16 @@ if __name__ == "__main__":
                 #     #         if val.all()==1:
                 #     #             count+=1
                 #     # print("DEBUG MATRIX 1 COUNT: ", count)
-                        
-                # if planner == "network":    
-                #     communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                
+                steps_count += 1
+                if planner == "network_everystep":    
+                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                if planner == "network_step5" and steps_count%5==0:   
+                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
                 steps_end = time.time()
             
-            for bot in robots:
-                sensor_model = bot.get_sensor_model()
+            # for bot in robots:
+                # sensor_model = bot.get_sensor_model()
                 # print("bot: ", bot)
                 # print("score: ", sensor_model.get_final_scores())
 
@@ -336,9 +342,9 @@ if __name__ == "__main__":
             pickle.dump(score_lists, outfile)
             outfile.close()
 
-            # if planner == "network_wo_path" or planner == "network":
+            if planner == "network_wo_path" or planner == "network_step5" or planner == "network_everystep":
             # if planner == "network":
-                # oracle_visualize(robots, bounds, map, planner)
+                oracle_visualize(robots, bounds, map, planner)
 
         # print("debug_greedy_list: ", len(debug_greedy_list))
         # print("debug_network_list: ", len(debug_network_list))

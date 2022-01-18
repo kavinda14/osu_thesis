@@ -78,7 +78,9 @@ class Simulator:
 
         if self.planner == "greedy-no":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=False)
-        if self.planner == "network":
+        if self.planner == "network_everystep":
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True)
+        if self.planner == "network_step5":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True)
         if self.planner == "network_wo_path":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, neural_net=True)
