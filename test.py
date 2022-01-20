@@ -113,16 +113,14 @@ if __name__ == "__main__":
     # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path"]
     # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "mcts"]
     planner_options = ["mcts"]
-    network_options = ["network_wo_path", "network_step5", "network_everystep"]
     # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path"]
     # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "network_step5", "network_everystep"]
-    rollout_options = ["random", "greedy", "network"]
-    # rollout_options = ["network"]
-    reward_options = ["random", "greedy", "network"]
+    rollout_options = ["random", "greedy", "network_wo_path", "network_step5", "network_everystep"]
+    reward_options = ["random", "greedy", "network_wo_path", "network_step5", "network_everystep"]
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 50
-    steps = 20
+    trials = 10
+    steps = 10
     num_robots = 2
     communicate_step = 10
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
@@ -137,7 +135,7 @@ if __name__ == "__main__":
     # this is for pickling and visualizing the data -> check pickle_script.py
     if "mcts" in planner_options:
         # score_lists = [list() for _ in range((len(planner_options)-1)+(len(rollout_options)*len(reward_options)))]
-        score_lists = [list() for _ in range((len(planner_options)-1)+((len(rollout_options)*len(reward_options)))*len(network_options))]
+        score_lists = [list() for _ in range((len(planner_options)-1)+(len(rollout_options)*len(reward_options)))]
     else:
         score_lists = [list() for _ in range(len(planner_options))]
     
@@ -187,68 +185,66 @@ if __name__ == "__main__":
             print("Planner: {}".format(planner))
 
             if planner == "mcts":
-                for network_type in network_options:
-                    for rollout_type in rollout_options:
-                        for reward_type in reward_options:
-                            print("Network: {}, Rollout: {}, Reward: {}".format(network_type, rollout_type, reward_type))
+                for rollout_type in rollout_options:
+                    for reward_type in reward_options:
+                        print("Rollout: {}, Reward: {}".format(rollout_type, reward_type))
 
-                            # this is for pickling the data
-                            curr_list = score_lists[score_list]
-                            if len(curr_list) == 0:
-                                curr_list.append(network_type + "_" + rollout_type + '_' + reward_type)
-                            score_list += 1
+                        # this is for pickling the data
+                        curr_list = score_lists[score_list]
+                        if len(curr_list) == 0:
+                            curr_list.append(rollout_type + '_' + reward_type)
+                        score_list += 1
 
-                            obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
-                            obs_free_oracle = set()
+                        obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
+                        obs_free_oracle = set()
 
-                            # the map has to be the same for each planner
+                        # the map has to be the same for each planner
+                        for bot in robots:
+                            map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
+                            sensor_model = SensorModel(bot, map)
+                            simulator = Simulator(map, bot, sensor_model, planner)
+                            # start_loc = bot.get_start_loc()
+                            bot.set_loc(start_loc[0], start_loc[1])
+                            bot.add_map(map)
+                            bot.add_sensor_model(sensor_model)
+                            bot.add_simulator(simulator)
+                            # this adds the initial matrices to appropriate lists
+                            bot_simulator = bot.get_simulator()
+                            bot_simulator.initialize_data(bots_starting_locs, obs_occupied_oracle)
+                            # this is needed incase any locations are scanned in the initial position
+                            obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
+                            obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+
+                        steps_count = 0
+                        for step in range(steps):
+                            curr_robot_positions = set()
+                        
                             for bot in robots:
-                                map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
-                                sensor_model = SensorModel(bot, map)
-                                simulator = Simulator(map, bot, sensor_model, planner)
-                                # start_loc = bot.get_start_loc()
-                                bot.set_loc(start_loc[0], start_loc[1])
-                                bot.add_map(map)
-                                bot.add_sensor_model(sensor_model)
-                                bot.add_simulator(simulator)
-                                # this adds the initial matrices to appropriate lists
-                                bot_simulator = bot.get_simulator()
-                                bot_simulator.initialize_data(bots_starting_locs, obs_occupied_oracle)
-                                # this is needed incase any locations are scanned in the initial position
-                                obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
+                                simulator = bot.get_simulator()
+                                sensor_model = bot.get_sensor_model()
+
+                                simulator.run(neural_model, curr_robot_positions, train=False)
+
+                                # to keep track of score
+                                obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
                                 obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
 
-                            steps_count = 0
-                            for step in range(steps):
-                                curr_robot_positions = set()
-                            
-                                for bot in robots:
-                                    simulator = bot.get_simulator()
-                                    sensor_model = bot.get_sensor_model()
+                            steps_count += 1
+                            if rollout_type or reward_type == "network_everystep":    
+                                communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                            if rollout_type or reward_type == "network_step5" and steps_count%5==0:   
+                                communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
-                                    simulator.run(neural_model, curr_robot_positions, train=False)
+                        score = len(obs_occupied_oracle)     
+                        print("Score: ", score)
+                        curr_list.append(score)
 
-                                    # to keep track of score
-                                    obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
-                                    obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+                        # oracle_visualize(robots, bounds, map, planner)
 
-                                steps_count += 1
-                                if planner == "network_everystep":    
-                                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
-                                if planner == "network_step5" and steps_count%5==0:   
-                                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
-
-                            score = len(obs_occupied_oracle)     
-                            print("Score: ", score)
-                            curr_list.append(score)
-
-                            # if planner == "network_wo_path" or planner == "network_step5" or planner == "network_everystep":
-                                # oracle_visualize(robots, bounds, map, planner)
-
-                            # pickle progress
-                            outfile = open(filename,'wb')
-                            pickle.dump(score_lists, outfile)
-                            outfile.close()
+                        # pickle progress
+                        outfile = open(filename,'wb')
+                        pickle.dump(score_lists, outfile)
+                        outfile.close()
 
 
             else: # these are the myopic planners
@@ -342,8 +338,10 @@ if __name__ == "__main__":
 
     for score_list in score_lists:
         planner_name = score_list[0]
+        print("planner_name: ", planner_name)
         bars.append(planner_name)
         del score_list[0]
+        print(score_list)
         curr_score = sum(score_list)/len(score_list)
         scores.append(curr_score)
 
