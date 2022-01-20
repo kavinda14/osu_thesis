@@ -9,7 +9,7 @@ class Robot:
         self.index = 0
 
         # Static variables
-        self.start_loc = self.x_loc, self.y_loc
+        self.start_loc = x, y
         self.velocity = 1.0
         self.sensing_range = 2.85 # Range for square with bounds 21, 21
         # self.sensing_range = 4.3 # Range for circles with bounds 41, 41
@@ -197,6 +197,9 @@ class Robot:
 
     def get_color(self):
         return self.color
+
+    def get_start_loc(self):
+        return self.start_loc
     
     def set_color(self, color):
         self.color = color

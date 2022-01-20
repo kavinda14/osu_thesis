@@ -43,10 +43,10 @@ class PlanningDataset(Dataset):
 def create_data_loaders(data):
     
     dataset = PlanningDataset(data)
-    validation_split = 0.5
+    validation_split = 0.2
     batch_size = 128
     random_seed= 42
-    shuffle_dataset = False
+    shuffle_dataset = True
 
     dataset_size = len(dataset)
     indices = list(range(dataset_size))

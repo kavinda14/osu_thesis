@@ -1,15 +1,7 @@
-'''
-Basic MCTS implementation
-Graeme Best
-Oregon State University
-Jan 2020
-'''
-
 from cost import cost
 import random
 import copy
 import NeuralNet
-import torch
 
 class State():
     def __init__(self, action, location):
@@ -84,6 +76,7 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=F
     return sequence
 
 def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_model):
+    # WHY DO WE HAVE TO USE DEEPCOPY HERE?
     rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
     rollout_map = copy.deepcopy(world_map)
     sequence = copy.deepcopy(subsequence)

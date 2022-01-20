@@ -120,6 +120,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
 
         # create robots
         robots = list()
+        # start_loc = get_random_loc(map, bounds)
         for _ in range(num_robots):
             start_loc = get_random_loc(map, bounds)
             bot = Robot(start_loc[0], start_loc[1], bounds, map)
@@ -136,6 +137,8 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                 sensor_model = SensorModel(bot, map)
                 simulator = Simulator(map, bot, sensor_model, planner)
+                start_loc = bot.get_start_loc()
+                bot.set_loc(start_loc[0], start_loc[1])
                 bot.add_map(map)
                 bot.add_sensor_model(sensor_model)
                 bot.add_simulator(simulator)
@@ -161,14 +164,23 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                     # using true for train will make sure that the backtracking will consider other bot paths
                     simulator.run(False, obs_occupied_oracle, train=False)
                     # print("DEBUG PARTIAL IMAGE: ", sensor_model.get_final_partial_info()[-1])
+                    # print("DEBUG SCORES: ", sensor_model.get_final_scores())
 
                     obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
                     obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
                     
+                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
+
                     if visualize: 
                         simulator.visualize() 
 
-                communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                # communicate(robots, obs_occupied_oracle, obs_free_oracle)
+            
+            # for debugging scores
+            # for bot in robots:
+            #     sensor_model = bot.get_sensor_model()
+            #     print("bot: ", bot)
+            #     print("score: ", sensor_model.get_final_scores())
             
             # oracle_visualize(robots, bounds, map, planner)
 
@@ -178,8 +190,6 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
 
                 path_matricies = sensor_model.get_final_path_matrices()
                          
-                final_other_paths = sensor_model.get_final_other_path()
-
                 final_partial_info = sensor_model.get_final_partial_info()
                 partial_info_binary_matrices = sensor_model.create_binary_matrices(final_partial_info)
 
@@ -187,9 +197,47 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
 
                 final_scores = sensor_model.get_final_scores()
+                # print("final_scores: ", final_scores)
 
                 input_path_matrices = input_path_matrices + path_matricies
+                # print("debug_input_path_matrices: ", input_path_matrices)
+                # just for debugging
+                # count = 0
+                # for matrix in input_path_matrices:
+                #     for row in matrix:
+                #         for col in row:
+                #             if col==1:
+                #                 count+=1
+                #     print("debug_input_path_matrices COUNT: ", count)
+                #     count = 0
+                #     print(matrix)
+
                 input_partial_info_binary_matrices = input_partial_info_binary_matrices + partial_info_binary_matrices
+                # print("debug_input_partial_info_binary_matrices: ", input_partial_info_binary_matrices)
+                # count = 0
+                # for matrix in input_partial_info_binary_matrices:
+                #     # print("MATRIX: ", matrix)
+                #     for matrix2 in matrix:
+                #         # print("MATRIX2: ", matrix2)
+                #         for row in matrix2:
+                #             for col in row:
+                #                 if col==1:
+                #                     count+=1
+                #         print("debug_input_partial_info_binary_matrices COUNT: ", count)
+                #         count = 0
+                #         print(matrix2)
+
+                # print("images count: ", len(input_partial_info_binary_matrices))
+                # for image in input_partial_info_binary_matrices:
+                #     print("image: ", image)
+                    # print("image: ", image[0])
+                    # count = 0
+                    # for row in image[0]:
+                    #     for col in row:
+                    #         if col == 1:
+                    #             count += 1
+                    # print("count: ", count)
+
                 input_actions_binary_matrices = input_actions_binary_matrices + final_actions_binary_matrices
                 input_scores = input_scores + final_scores
 
@@ -292,7 +340,7 @@ if __name__ == "__main__":
 
     # for pickling
     # alienware
-    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyo_r4_t800_s50_norollout'
+    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyo_r4_t1000_s50_norollout_diffstartloc'
     # macbook
     # outfile_tensor_images = '/Users/kavisen/osu_thesis/data/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
     
@@ -300,6 +348,7 @@ if __name__ == "__main__":
     print("Generating matrices")
     # planner_options = ["random", "greedy-o", "greedy-no"]
     planner_options = ["random", "greedy-o"]
+    # planner_options = ["greedy-o"]
     # planner_options = ["random"]
-    generate_data_matrices(trials=800, steps=50, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
+    generate_data_matrices(trials=1000, steps=50, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
     

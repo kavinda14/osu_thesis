@@ -164,6 +164,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
         if rollout_type == 'network':
             rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map, neural_model=neural_model)
 
+        # TEST TO CHECK IF GREEDY AND NETWORK REWARDS ARE LINEAR
         # debug_reward_greedy = reward.reward_greedy(rollout_sequence, sensor_model, world_map, oracle=True)
         # debug_reward_network = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model)
         # debug_reward_greedy_list.append(debug_reward_greedy)

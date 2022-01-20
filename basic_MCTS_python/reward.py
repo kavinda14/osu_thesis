@@ -1,10 +1,3 @@
-'''
-Basic MCTS implementation
-Graeme Best
-Oregon State University
-Jan 2020
-'''
-
 import random
 import NeuralNet
 import copy
@@ -43,7 +36,6 @@ def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
     reward_final_path = copy.deepcopy(sensor_model.get_final_path()) # these are the executed paths + all the incremental rollout paths
     reward_map = copy.deepcopy(world_map)
     
-
     partial_info = [sensor_model.create_partial_info_mcts(reward_map, False)]
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
 
