@@ -75,14 +75,13 @@ class Simulator:
             # self.debug_network_score = results[1]
             # self.debug_greedy_score = results[2]
 
-
         if self.planner == "greedy-no":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=False)
-        if self.planner == "network_everystep":
+        if self.planner == "net_everystep":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True)
-        if self.planner == "network_step5":
+        if self.planner == "net_everyxstep":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True)
-        if self.planner == "network_wo_path":
+        if self.planner == "net_nocomm":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, neural_net=True)
         # this is to check weights created with single robot case and multi robot case
         # if self.planner == "network_wo_path":

@@ -27,7 +27,7 @@ def get_random_loc(map, bounds):
 
     return [x, y]
 
-def oracle_visualize(robots, bounds, map, planner):
+def oracle_visualize(robots, bounds, map, planner, reward_type=None, rollout_type=None):
     plt.xlim(0, bounds[0])
     plt.ylim(0, bounds[1])
     # plt.title("Planner: {}, Score: {}".format(self.planner, sum(self.sensor_model.get_final_scores())))
@@ -78,8 +78,11 @@ def oracle_visualize(robots, bounds, map, planner):
     for spot in obs_free:
         hole = patches.Rectangle(spot, 1, 1, facecolor='white')
         ax.add_patch(hole)
-
-    plt.title(planner)
+    
+    if reward_type and rollout_type is not None:
+        plt.title(planner + "_" + reward_type + "_" + rollout_type)
+    else:
+        plt.title(planner)
 
     plt.show()
 
@@ -112,16 +115,19 @@ if __name__ == "__main__":
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path"]
     # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "mcts"]
-    planner_options = ["mcts"]
+    planner_options = ["random", "greedy-o", "greedy-no", "mcts"]
+    # planner_options = ["random", "greedy-o", "greedy-no"]
     # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path"]
     # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "network_step5", "network_everystep"]
-    rollout_options = ["random", "greedy", "network_wo_path", "network_step5", "network_everystep"]
-    reward_options = ["random", "greedy", "network_wo_path", "network_step5", "network_everystep"]
+    network_options = ["net_nocomm", "net_everyxstep", "net_everystep"]
+    # network_options = ["network_everystep"]
+    rollout_options = ["random", "greedy"] + network_options
+    reward_options = ["random", "greedy"] + network_options
     # reward_options = ["network"]
     bounds = [21, 21]
-    trials = 10
-    steps = 10
-    num_robots = 2
+    trials = 2
+    steps = 0
+    num_robots = 4
     communicate_step = 10
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
@@ -230,16 +236,16 @@ if __name__ == "__main__":
                                 obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
 
                             steps_count += 1
-                            if rollout_type or reward_type == "network_everystep":    
+                            if rollout_type or reward_type == "net_everystep":    
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
-                            if rollout_type or reward_type == "network_step5" and steps_count%5==0:   
+                            if rollout_type or reward_type == "net_everyxstep" and steps_count%5==0:   
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
                         score = len(obs_occupied_oracle)     
                         print("Score: ", score)
                         curr_list.append(score)
 
-                        # oracle_visualize(robots, bounds, map, planner)
+                        # oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
 
                         # pickle progress
                         outfile = open(filename,'wb')
@@ -298,13 +304,10 @@ if __name__ == "__main__":
                         # if planner == "network":
                             # communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
-                        if visualize:
-                            simulator.visualize()
-
                     steps_count += 1
-                    if planner == "network_everystep":    
+                    if planner == "net_everystep":    
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
-                    if planner == "network_step5" and steps_count%5==0:   
+                    if planner == "net_everyxstep" and steps_count%5==0:   
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
                     steps_end = time.time()
 
@@ -312,7 +315,7 @@ if __name__ == "__main__":
                 print("Score: ", score)
                 curr_list.append(score)
 
-                # if planner == "network_wo_path" or planner == "network_step5" or planner == "network_everystep":
+                # if planner == "net_nocomm" or planner == "net_everyxstep" or planner == "net_everystep":
                     # oracle_visualize(robots, bounds, map, planner)
 
                 # pickle progress
@@ -338,14 +341,13 @@ if __name__ == "__main__":
 
     for score_list in score_lists:
         planner_name = score_list[0]
-        print("planner_name: ", planner_name)
         bars.append(planner_name)
         del score_list[0]
-        print(score_list)
         curr_score = sum(score_list)/len(score_list)
         scores.append(curr_score)
 
     x_pos = np.arange(len(bars))
+    # bar chart plot
     # plt.bar(x_pos, scores, color=['#33e6ff', 'red', 'green', 'blue', '#FFC0CB', '#800080', '#fdbe83', '#00ab66', '#0b1320', '#ddceff', '#4000ff', '#ff876f', '#540077'])
     # plt.xticks(x_pos, bars, rotation=45)
     # plt.title(weight_file)
@@ -356,7 +358,7 @@ if __name__ == "__main__":
 
     # plt.show()
 
-    # Box plot
+    # box plot
     score_lists_copy = score_lists
     for score_list in score_lists_copy:
         score_list.remove(score_list[0])   
@@ -366,8 +368,9 @@ if __name__ == "__main__":
         x_pos[i] += 1
 
     fig = plt.figure(figsize =(10, 7))
+    # Creating axes instance
     plt.boxplot(score_lists_copy)
-    plt.xticks(x_pos, bars, rotation=35)
+    plt.xticks(x_pos, bars, rotation=75)
     plt.title(weight_file+"_trials:"+str(trials)+"_steps:"+str(steps))
     plt.show()
 
