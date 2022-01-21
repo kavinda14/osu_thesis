@@ -86,7 +86,7 @@ def communicate(robots, obs_occupied_oracle, obs_free_oracle):
     for bot1 in robots:
         sensor_model_bot1 = bot1.get_sensor_model()
         map_bot1 = bot1.get_map()
-        other_paths = set()
+        other_paths = list()
 
         # for communicating the belief maps
         # by communicating these sets, the maps will contain these updates
@@ -97,13 +97,16 @@ def communicate(robots, obs_occupied_oracle, obs_free_oracle):
             if bot1 is not bot2:
                 sensor_model_bot2 = bot2.get_sensor_model()
                 final_path_bot2 = sensor_model_bot2.get_final_path()
-                other_paths = other_paths.union(final_path_bot2)
-
-        final_other_path_bot1 = sensor_model_bot1.get_final_other_path().union(other_paths)
+                other_paths += final_path_bot2
+                
+        final_other_path_bot1 = sensor_model_bot1.get_final_other_path() + other_paths
+        # final_other_path_bot1 = sensor_model_bot1.get_final_other_path().union(other_paths)
         sensor_model_bot1.set_final_other_path(final_other_path_bot1)
 
 # rollout produces the unique data needed for mcts rollout
 # this is done because in rollout, belief map stays the same even though path and actions change
+
+
 def generate_data_matrices(trials, steps, num_robots, planner_options, visualize, bounds, outfile, rollout=True):
     input_partial_info_binary_matrices = list()
     input_path_matrices = list()
@@ -128,7 +131,6 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
             bots_starting_locs.append(start_loc)
 
         for planner in planner_options: 
-            start = time.time()
             obs_occupied_oracle = set()
             obs_free_oracle = set()
 
@@ -149,7 +151,6 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
                 obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
     
-
             for step in range(steps):
                 # run multiple robots in same map
                 for bot in robots:
@@ -162,7 +163,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                     # false can be used as argument for neural_model here because we don't need mcts here
                     # obs_occupied_oracle is passed in so that scan() will calc the unique reward
                     # using true for train will make sure that the backtracking will consider other bot paths
-                    simulator.run(False, obs_occupied_oracle, train=False)
+                    simulator.run(False, curr_robot_positions=set(), obs_occupied_oracle=obs_occupied_oracle, train=False)
                     # print("DEBUG PARTIAL IMAGE: ", sensor_model.get_final_partial_info()[-1])
                     # print("DEBUG SCORES: ", sensor_model.get_final_scores())
 
@@ -199,7 +200,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 final_scores = sensor_model.get_final_scores()
                 # print("final_scores: ", final_scores)
 
-                input_path_matrices = input_path_matrices + path_matricies
+                input_path_matrices += path_matricies
                 # print("debug_input_path_matrices: ", input_path_matrices)
                 # just for debugging
                 # count = 0
@@ -212,7 +213,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 #     count = 0
                 #     print(matrix)
 
-                input_partial_info_binary_matrices = input_partial_info_binary_matrices + partial_info_binary_matrices
+                input_partial_info_binary_matrices += partial_info_binary_matrices
                 # print("debug_input_partial_info_binary_matrices: ", input_partial_info_binary_matrices)
                 # count = 0
                 # for matrix in input_partial_info_binary_matrices:
@@ -238,14 +239,20 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                     #             count += 1
                     # print("count: ", count)
 
-                input_actions_binary_matrices = input_actions_binary_matrices + final_actions_binary_matrices
-                input_scores = input_scores + final_scores
+                input_actions_binary_matrices +=  final_actions_binary_matrices
+                input_scores += final_scores
 
             # rollout data is generated after the normal data of each map..
             # ..because when splitting the data at training, if the the normal data is created and the then the rollout..
             # .., the training and validation sets will have the same maps
-            # print("Generating rollout data...")
-            # generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile)        
+            print("final_path_matrices: ", len(input_path_matrices))
+            print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
+            print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
+            print("final_final_scores: ", len(input_scores))
+            
+            if rollout:
+                print("Generating rollout data...")
+                generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile)        
         
             # print("final_path_matrices: ", len(input_path_matrices))
             # print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
@@ -271,16 +278,24 @@ def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrice
     temp_input_actions_binary_matrices = list()
     temp_input_scores = list()
 
-    # index1 is the starting belief map in that iteration
-    index1 = len(input_partial_info_binary_matrices) - (steps * num_robots)
-    # print("index1", index1)
-    # boundary is the ending datapoint of that iteration
-    boundary = index1 + (steps * num_robots)
-    # print("boundary", boundary)
-
+    # "- ((steps*num_robots)+num_robots)" this is added because remember that rollout data is added..
+    # to "input_partial_info_binary_matrices" so we need to start after the rollout data from the previous iteration
+    index1 = len(input_partial_info_binary_matrices) - ((steps*num_robots)+num_robots)
+    curr_robot =  1
+    # the +1 in "boundary_increment" is because there is initial position matrix added to the arrays
+    boundary_increment = (steps * curr_robot) + 1
+    boundary = index1 + boundary_increment
+    
     # the while loop is to make sure we don't iterate through the entire dataset to create..
     # ..rollout data because we are matching current data with future data
-    while index1 < (len(input_partial_info_binary_matrices) - ((steps * num_robots)//4)):
+    while index1 <= (len(input_partial_info_binary_matrices) - steps//2):
+        if curr_robot <= num_robots and index1 == boundary-(steps/5):
+            curr_robot += 1
+            # index1 becomes the previous boundary
+            index1 = boundary
+            # we move boundary forward by boundary increment
+            boundary += boundary_increment
+            
         temp_input_partial_info_binary_matrices.append(input_partial_info_binary_matrices[index1])
         # +1 because we don't want the same idx as index and -1 because it goes outside array otherwise
         index2 = random.randint(index1, boundary-2)
@@ -340,15 +355,13 @@ if __name__ == "__main__":
 
     # for pickling
     # alienware
-    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyo_r4_t1000_s50_norollout_diffstartloc'
+    # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyo_r4_t1000_s50_norollout_diffstartloc'
+    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyo_r4_t1000_s25_rollout_diffstartloc'
     # macbook
     # outfile_tensor_images = '/Users/kavisen/osu_thesis/data/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
     
     # generate data
     print("Generating matrices")
-    # planner_options = ["random", "greedy-o", "greedy-no"]
     planner_options = ["random", "greedy-o"]
-    # planner_options = ["greedy-o"]
-    # planner_options = ["random"]
-    generate_data_matrices(trials=1000, steps=50, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images, rollout=False)
+    generate_data_matrices(trials=1000, steps=25, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images)
     
