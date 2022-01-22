@@ -33,6 +33,7 @@ def rollout_random(subsequence, budget, robot):
     # THESE ARE STATES
     current_state = subsequence[-1]
     sequence = copy.deepcopy(subsequence)
+
     while cost(sequence) < budget:
         neighbors = generate_valid_neighbors(current_state, subsequence, robot)
         r = random.randint(0, len(neighbors)-1)
@@ -45,6 +46,8 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=F
     # rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
     sequence = copy.deepcopy(subsequence)
     rollout_map = copy.deepcopy(world_map)
+    executed_paths = sensor_model.get_final_path()
+    other_executed_paths = sensor_model.get_final_other_path()
    
     # these are State objects
     current_state = subsequence[-1]
@@ -55,16 +58,27 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=F
         # use -infinity because network outputs negative values sometimes
         best_action_score = float("-inf")
 
+        # count was added because of other_executed_paths..
+        # if not what happens is the entire for loop is skipped because non of the States() in subsequence..
+        # ..gets iterated over because they have all been traversed 
+        count = 0
         for state in neighbors:
-            scanned_unobs = sensor_model.scan_mcts(state.get_location(), rollout_map)
-            if oracle: 
-                action_score = len(scanned_unobs[0])
-            else:  
-                action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
-            
-            if action_score > best_action_score:
-                best_action_score = action_score
-                best_state = state
+            count += 1
+            if count != len(neighbors):
+                loc = tuple(state.get_location())
+                if loc in executed_paths or loc in other_executed_paths:
+                    continue
+            else: 
+                # print("FUNCION CAME HERE")
+                scanned_unobs = sensor_model.scan_mcts(state.get_location(), rollout_map)
+                if oracle: 
+                    action_score = len(scanned_unobs[0])
+                else:  
+                    action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
+                
+                if action_score > best_action_score:
+                    best_action_score = action_score
+                    best_state = state
         
         sequence.append(best_state)
         # rollout_final_path.append(best_state.get_location())
@@ -82,12 +96,16 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_
     sequence = copy.deepcopy(subsequence)
     # paths already traversed before mcts     
     executed_paths = sensor_model.get_final_path()
+    other_executed_paths = sensor_model.get_final_other_path()
 
     partial_info = [sensor_model.create_partial_info_mcts(rollout_map, False)]
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
 
     # these are State objects
     current_state = subsequence[-1]
+    # print("STATE: ", current_state)
+    # print("STATE ACTION: ", current_state.get_action)
+    # print("STATE LOC : ", current_state.get_location())
    
     while cost(sequence) < budget:
         path_matrix = sensor_model.create_final_path_matrix_mcts(rollout_final_path, False)
@@ -98,7 +116,8 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_
         best_action_score = float("-inf")
 
         for state in neighbors:
-            if tuple(state.get_location()) in executed_paths:
+            loc = tuple(state.get_location())
+            if loc in executed_paths or loc in other_executed_paths:
                 continue
             action = state.get_action()
             final_actions = [sensor_model.create_action_matrix(action, True)]
