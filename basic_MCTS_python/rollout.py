@@ -32,7 +32,8 @@ def generate_valid_neighbors(current_state, state_sequence, robot):
 def rollout_random(subsequence, budget, robot):
     # THESE ARE STATES
     current_state = subsequence[-1]
-    sequence = copy.deepcopy(subsequence)
+    # sequence = copy.deepcopy(subsequence)
+    sequence = copy.copy(subsequence)
 
     while cost(sequence) < budget:
         neighbors = generate_valid_neighbors(current_state, subsequence, robot)
@@ -44,8 +45,12 @@ def rollout_random(subsequence, budget, robot):
 
 def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=False):
     # rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
-    sequence = copy.deepcopy(subsequence)
-    rollout_map = copy.deepcopy(world_map)
+    # sequence = copy.deepcopy(subsequence)
+    # rollout_map = copy.deepcopy(world_map)
+    sequence = copy.copy(subsequence)
+    # rollout_map = copy.deepcopy(world_map)
+    unobs_free = copy.deepcopy(world_map.get_unobs_free)
+    unobs_occupied = copy.deepcopy(world_map.get_unobs_occupied)
     executed_paths = sensor_model.get_final_path()
     other_executed_paths = sensor_model.get_final_other_path()
    
@@ -70,7 +75,8 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=F
                     continue
             else: 
                 # print("FUNCION CAME HERE")
-                scanned_unobs = sensor_model.scan_mcts(state.get_location(), rollout_map)
+                # scanned_unobs = sensor_model.scan_mcts(state.get_location(), rollout_map)
+                scanned_unobs = sensor_model.scan_mcts(state.get_location(), unobs_free, unobs_occupied)
                 if oracle: 
                     action_score = len(scanned_unobs[0])
                 else:  
@@ -90,10 +96,11 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=F
     return sequence
 
 def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_model):
-    # WHY DO WE HAVE TO USE DEEPCOPY HERE?
-    rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
+    # rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
+    rollout_final_path = copy.copy(sensor_model.get_final_path())
     rollout_map = copy.deepcopy(world_map)
-    sequence = copy.deepcopy(subsequence)
+    # sequence = copy.deepcopy(subsequence)
+    sequence = copy.copy(subsequence)
     # paths already traversed before mcts     
     executed_paths = sensor_model.get_final_path()
     other_executed_paths = sensor_model.get_final_other_path()

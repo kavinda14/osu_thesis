@@ -7,11 +7,14 @@ def reward_random(sequence):
 
 def reward_greedy(rollout_sequence, sensor_model, world_map, oracle=False):
     scanned_obstacles = list()
-    reward_map = copy.deepcopy(world_map)
+    # reward_map = copy.deepcopy(world_map)
+    unobs_free = copy.deepcopy(world_map.get_unobs_free)
+    unobs_occupied = copy.deepcopy(world_map.get_unobs_occupied)
     reward = 0
     
     for state in rollout_sequence:
-        scanned_unobs = sensor_model.scan_mcts(state.get_location(), reward_map)
+        # scanned_unobs = sensor_model.scan_mcts(state.get_location(), reward_map)
+        scanned_unobs = sensor_model.scan_mcts(state.get_location(), unobs_free, unobs_occupied)
         if oracle:
             curr_scanned_obstacles = scanned_unobs[0]
         else:
@@ -24,7 +27,6 @@ def reward_greedy(rollout_sequence, sensor_model, world_map, oracle=False):
             if loc not in scanned_obstacles:
                 scanned_obstacles.append(loc)
                 curr_reward += 1
-        
         reward += curr_reward
 
     return reward
@@ -33,7 +35,8 @@ def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
     # the map should be updating as we are iterating through the sequence
     # if not, it is taking the old map and just doing that
     # pass the action_loc to the action matrix function instead of the actual action
-    reward_final_path = copy.deepcopy(sensor_model.get_final_path()) # these are the executed paths + all the incremental rollout paths
+    reward_final_path = sensor_model.get_final_path() # these are the executed paths + all the incremental rollout paths
+    reward_final_other_path = sensor_model.get_final_other_path()
     reward_map = copy.deepcopy(world_map)
     
     partial_info = [sensor_model.create_partial_info_mcts(reward_map, False)]
@@ -42,8 +45,8 @@ def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
     reward = 0
     for state in rollout_sequence:
         loc = state.get_location()
-        if tuple(loc) in reward_final_path:
-            continue
+        # if tuple(loc) in reward_final_path or tuple(loc) in reward_final_other_path:
+        #     continue
         reward_final_path.append(state.get_location())
 
         path_matrix = sensor_model.create_final_path_matrix_mcts(reward_final_path, update=False)

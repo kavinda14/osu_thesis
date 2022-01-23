@@ -39,23 +39,41 @@ class SensorModel:
         return [scanned_obstacles, scanned_free]
     
     # this was created for mcts rollout as we are making a copy of the world map for simulations
-    def scan_mcts(self, robot_loc, world_map):
+    def scan_mcts(self, robot_loc, unobs_free, unobs_occupied):
         scanned_obstacles = set()
         scanned_free = set()
 
-        for o_loc in set(world_map.unobs_occupied):
+        for o_loc in set(unobs_occupied):
             distance = self.euclidean_distance(robot_loc , o_loc)
             if distance <= self.sensing_range:
                 scanned_obstacles.add(o_loc)
-                world_map.unobs_occupied.remove(o_loc)
+                unobs_occupied.remove(o_loc)
 
-        for f_loc in set(world_map.unobs_free):
+        for f_loc in set(unobs_free):
             distance = self.euclidean_distance(robot_loc, f_loc)
             if distance <= self.sensing_range:
                 scanned_free.add(f_loc)
-                world_map.unobs_free.remove(f_loc)
+                unobs_free.remove(f_loc)
 
         return [scanned_obstacles, scanned_free]
+
+    # def scan_mcts(self, robot_loc, world_map):
+    #     scanned_obstacles = set()
+    #     scanned_free = set()
+
+    #     for o_loc in set(world_map.unobs_occupied):
+    #         distance = self.euclidean_distance(robot_loc , o_loc)
+    #         if distance <= self.sensing_range:
+    #             scanned_obstacles.add(o_loc)
+    #             world_map.unobs_occupied.remove(o_loc)
+
+    #     for f_loc in set(world_map.unobs_free):
+    #         distance = self.euclidean_distance(robot_loc, f_loc)
+    #         if distance <= self.sensing_range:
+    #             scanned_free.add(f_loc)
+    #             world_map.unobs_free.remove(f_loc)
+
+    #     return [scanned_obstacles, scanned_free]
 
     # Called in Simulator
     # We keep update as true for getting the training data
@@ -127,6 +145,10 @@ class SensorModel:
         path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
 
         for path in input_final_path_matrix:
+            path_matrix[path] = 1
+
+        # this is for multi-robot when communication of other_paths is done
+        for path in self.final_other_path:
             path_matrix[path] = 1
 
         if update:
