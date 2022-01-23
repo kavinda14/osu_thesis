@@ -91,7 +91,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
                     child_index = 0
                 else:
                     child_index = random.randint(0,num_unpicked_child_actions-1)
-                child_action = current.unpicked_child_actions[child_index]
+                child_action = current.unpicked_child_actions[child_index] # even though it says action, it is a State() object that contains action as an attribute
                 child_loc = child_action.get_location()
 
                 # Remove the child form the unpicked list
@@ -159,9 +159,9 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
         # Rollout
         if rollout_type == 'random':
             rollout_sequence = rollout_random(subsequence=current.sequence, budget=budget, robot=robot)
-        if rollout_type == 'greedy':
+        elif rollout_type == 'greedy':
             rollout_sequence = rollout_greedy(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map)
-        if rollout_type == 'network':
+        else: # all networks will run this
             rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map, neural_model=neural_model)
 
         # TEST TO CHECK IF GREEDY AND NETWORK REWARDS ARE LINEAR
@@ -182,9 +182,9 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
 
         if reward_type == 'random':
             rollout_reward = reward.reward_random(rollout_sequence)
-        if reward_type == 'greedy':
+        elif reward_type == 'greedy':
             rollout_reward = reward.reward_greedy(rollout_sequence, sensor_model, world_map)
-        if reward_type == 'network':
+        else: # all networks will run this
             rollout_reward = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model)
 
         ################################

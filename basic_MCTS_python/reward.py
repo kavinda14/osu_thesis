@@ -35,8 +35,8 @@ def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
     # the map should be updating as we are iterating through the sequence
     # if not, it is taking the old map and just doing that
     # pass the action_loc to the action matrix function instead of the actual action
-    reward_final_path = sensor_model.get_final_path() # these are the executed paths + all the incremental rollout paths
-    reward_final_other_path = sensor_model.get_final_other_path()
+    reward_final_path = copy.copy(sensor_model.get_final_path()) # these are the executed paths + all the incremental rollout paths
+    # we don't need other_paths here because it is already handled by the create_final_path_matrix_mcts() function
     reward_map = copy.deepcopy(world_map)
     
     partial_info = [sensor_model.create_partial_info_mcts(reward_map, False)]

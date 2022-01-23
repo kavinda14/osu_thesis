@@ -110,9 +110,6 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_
 
     # these are State objects
     current_state = subsequence[-1]
-    # print("STATE: ", current_state)
-    # print("STATE ACTION: ", current_state.get_action)
-    # print("STATE LOC : ", current_state.get_location())
    
     while cost(sequence) < budget:
         path_matrix = sensor_model.create_final_path_matrix_mcts(rollout_final_path, False)
