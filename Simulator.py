@@ -96,7 +96,7 @@ class Simulator:
             budget = 5
             max_iterations = 1000
             # max_iterations = 1
-            exploration_exploitation_parameter = 25.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
+            exploration_exploitation_parameter = 50.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
             action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
 
