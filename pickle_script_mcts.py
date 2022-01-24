@@ -4,6 +4,11 @@ import numpy as np
 
 if __name__ == "__main__":
     
+    """
+    This script serves two purposes:
+    1) Check if greedy and network for mcts show an almost linear pattern
+    3) To see if the ACCUMULATED reward for mcts rollout_reward converges (see google slides)
+    """
 
     # unpickle scores
     filename = '/home/kavi/thesis/pickles/debug_reward_greedy_list'
@@ -27,21 +32,28 @@ if __name__ == "__main__":
     print('debug_reward_greedy_list', len(normalized_array_greedy))
     print('debug_reward_network_list', normalized_array_network)
 
-    # y1 = debug_reward_greedy_list
-    # x1 = np.array([i for i in range(len(y1))])
+    y1 = debug_reward_greedy_list
+    print("debug_reward_greedy_list: ", len(y1))
+    x1 = np.array([i for i in range(len(y1))])
 
-    # y2 = debug_reward_network_list
-    # x2 = np.array([i for i in range(len(y2))])
+    y2 = debug_reward_network_list
+    print("debug_reward_network_list", len(y2))
+    x2 = np.array([i for i in range(len(y2))])
 
+    # This was actually a wrong plot, but can also show the convergence (use box plot below instead)
     # plt.scatter(x1[90000:100000], y1[90000:100000], s=2.0, label='greedy')
     # plt.scatter(x2[90000:100000], y2[90000:100000], s=2.0, label="network")
     # plt.legend(loc='best')
     # plt.show()
 
+    # This is for seeing whether greedy and network are linear
+    # Network should be linear with greedy because the network is trained mostly on greedy data
+    # The 90-100k is there because we want to check only for a single trial
     # plt.scatter(y1[90000:100000], y2[90000:100000], s=2.0)
-    # plt.xlabel("greedy")
-    # plt.ylabel("network")
-    # plt.show()
+    plt.scatter(y1, y2, s=2.0)
+    plt.xlabel("greedy")
+    plt.ylabel("network")
+    plt.show()
 
     # plt.scatter(y1[0:10000], y2[0:10000], s=2.0)
     # plt.scatter(y1[10000:20000], y2[10000:20000], s=2.0)
