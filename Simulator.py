@@ -44,10 +44,10 @@ class Simulator:
 
     # new addition to multi-robot code
     def initialize_data(self, bots_starting_loc, obs_occupied_oracle=set()):
-        self._update_map(obs_occupied_oracle)
+        # self._update_map(obs_occupied_oracle)
         self.sensor_model.create_partial_info()
         # no initial observation score according to graeme
-        self.sensor_model.append_score(0)
+        self.sensor_model.append_score(self.score)
         self.sensor_model.append_path(self.robot.get_loc())
 
         self.sensor_model.create_final_path_matrix()
@@ -148,7 +148,7 @@ class Simulator:
     def get_obs_occupied(self):
         return self.obs_occupied
 
-    def _update_map(self, obs_occupied_oracle, initial_setup=False):
+    def _update_map(self, obs_occupied_oracle):
         # Sanity check the robot is in bounds
         if not self.robot.check_valid_loc():
             print(self.robot.get_loc())
@@ -157,8 +157,6 @@ class Simulator:
         new_observations = self.sensor_model.scan(self.robot.get_loc(), obs_occupied_oracle)
         # Score is the number of new obstacles found
         # random thing is just for debugging - delete after testing
-        # score = random.uniform(len(new_observations[0]), len(new_observations[0])+0.3)
-        # self.set_score(score)
         self.set_score(len(new_observations[0]))
         self.obs_occupied = self.obs_occupied.union(new_observations[0])
         self.obs_free = self.obs_free.union(new_observations[1])
