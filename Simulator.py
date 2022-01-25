@@ -46,7 +46,8 @@ class Simulator:
     def initialize_data(self, bots_starting_loc, obs_occupied_oracle=set()):
         self._update_map(obs_occupied_oracle)
         self.sensor_model.create_partial_info()
-        self.sensor_model.append_score(self.score)
+        # no initial observation score according to graeme
+        self.sensor_model.append_score(0)
         self.sensor_model.append_path(self.robot.get_loc())
 
         self.sensor_model.create_final_path_matrix()
@@ -147,7 +148,7 @@ class Simulator:
     def get_obs_occupied(self):
         return self.obs_occupied
 
-    def _update_map(self, obs_occupied_oracle):
+    def _update_map(self, obs_occupied_oracle, initial_setup=False):
         # Sanity check the robot is in bounds
         if not self.robot.check_valid_loc():
             print(self.robot.get_loc())
