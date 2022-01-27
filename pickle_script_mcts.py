@@ -21,44 +21,51 @@ if __name__ == "__main__":
     debug_reward_network_list = pickle.load(infile)
     infile.close()
 
-    # create axes for scatter plot
+    # scatter plot
     y1 = debug_reward_greedy_list
     print("debug_reward_greedy_list: ", len(y1))
 
     y2 = debug_reward_network_list
     print("debug_reward_network_list", len(y2))
 
-    # This is for seeing whether greedy and network are linear
-    # Network should be linear with greedy because the network is trained mostly on greedy data
-    # The 90-100k is there because we want to check only for a single trial
+    """  
+    This is for seeing whether greedy and network are linear
+    Network should be linear with greedy because the network is trained mostly on greedy data
+    The 90-100k is there because we want to check only for a single trial 
+    """
     # plt.scatter(y1, y2, s=2.0)
     # plt.xlabel("greedy")
     # plt.ylabel("network")
     # plt.show()
 
-    # see if reward is converging
-    # the for loop separates the data from a single trial into diff segments so we can boxplot
-    # the increment was chose by seeing the length of the list and splitting it evenly somehow
-    increment = len(debug_reward_greedy_list)//12
+    """ 
+    Reward convergence:
+    the for loop separates the data from a single trial into diff segments so we can boxplot
+    the increment was chose by seeing the length of the list and splitting it evenly somehow
+    Remember that we need to check this for a single mcts run and not over all steps as the reward..
+    ..converges in a single mcts run and not have all steps.
+     """
+
+    increment = 25
     start = 0
     end = increment
     data_dict = {}
-    for i in range(12):
-        data_dict["data_" + str(i+1)] = debug_reward_greedy_list[start:end]
+
+    modified_list = debug_reward_greedy_list[0:1000]
+
+    for i in range(40):
+        data_dict["data_" + str(i+1)] = modified_list[start:end]
         start = end
         end += increment
 
-    fig = plt.figure(figsize =(10, 7))
-    
-    # Creating axes instance
-    ax = fig.add_axes([0, 0, 1, 1])
-    
+    # print("data_dict: ", data_dict.keys())
+
     data = list()
     for data_list in data_dict.values():
         data.append(data_list)
+    print(len(data[0]))
 
     # create box plot 
-    bp = ax.boxplot(data)
-    
-    # show plot
+    fig = plt.figure(figsize =(10, 7))
+    plt.boxplot(data)
     plt.show()
