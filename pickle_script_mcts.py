@@ -46,26 +46,36 @@ if __name__ == "__main__":
     ..converges in a single mcts run and not have all steps.
      """
 
-    increment = 25
+    increment = 50
     start = 0
     end = increment
     data_dict = {}
 
-    modified_list = debug_reward_greedy_list[0:1000]
+    modified_list = debug_reward_greedy_list[10000:11000]
 
-    for i in range(40):
-        data_dict["data_" + str(i+1)] = modified_list[start:end]
-        start = end
-        end += increment
+    y1 = [i for i in range(len(modified_list))]
+    y2 = modified_list
 
-    # print("data_dict: ", data_dict.keys())
+    plt.scatter(y1, y2, s=2.0)
+    plt.xlabel("iteration")
+    plt.ylabel("score")
+    plt.show()
 
-    data = list()
-    for data_list in data_dict.values():
-        data.append(data_list)
-    print(len(data[0]))
+    # print(np.average(debug_reward_greedy_list))
+
+    # for i in range(20):
+    #     data_dict["data_" + str(i+1)] = modified_list[start:end]
+    #     start = end
+    #     end += increment
+
+    # # print("data_dict: ", data_dict.keys())
+
+    # data = list()
+    # for data_list in data_dict.values():
+    #     data.append(data_list)
+    # print(len(data[0]))
 
     # create box plot 
-    fig = plt.figure(figsize =(10, 7))
-    plt.boxplot(data)
-    plt.show()
+    # fig = plt.figure(figsize =(10, 7))
+    # plt.boxplot(data)
+    # plt.show()

@@ -88,19 +88,16 @@ class Simulator:
         if self.planner == 'mcts':
             budget = 5
             max_iterations = 1000
-            # max_iterations = 1
-            exploration_exploitation_parameter = 50.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-            # exploration_exploitation_parameter = 25.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
+            exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
             
-            print(solution_locs)
             # 2 robots cannot be in the same loc condition
             if tuple(winner_loc) in curr_robot_positions:
-                idx = random.int(0, len(solution_locs)-1)
-                loc = solution_locs[idx]
-                action = self.robot.get_direction(self.robot.get_loc(), loc)
-            else:
-                action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
+                idx = random.randint(0, len(solution_locs)-1)
+                winner_loc = solution_locs[idx]
+
+            curr_robot_positions.add(tuple(winner_loc))
+            action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
 
         self.sensor_model.create_action_matrix(action)
         # Move the robot
