@@ -2,6 +2,7 @@ from time import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import sys
+from torch import randint
 from tqdm import tqdm
 import random as random
 
@@ -84,22 +85,22 @@ class Simulator:
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True)
         if self.planner == "net_nocomm":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, neural_net=True)
-        # this is to check weights created with single robot case and multi robot case
-        # if self.planner == "network_wo_path":
-        #     import torch
-        #     import NeuralNet
-        #     bounds = [21, 21]
-        #     neural_model = NeuralNet.Net(bounds)
-        #     neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/circles_21x21_epoch3_random_greedyno_t800_s200_rollout")) 
-        #     neural_model.eval()
-        #     action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, neural_net=True)
         if self.planner == 'mcts':
             budget = 5
             max_iterations = 1000
             # max_iterations = 1
             exploration_exploitation_parameter = 50.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-            solution, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
-            action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
+            # exploration_exploitation_parameter = 25.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
+            solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
+            
+            print(solution_locs)
+            # 2 robots cannot be in the same loc condition
+            if tuple(winner_loc) in curr_robot_positions:
+                idx = random.int(0, len(solution_locs)-1)
+                loc = solution_locs[idx]
+                action = self.robot.get_direction(self.robot.get_loc(), loc)
+            else:
+                action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
 
         self.sensor_model.create_action_matrix(action)
         # Move the robot
