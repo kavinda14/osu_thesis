@@ -46,7 +46,7 @@ def create_data_loaders(data):
     validation_split = 0.2
     batch_size = 128
     random_seed= 42
-    shuffle_dataset = True
+    shuffle_dataset = False
 
     dataset_size = len(dataset)
     indices = list(range(dataset_size))
@@ -99,12 +99,14 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
-def run_network(data, bounds, epochs, weights_path):
+def run_network(data, bounds, epochs, weights_path, net=None):
 
     train_loader, valid_loader = create_data_loaders(data)
 
     # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    net = Net(bounds)
+    # condition so that we can retrain an existing network
+    if net is None:
+        net = Net(bounds)
     # net = Net(bounds).to(device)
 
     # Loss + Optimizer

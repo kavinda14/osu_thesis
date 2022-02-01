@@ -113,22 +113,31 @@ if __name__ == "__main__":
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
-    # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path"]
-    # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "mcts"]
-    planner_options = ["random", "greedy-o", "greedy-no", "mcts"]
+    # planner_options = ["random", "greedy-o", "greedy-no", "net_nocomm", "net_everystep"]
+    # planner_options = ["random", "greedy-o", "greedy-no", "net_everystep"]
+    # planner_options = ["random", "greedy-o", "greedy-no", "net_everystep", "mcts"]
+    planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
+    # planner_options = ["random", "greedy-o", "greedy-no", "mcts"]
     # planner_options = ["random", "greedy-o", "greedy-no"]
-    # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path"]
-    # planner_options = ["random", "greedy-o", "greedy-no", "network_wo_path", "network_step5", "network_everystep"]
-    network_options = ["net_nocomm", "net_everyxstep", "net_everystep"]
-    # network_options = ["network_everystep"]
-    rollout_options = ["random", "greedy"] + network_options
-    reward_options = ["random", "greedy"] + network_options
-    # reward_options = ["network"]
+    # planner_options = ["mcts"]
+    # network_options = ["net_nocomm", "net_everyxstep", "net_everystep"]
+    # network_options = ["net_everystep"]
+    # rollout_options = ["random", "greedy"]
+    # rollout_options = ["random"]
+    rollout_options = ["random", "greedy", "net_everyxstep", "net_everystep"]
+    # rollout_options = ["random", "greedy"] + network_options
+    reward_options = ["greedy", "net_everyxstep", "net_everystep"]
+    # reward_options = network_options
+    # reward_options = ["random"]
+    # reward_options = ["random", "greedy"]
+    # reward_options = ["greedy"]
+    print("mcts without times visited")
     bounds = [21, 21]
-    trials = 2
-    steps = 0
+    trials = 100
+    steps = 25
     num_robots = 4
-    communicate_step = 10
+    # to decide which step the bot communicates
+    comm_step = 5
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
     # profiling functions
@@ -146,9 +155,10 @@ if __name__ == "__main__":
         score_lists = [list() for _ in range(len(planner_options))]
     
     # load neural net
-    weight_file = "circles_21x21_epoch3_random_greedyo_r4_t1000_s50_norollout_diffstartloc"
-    # weight_file = "circles_21x21_epoch3_random_greedyno_t800_s200_rollout"
-
+    # weight_file = "circles_21x21_epoch3_random_greedyo_r4_t1000_s50_norollout_diffstartloc"
+    weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
+    # weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc_iter2"
+    
     neural_model = NeuralNet.Net(bounds)
     # alienware
     neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/"+weight_file)) 
@@ -158,7 +168,10 @@ if __name__ == "__main__":
 
     # this is for pickling the score_lists
     # alienware
-    filename = '/home/kavi/thesis/pickles/planner_scores_test'
+    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_roll_random_greedy_rew_net_everystep_wbacktracking'.format(trials, steps)
+    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/test2'
+    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_roll_random_greedy_net_everystep_rew_greedy_net_everystep_notimesvisited'.format(trials, steps)
+    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_comm_nocomm'.format(trials, steps)
     # macbook
     # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
 
@@ -168,7 +181,8 @@ if __name__ == "__main__":
         trial_start_time = time.time()
         print("TRIAL NO: {}".format(i+1))
         map = Map(bounds, 7, (), False)
-        unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
+        # unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
+        unobs_occupied = map.get_unobs_occupied()
         bots_starting_locs = list()
         
         # for pickling data
@@ -184,15 +198,16 @@ if __name__ == "__main__":
             robots.append(bot)
             bots_starting_locs.append(start_loc)
 
-        debug_greedy_list = list()
-        debug_network_list = list()
-
         for planner in planner_options:
             print("Planner: {}".format(planner))
 
             if planner == "mcts":
                 for rollout_type in rollout_options:
                     for reward_type in reward_options:
+                        if rollout_type == "net_everystep" and reward_type == "net_everyxstep":
+                            continue
+                        if rollout_type == "net_everyxstep" and reward_type == "net_everystep":
+                            continue
                         print("Rollout: {}, Reward: {}".format(rollout_type, reward_type))
 
                         # this is for pickling the data
@@ -208,7 +223,7 @@ if __name__ == "__main__":
                         for bot in robots:
                             map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
                             sensor_model = SensorModel(bot, map)
-                            simulator = Simulator(map, bot, sensor_model, planner)
+                            simulator = Simulator(map, bot, sensor_model, planner, rollout_type, reward_type)
                             # start_loc = bot.get_start_loc()
                             bot.set_loc(start_loc[0], start_loc[1])
                             bot.add_map(map)
@@ -221,25 +236,38 @@ if __name__ == "__main__":
                             obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
                             obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
 
+                            # oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
+                            
                         steps_count = 0
-                        for step in range(steps):
+                        for step in tqdm(range(steps)):
                             curr_robot_positions = set()
                         
-                            for bot in robots:
+                            for bot in tqdm(robots):
                                 simulator = bot.get_simulator()
                                 sensor_model = bot.get_sensor_model()
 
-                                simulator.run(neural_model, curr_robot_positions, train=False)
+                                simulator.run(neural_model, curr_robot_positions, train=True)
+
+                                # communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
                                 # to keep track of score
                                 obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
                                 obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
 
                             steps_count += 1
-                            if rollout_type or reward_type == "net_everystep":    
+                            if rollout_type == "net_everystep" or reward_type == "net_everystep":    
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
-                            if rollout_type or reward_type == "net_everyxstep" and steps_count%5==0:   
+                            elif rollout_type == "net_everyxstep" and steps_count%comm_step==0:   
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                            elif reward_type == "net_everyxstep" and steps_count%comm_step==0:   
+                                communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                            elif rollout_type == "net_nocomm" or reward_type == "net_nocomm":
+                                pass
+                            elif rollout_type == "greedy" and reward_type == "greedy":
+                                communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                            elif rollout_type == "random" and reward_type == "greedy":
+                                communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                            steps_end = time.time()
 
                         score = len(obs_occupied_oracle)     
                         print("Score: ", score)
@@ -279,7 +307,8 @@ if __name__ == "__main__":
                     bot_simulator.initialize_data(bots_starting_locs, obs_occupied_oracle)
                     # this is needed incase any locations are scanned in the initial position
                     obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
-                    obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+                    # obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+                    obs_free_oracle = obs_free_oracle.union(simulator.get_obs_free())
 
                 steps_count = 0
                 for step in range(steps):
@@ -290,16 +319,16 @@ if __name__ == "__main__":
                         simulator = bot.get_simulator()
                         sensor_model = bot.get_sensor_model()
 
-                        start = time.time()
                         if visualize:
                             simulator.visualize()
 
-                        # we run it out obs_occupied_oracle because if not the normal planners have oracle info
-                        simulator.run(neural_model, curr_robot_positions, train=False)
+                        # we run it without obs_occupied_oracle because if not the normal planners have oracle info
+                        simulator.run(neural_model, curr_robot_positions, train=True)
 
                         # to keep track of score
                         obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
-                        obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+                        # obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+                        obs_free_oracle = obs_free_oracle.union(simulator.get_obs_free())
 
                         # if planner == "network":
                             # communicate(robots, obs_occupied_oracle, obs_free_oracle)
@@ -307,7 +336,15 @@ if __name__ == "__main__":
                     steps_count += 1
                     if planner == "net_everystep":    
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
-                    if planner == "net_everyxstep" and steps_count%5==0:   
+                    elif planner == "greedy-o_everyxstep" and steps_count%comm_step==0:   
+                        communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                    elif planner == "greedy-no_everyxstep" and steps_count%comm_step==0:   
+                        communicate(robots, obs_occupied_oracle, obs_free_oracle)    
+                    elif planner == "net_everyxstep" and steps_count%comm_step==0:   
+                        communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                    elif planner == "net_nocomm":
+                        pass
+                    elif planner == "greedy-o" or planner == "greedy-no":
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
                     steps_end = time.time()
 
@@ -330,7 +367,7 @@ if __name__ == "__main__":
     if profile:
         pr.disable()
         pr.print_stats()
-        with open("cProfile_stats.txt", "w") as f:
+        with open("cProfile_stats_multirobot.txt", "w") as f:
             ps = pstats.Stats(pr, stream=f)
             ps.sort_stats('cumtime')
             ps.print_stats()
@@ -340,6 +377,8 @@ if __name__ == "__main__":
     scores = list()
 
     for score_list in score_lists:
+        if len(score_list) == 0: # this condition was added because we are skipping some mcts planners
+            continue
         planner_name = score_list[0]
         bars.append(planner_name)
         del score_list[0]
@@ -360,7 +399,10 @@ if __name__ == "__main__":
 
     # box plot
     score_lists_copy = score_lists
+    
     for score_list in score_lists_copy:
+        if len(score_list) == 0: # this condition was added because we are skipping some mcts planners
+            continue
         score_list.remove(score_list[0])   
 
     # do this otherwise x axis is not correct
@@ -370,7 +412,7 @@ if __name__ == "__main__":
     fig = plt.figure(figsize =(10, 7))
     # Creating axes instance
     plt.boxplot(score_lists_copy)
-    plt.xticks(x_pos, bars, rotation=75)
+    plt.xticks(x_pos, bars, rotation=25)
     plt.title(weight_file+"_trials:"+str(trials)+"_steps:"+str(steps))
     plt.show()
 

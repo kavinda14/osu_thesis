@@ -7,13 +7,11 @@ def reward_random(sequence):
 
 def reward_greedy(rollout_sequence, sensor_model, world_map, oracle=False):
     scanned_obstacles = list()
-    # reward_map = copy.deepcopy(world_map)
-    unobs_free = copy.deepcopy(world_map.get_unobs_free)
-    unobs_occupied = copy.deepcopy(world_map.get_unobs_occupied)
+    unobs_free = copy.deepcopy(world_map.get_unobs_free())
+    unobs_occupied = copy.deepcopy(world_map.get_unobs_occupied())
     reward = 0
     
     for state in rollout_sequence:
-        # scanned_unobs = sensor_model.scan_mcts(state.get_location(), reward_map)
         scanned_unobs = sensor_model.scan_mcts(state.get_location(), unobs_free, unobs_occupied)
         if oracle:
             curr_scanned_obstacles = scanned_unobs[0]

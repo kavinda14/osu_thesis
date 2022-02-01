@@ -165,20 +165,20 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
             rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map, neural_model=neural_model)
 
         # TEST TO CHECK IF GREEDY AND NETWORK REWARDS ARE LINEAR
-        debug_reward_greedy = reward.reward_greedy(rollout_sequence, sensor_model, world_map, oracle=True)
-        debug_reward_network = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model)
-        debug_reward_greedy_list.append(debug_reward_greedy)
-        debug_reward_network_list.append(debug_reward_network)
+        # debug_reward_greedy = reward.reward_greedy(rollout_sequence, sensor_model, world_map, oracle=True)
+        # debug_reward_network = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model)
+        # debug_reward_greedy_list.append(debug_reward_greedy)
+        # debug_reward_network_list.append(debug_reward_network)
 
-        # pickle progress
-        filename1 = '/home/kavi/thesis/pickles/debug_reward_greedy_list'
-        filename2 = '/home/kavi/thesis/pickles/debug_reward_network_list'
-        outfile = open(filename1,'wb')
-        pickle.dump(debug_reward_greedy_list, outfile)
-        outfile.close()
-        outfile = open(filename2,'wb')
-        pickle.dump(debug_reward_network_list, outfile)
-        outfile.close()
+        # # pickle progress
+        # filename1 = '/home/kavi/thesis/pickles/debug_reward_greedy_list'
+        # filename2 = '/home/kavi/thesis/pickles/debug_reward_network_list'
+        # outfile = open(filename1,'wb')
+        # pickle.dump(debug_reward_greedy_list, outfile)
+        # outfile.close()
+        # outfile = open(filename2,'wb')
+        # pickle.dump(debug_reward_network_list, outfile)
+        # outfile.close()
 
         if reward_type == 'random':
             rollout_reward = reward.reward_random(rollout_sequence)
@@ -228,7 +228,6 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
 
     solution_locs = list()
     for child in current.children: # is not empty
-        print("CHILD: ", child)
         solution_locs.append(child.get_coords())
 
         # Find the child with best score

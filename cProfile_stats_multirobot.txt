@@ -1,0 +1,487 @@
+         151132274 function calls (130869161 primitive calls) in 108.756 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     1000    0.015    0.000  108.392    0.108 /home/kavi/thesis/Simulator.py:66(run)
+      600    0.207    0.000  106.634    0.178 /home/kavi/thesis/basic_MCTS_python/mcts.py:47(mcts)
+     3000    0.328    0.000   50.178    0.017 /home/kavi/thesis/./basic_MCTS_python/reward.py:32(reward_network)
+     2000    0.360    0.000   37.619    0.019 /home/kavi/thesis/./basic_MCTS_python/rollout.py:99(rollout_network)
+20122864/38236   15.616    0.000   36.546    0.001 /usr/lib/python3.8/copy.py:128(deepcopy)
+82992/52992    0.493    0.000   36.061    0.001 /usr/lib/python3.8/copy.py:258(_reconstruct)
+82992/68236    2.240    0.000   35.385    0.001 /usr/lib/python3.8/copy.py:200(_deepcopy_list)
+   165984    0.052    0.000   34.492    0.000 /usr/lib/python3.8/copy.py:263(<genexpr>)
+    32031   24.950    0.001   27.215    0.001 /home/kavi/thesis/SensorModel.py:159(create_binary_matrices)
+    42952    0.120    0.000   26.254    0.001 /usr/lib/python3.8/copy.py:226(_deepcopy_dict)
+  6557536    7.054    0.000   24.031    0.000 /usr/lib/python3.8/copy.py:209(_deepcopy_tuple)
+  6557536    3.255    0.000   16.397    0.000 /usr/lib/python3.8/copy.py:210(<listcomp>)
+160386/26731    0.294    0.000   15.167    0.001 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1045(_call_impl)
+    26731    0.496    0.000   15.068    0.001 /home/kavi/thesis/NeuralNet.py:88(forward)
+    26731   13.310    0.000   13.333    0.000 /home/kavi/thesis/NeuralNet.py:14(create_image)
+     3000    0.054    0.000   11.030    0.004 /home/kavi/thesis/./basic_MCTS_python/reward.py:8(reward_greedy)
+    53462    0.113    0.000   10.996    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/conv.py:442(forward)
+    53462    0.072    0.000   10.843    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/conv.py:434(_conv_forward)
+    53462   10.772    0.000   10.772    0.000 {built-in method conv2d}
+    19628    2.058    0.000    6.950    0.000 /home/kavi/thesis/SensorModel.py:42(scan_mcts)
+     2000    0.104    0.000    5.794    0.003 /home/kavi/thesis/./basic_MCTS_python/rollout.py:47(rollout_greedy)
+  7742004    4.651    0.000    5.278    0.000 /home/kavi/thesis/SensorModel.py:338(euclidean_distance)
+ 40340060    3.303    0.000    3.303    0.000 {method 'get' of 'dict' objects}
+ 27136823    2.392    0.000    2.392    0.000 {built-in method builtins.id}
+    15000    2.248    0.000    2.383    0.000 /home/kavi/thesis/SensorModel.py:256(create_action_matrix_mcts)
+  2210139    0.989    0.000    2.123    0.000 <__array_function__ internals>:2(shape)
+    12731    1.826    0.000    1.997    0.000 /home/kavi/thesis/SensorModel.py:201(create_action_matrix)
+    80193    0.157    0.000    1.816    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/linear.py:95(forward)
+    80193    0.076    0.000    1.610    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/functional.py:1831(linear)
+    80193    1.515    0.000    1.515    0.000 {built-in method torch._C._nn.linear}
+   106924    0.117    0.000    1.089    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/functional.py:1287(relu)
+  2237870    0.713    0.000    1.044    0.000 {built-in method numpy.core._multiarray_umath.implement_array_function}
+    19549    0.947    0.000    1.043    0.000 /home/kavi/thesis/SensorModel.py:143(create_final_path_matrix_mcts)
+ 13356392    1.005    0.000    1.005    0.000 /usr/lib/python3.8/copy.py:182(_deepcopy_atomic)
+      300    0.009    0.000    0.981    0.003 /home/kavi/thesis/OraclePlanner.py:38(greedy_planner)
+   106924    0.945    0.000    0.945    0.000 {built-in method relu}
+     5997    0.013    0.000    0.859    0.000 /home/kavi/thesis/basic_MCTS_python/mcts.py:116(<listcomp>)
+    17199    0.028    0.000    0.846    0.000 /home/kavi/thesis/basic_MCTS_python/mcts.py:110(is_overbudget)
+    81456    0.069    0.000    0.743    0.000 /home/kavi/thesis/Robot.py:108(check_valid_move_mcts)
+    86600    0.719    0.000    0.719    0.000 /home/kavi/thesis/Robot.py:51(check_new_loc)
+  7758673    0.629    0.000    0.629    0.000 {built-in method math.sqrt}
+  7273376    0.618    0.000    0.618    0.000 {method 'append' of 'list' objects}
+    13767    0.071    0.000    0.592    0.000 /home/kavi/thesis/./basic_MCTS_python/rollout.py:18(generate_valid_neighbors)
+     1512    0.184    0.000    0.584    0.000 /home/kavi/thesis/SensorModel.py:20(scan)
+     1000    0.008    0.000    0.412    0.000 /home/kavi/thesis/Simulator.py:152(_update_map)
+  2210139    0.331    0.000    0.331    0.000 /usr/lib/python3/dist-packages/numpy/core/fromnumeric.py:1856(shape)
+     5000    0.290    0.000    0.308    0.000 /home/kavi/thesis/SensorModel.py:102(create_partial_info_mcts)
+     6597    0.043    0.000    0.305    0.000 /home/kavi/thesis/basic_MCTS_python/mcts.py:30(generate_valid_neighbors)
+   400995    0.249    0.000    0.249    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1117(__getattr__)
+    27731    0.042    0.000    0.242    0.000 /usr/lib/python3/dist-packages/numpy/core/numeric.py:166(ones)
+    26731    0.240    0.000    0.240    0.000 {method 'float' of 'torch._C._TensorBase' objects}
+      940    0.004    0.000    0.223    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1463(display)
+      908    0.003    0.000    0.220    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1159(__iter__)
+     2000    0.012    0.000    0.214    0.000 /home/kavi/thesis/./basic_MCTS_python/rollout.py:33(rollout_random)
+   130164    0.206    0.000    0.206    0.000 {built-in method numpy.empty}
+      783    0.002    0.000    0.204    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1324(refresh)
+    82992    0.201    0.000    0.201    0.000 {method '__reduce_ex__' of 'object' objects}
+  2210139    0.192    0.000    0.192    0.000 /usr/lib/python3/dist-packages/numpy/core/fromnumeric.py:1852(_shape_dispatcher)
+      626    0.005    0.000    0.181    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1197(update)
+   208936    0.127    0.000    0.172    0.000 /usr/lib/python3.8/copy.py:242(_keep_alive)
+    26731    0.164    0.000    0.164    0.000 {built-in method flatten}
+   160386    0.151    0.000    0.151    0.000 {built-in method torch._C._get_tracing_state}
+    27731    0.029    0.000    0.136    0.000 <__array_function__ internals>:2(copyto)
+    26731    0.132    0.000    0.132    0.000 {method 'unsqueeze' of 'torch._C._TensorBase' objects}
+      940    0.004    0.000    0.115    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1149(__str__)
+      940    0.024    0.000    0.105    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:355(format_meter)
+    22229    0.096    0.000    0.096    0.000 {built-in method numpy.zeros}
+     1340    0.081    0.000    0.084    0.000 /home/kavi/thesis/SensorModel.py:80(create_partial_info)
+     2820    0.002    0.000    0.076    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:333(disp_len)
+     1100    0.010    0.000    0.073    0.000 /home/kavi/thesis/OraclePlanner.py:5(random_planner)
+     2820    0.003    0.000    0.071    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:329(_text_width)
+     2820    0.016    0.000    0.068    0.000 {built-in method builtins.sum}
+     5318    0.002    0.000    0.067    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:143(inner)
+   665792    0.057    0.000    0.057    0.000 {built-in method builtins.len}
+      940    0.002    0.000    0.054    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:348(print_status)
+     1340    0.049    0.000    0.053    0.000 /home/kavi/thesis/SensorModel.py:124(create_final_path_matrix)
+     2816    0.053    0.000    0.053    0.000 {method 'write' of '_io.TextIOWrapper' objects}
+   190770    0.035    0.000    0.052    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:330(<genexpr>)
+    26731    0.052    0.000    0.052    0.000 {method 'item' of 'torch._C._TensorBase' objects}
+     5144    0.005    0.000    0.050    0.000 /home/kavi/thesis/Robot.py:74(check_valid_move)
+     1562    0.005    0.000    0.050    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1440(moveto)
+      157    0.003    0.000    0.045    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:846(__init__)
+    14226    0.009    0.000    0.043    0.000 /usr/lib/python3.8/random.py:244(randint)
+      314    0.001    0.000    0.036    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1264(close)
+     9080    0.036    0.000    0.036    0.000 {method 'count' of 'list' objects}
+    14226    0.015    0.000    0.035    0.000 /usr/lib/python3.8/random.py:200(randrange)
+    42952    0.023    0.000    0.033    0.000 /usr/lib/python3.8/copyreg.py:90(__newobj__)
+      940    0.001    0.000    0.031    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:341(disp_trim)
+   167258    0.029    0.000    0.029    0.000 {built-in method builtins.getattr}
+   106924    0.027    0.000    0.027    0.000 {built-in method torch._C._has_torch_function_unary}
+    19678    0.019    0.000    0.026    0.000 /usr/lib/python3.8/random.py:250(_randbelow_with_getrandbits)
+    23085    0.024    0.000    0.024    0.000 {method 'union' of 'set' objects}
+        1    0.000    0.000    0.024    0.024 /home/kavi/thesis/NeuralNet.py:76(__init__)
+      940    0.002    0.000    0.023    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:342(fp_write)
+   128160    0.023    0.000    0.023    0.000 {built-in method builtins.isinstance}
+        5    0.000    0.000    0.023    0.005 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/init.py:360(kaiming_uniform_)
+       10    0.023    0.002    0.023    0.002 {method 'uniform_' of 'torch._C._TensorBase' objects}
+    16971    0.017    0.000    0.022    0.000 /home/kavi/thesis/Robot.py:152(get_action_loc)
+        2    0.000    0.000    0.021    0.010 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/conv.py:411(__init__)
+        2    0.000    0.000    0.020    0.010 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/conv.py:67(__init__)
+        2    0.000    0.000    0.020    0.010 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/conv.py:140(reset_parameters)
+    42963    0.014    0.000    0.020    0.000 /home/kavi/thesis/./basic_MCTS_python/cost.py:8(cost)
+    43892    0.019    0.000    0.019    0.000 {method 'update' of 'dict' objects}
+    13998    0.012    0.000    0.019    0.000 /home/kavi/thesis/basic_MCTS_python/mcts.py:141(ucb)
+    80193    0.019    0.000    0.019    0.000 {built-in method torch._C._has_torch_function_variadic}
+    16238    0.018    0.000    0.018    0.000 /home/kavi/thesis/./basic_MCTS_python/tree_node.py:24(updateAverage)
+     7071    0.013    0.000    0.017    0.000 {method 'format' of 'str' objects}
+    48873    0.017    0.000    0.017    0.000 /home/kavi/thesis/./basic_MCTS_python/rollout.py:8(__init__)
+   187950    0.017    0.000    0.017    0.000 {built-in method unicodedata.east_asian_width}
+      250    0.006    0.000    0.016    0.000 test.py:89(communicate)
+    11000    0.010    0.000    0.015    0.000 /usr/lib/python3.8/copy.py:66(copy)
+    82992    0.012    0.000    0.012    0.000 {built-in method builtins.issubclass}
+    62959    0.012    0.000    0.012    0.000 /home/kavi/thesis/./basic_MCTS_python/rollout.py:15(get_location)
+     1000    0.001    0.000    0.012    0.000 /home/kavi/thesis/Robot.py:148(move)
+     2816    0.012    0.000    0.012    0.000 {method 'flush' of '_io.TextIOWrapper' objects}
+    62354    0.011    0.000    0.011    0.000 /home/kavi/thesis/basic_MCTS_python/mcts.py:26(get_location)
+    54960    0.011    0.000    0.011    0.000 /home/kavi/thesis/Map.py:161(get_bounds)
+     5452    0.003    0.000    0.010    0.000 /usr/lib/python3.8/random.py:285(choice)
+    43111    0.009    0.000    0.009    0.000 {built-in method __new__ of type object at 0x908780}
+       41    0.005    0.000    0.008    0.000 /home/kavi/thesis/Map.py:6(__init__)
+     1000    0.008    0.000    0.008    0.000 /home/kavi/thesis/Robot.py:33(check_valid_loc)
+    67004    0.008    0.000    0.008    0.000 {method 'add' of 'set' objects}
+    46105    0.008    0.000    0.008    0.000 {built-in method builtins.hasattr}
+    51443    0.007    0.000    0.008    0.000 {method 'remove' of 'set' objects}
+     6597    0.006    0.000    0.007    0.000 /home/kavi/thesis/basic_MCTS_python/mcts.py:34(<listcomp>)
+     1723    0.002    0.000    0.007    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:288(format_interval)
+    20811    0.007    0.000    0.007    0.000 /home/kavi/thesis/Robot.py:67(get_loc)
+    27731    0.006    0.000    0.006    0.000 /usr/lib/python3/dist-packages/numpy/core/multiarray.py:1043(copyto)
+      940    0.005    0.000    0.006    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1445(format_dict)
+    42964    0.006    0.000    0.006    0.000 {method 'items' of 'dict' objects}
+    19857    0.006    0.000    0.006    0.000 /home/kavi/thesis/basic_MCTS_python/mcts.py:19(__init__)
+     1000    0.002    0.000    0.006    0.000 /home/kavi/thesis/Map.py:137(add_oracle_obs_free)
+     1880    0.004    0.000    0.006    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:222(_is_ascii)
+    13998    0.005    0.000    0.005    0.000 {built-in method math.log}
+      157    0.001    0.000    0.005    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:583(_decr_instances)
+     6597    0.005    0.000    0.005    0.000 /home/kavi/thesis/./basic_MCTS_python/tree_node.py:9(__init__)
+    36565    0.005    0.000    0.005    0.000 {method 'getrandbits' of '_random.Random' objects}
+     3912    0.004    0.000    0.004    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:233(__call__)
+      157    0.001    0.000    0.004    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:560(__new__)
+      157    0.002    0.000    0.004    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:282(_screen_shape_linux)
+      940    0.003    0.000    0.004    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:188(__format__)
+       11    0.004    0.000    0.004    0.000 {built-in method io.open}
+     1411    0.002    0.000    0.004    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:104(acquire)
+     1411    0.003    0.000    0.003    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:108(release)
+    16540    0.003    0.000    0.003    0.000 /home/kavi/thesis/SensorModel.py:314(get_final_path)
+       40    0.000    0.000    0.003    0.000 /home/kavi/thesis/Simulator.py:47(initialize_data)
+    11000    0.003    0.000    0.003    0.000 {method 'copy' of 'list' objects}
+        3    0.000    0.000    0.003    0.001 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/linear.py:75(__init__)
+     1000    0.001    0.000    0.003    0.000 /home/kavi/thesis/Map.py:140(add_oracle_obs_occupied)
+     2820    0.003    0.000    0.003    0.000 {method 'sub' of 're.Pattern' objects}
+       10    0.003    0.000    0.003    0.000 {method 'close' of '_io.BufferedWriter' objects}
+        3    0.000    0.000    0.003    0.001 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/linear.py:88(reset_parameters)
+    19678    0.003    0.000    0.003    0.000 {method 'bit_length' of 'int' objects}
+      314    0.000    0.000    0.002    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1285(fp_write)
+      157    0.001    0.000    0.002    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:576(_get_free_pos)
+    11487    0.002    0.000    0.002    0.000 /home/kavi/thesis/./basic_MCTS_python/rollout.py:12(get_action)
+     1083    0.001    0.000    0.002    0.000 /usr/lib/python3.8/_weakrefset.py:58(__iter__)
+      783    0.002    0.000    0.002    0.000 {built-in method now}
+      157    0.001    0.000    0.002    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:162(__init__)
+      940    0.001    0.000    0.002    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:155(__init__)
+     2646    0.002    0.000    0.002    0.000 /home/kavi/thesis/Map.py:128(euclidean_distance)
+        3    0.000    0.000    0.002    0.001 <frozen importlib._bootstrap>:986(_find_and_load)
+      157    0.001    0.000    0.002    0.000 {built-in method fcntl.ioctl}
+     9540    0.002    0.000    0.002    0.000 /home/kavi/thesis/SensorModel.py:317(get_final_other_path)
+        3    0.000    0.000    0.002    0.001 <frozen importlib._bootstrap>:956(_find_and_load_unlocked)
+       40    0.002    0.000    0.002    0.000 /home/kavi/thesis/Robot.py:213(add_simulator)
+      157    0.000    0.000    0.002    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:579(<setcomp>)
+      157    0.000    0.000    0.002    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:657(get_lock)
+      628    0.000    0.000    0.002    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:112(__enter__)
+    19740    0.001    0.000    0.001    0.000 {built-in method builtins.ord}
+      628    0.000    0.000    0.001    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:115(__exit__)
+        1    0.000    0.000    0.001    0.001 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:92(__init__)
+        1    0.000    0.000    0.001    0.001 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:118(create_mp_lock)
+     5001    0.001    0.000    0.001    0.000 /home/kavi/thesis/Map.py:146(get_unobs_occupied)
+        1    0.000    0.000    0.001    0.001 /usr/lib/python3.8/multiprocessing/context.py:70(RLock)
+        3    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap>:650(_load_unlocked)
+      157    0.000    0.000    0.001    0.000 /usr/lib/python3.8/_weakrefset.py:106(remove)
+     5000    0.001    0.000    0.001    0.000 /home/kavi/thesis/Map.py:143(get_unobs_free)
+        5    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap>:211(_call_with_frames_removed)
+     1882    0.001    0.000    0.001    0.000 {built-in method builtins.max}
+        1    0.000    0.000    0.001    0.001 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:502(load)
+        1    0.000    0.000    0.001    0.001 <frozen importlib._bootstrap_external>:842(exec_module)
+     1562    0.001    0.000    0.001    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:319(_term_move_up)
+     1411    0.001    0.000    0.001    0.000 {method 'acquire' of '_multiprocessing.SemLock' objects}
+        1    0.000    0.000    0.001    0.001 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:836(_load)
+        1    0.000    0.000    0.001    0.001 {built-in method builtins.exec}
+        1    0.000    0.000    0.001    0.001 /usr/lib/python3.8/multiprocessing/synchronize.py:11(<module>)
+        9    0.000    0.000    0.001    0.000 {built-in method builtins.__build_class__}
+        1    0.000    0.000    0.001    0.001 {method 'load' of '_pickle.Unpickler' objects}
+        1    0.001    0.001    0.001    0.001 /usr/lib/python3.8/multiprocessing/synchronize.py:360(Barrier)
+     5000    0.001    0.000    0.001    0.000 /home/kavi/thesis/Robot.py:192(get_sensor_model)
+     3146    0.001    0.000    0.001    0.000 {built-in method time.time}
+      157    0.000    0.000    0.001    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:329(status_printer)
+     4386    0.001    0.000    0.001    0.000 {built-in method builtins.divmod}
+      314    0.000    0.000    0.001    0.000 /usr/lib/python3.8/_weakrefset.py:26(__exit__)
+       10    0.000    0.000    0.001    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:848(persistent_load)
+      157    0.000    0.000    0.001    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:215(_supports_unicode)
+       23    0.001    0.000    0.001    0.000 {built-in method builtins.print}
+       10    0.001    0.000    0.001    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:841(load_tensor)
+     1000    0.001    0.000    0.001    0.000 /home/kavi/thesis/SensorModel.py:335(set_final_other_path)
+     1412    0.001    0.000    0.001    0.000 {method 'acquire' of '_thread.RLock' objects}
+      940    0.001    0.000    0.001    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:57(__init__)
+     1040    0.000    0.000    0.001    0.000 /home/kavi/thesis/SensorModel.py:308(append_score)
+      157    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:74(__eq__)
+     2658    0.000    0.000    0.000    0.000 /home/kavi/thesis/./basic_MCTS_python/tree_node.py:29(get_coords)
+      157    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:105(__init__)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1354(load_state_dict)
+      940    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:61(__format__)
+      6/1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1384(load)
+     1040    0.000    0.000    0.000    0.000 /home/kavi/thesis/SensorModel.py:311(append_path)
+      158    0.000    0.000    0.000    0.000 /usr/lib/python3.8/_weakrefset.py:81(add)
+        6    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1276(_load_from_state_dict)
+      471    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:101(wrapper_setattr)
+     1000    0.000    0.000    0.000    0.000 /home/kavi/thesis/Simulator.py:134(set_score)
+      314    0.000    0.000    0.000    0.000 /usr/lib/python3.8/_weakrefset.py:20(__enter__)
+      600    0.000    0.000    0.000    0.000 /home/kavi/thesis/Robot.py:174(get_direction)
+      940    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:169(colour)
+      314    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:136(disable_on_exception)
+     1412    0.000    0.000    0.000    0.000 {method 'release' of '_thread.RLock' objects}
+     1411    0.000    0.000    0.000    0.000 {method 'release' of '_multiprocessing.SemLock' objects}
+      116    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1133(__setattr__)
+      314    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:171(__eq__)
+     1040    0.000    0.000    0.000    0.000 /home/kavi/thesis/Robot.py:195(get_simulator)
+     1000    0.000    0.000    0.000    0.000 /home/kavi/thesis/Simulator.py:137(reset_score)
+      156    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/_monitor.py:94(report)
+     1560    0.000    0.000    0.000    0.000 {built-in method builtins.abs}
+      314    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:88(__getattr__)
+      314    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1152(_comparable)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:549(module_from_spec)
+      157    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:201(_is_utf)
+       10    0.000    0.000    0.000    0.000 {method 'copy_' of 'torch._C._TensorBase' objects}
+     1040    0.000    0.000    0.000    0.000 /home/kavi/thesis/Simulator.py:149(get_obs_occupied)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:890(_find_spec)
+      306    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:605(<lambda>)
+      940    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:165(colour)
+     1040    0.000    0.000    0.000    0.000 /home/kavi/thesis/Simulator.py:146(get_obs_free)
+      314    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1156(__hash__)
+        6    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:250(__init__)
+      314    0.000    0.000    0.000    0.000 /usr/lib/python3.8/_weakrefset.py:16(__init__)
+      157    0.000    0.000    0.000    0.000 {built-in method utcfromtimestamp}
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1399(find_spec)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1367(_get_spec)
+     1000    0.000    0.000    0.000    0.000 /home/kavi/thesis/Robot.py:189(get_map)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1164(create_module)
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/_utils.py:136(_rebuild_tensor_v2)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/_monitor.py:30(__init__)
+        1    0.000    0.000    0.000    0.000 {built-in method _imp.create_dynamic}
+        8    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1498(find_spec)
+      157    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1146(__del__)
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/_utils.py:130(_rebuild_tensor)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:186(__init__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:50(__init__)
+      314    0.000    0.000    0.000    0.000 /usr/lib/python3.8/_weakrefset.py:52(_commit_removals)
+      314    0.000    0.000    0.000    0.000 {built-in method _weakref.proxy}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:914(get_code)
+      471    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:228(__init__)
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/utils.py:8(parse)
+       10    0.000    0.000    0.000    0.000 {built-in method empty}
+       10    0.000    0.000    0.000    0.000 /usr/lib/python3.8/abc.py:96(__instancecheck__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:834(start)
+       10    0.000    0.000    0.000    0.000 {built-in method _abc._abc_instancecheck}
+      157    0.000    0.000    0.000    0.000 {method 'encode' of 'str' objects}
+     33/1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/abc.py:100(__subclasscheck__)
+     33/1    0.000    0.000    0.000    0.000 {built-in method _abc._abc_subclasscheck}
+       14    0.000    0.000    0.000    0.000 {method 'uniform' of 'numpy.random.mtrand.RandomState' objects}
+      157    0.000    0.000    0.000    0.000 {method 'difference' of 'set' objects}
+      157    0.000    0.000    0.000    0.000 {built-in method builtins.min}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:638(_compile_bytecode)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:114(_make_name)
+       10    0.000    0.000    0.000    0.000 {built-in method tensor}
+        1    0.000    0.000    0.000    0.000 {built-in method marshal.loads}
+        2    0.000    0.000    0.000    0.000 {built-in method builtins.next}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:540(wait)
+       10    0.000    0.000    0.000    0.000 {built-in method _pickle.dump}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/tempfile.py:283(__next__)
+      157    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/utils.py:231(_screen_shape_wrapper)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:270(wait)
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:322(register_parameter)
+       40    0.000    0.000    0.000    0.000 /home/kavi/thesis/SensorModel.py:6(__init__)
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/parameter.py:23(__new__)
+        4    0.000    0.000    0.000    0.000 {method 'acquire' of '_thread.lock' objects}
+       40    0.000    0.000    0.000    0.000 /home/kavi/thesis/Simulator.py:17(__init__)
+        5    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/init.py:122(uniform_)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:241(__init__)
+       10    0.000    0.000    0.000    0.000 {method 'set_' of 'torch._C._TensorBase' objects}
+       10    0.000    0.000    0.000    0.000 {built-in method _make_subclass}
+        5    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/init.py:12(_no_grad_uniform_)
+       37    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:121(_path_join)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1644(eval)
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/init.py:278(_calculate_fan_in_and_fan_out)
+      6/1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1622(train)
+      158    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:513(is_set)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:477(_init_module_attrs)
+       20    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/autograd/grad_mode.py:124(__enter__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/tempfile.py:272(rng)
+        5    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/init.py:350(_calculate_correct_fan)
+       40    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/autograd/grad_mode.py:213(__init__)
+       11    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:135(_path_stat)
+       20    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/autograd/grad_mode.py:128(__exit__)
+      157    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:1300(<lambda>)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:761(__init__)
+        1    0.000    0.000    0.000    0.000 {built-in method _thread.start_new_thread}
+       20    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/autograd/grad_mode.py:119(__init__)
+       11    0.000    0.000    0.000    0.000 {built-in method posix.stat}
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:147(__enter__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:746(create_module)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/random.py:94(__init__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1034(get_data)
+       37    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:123(<listcomp>)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/random.py:123(seed)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/tempfile.py:286(<listcomp>)
+        1    0.000    0.000    0.000    0.000 {built-in method _imp.create_builtin}
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:228(_open_file_like)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:354(cache_from_source)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:376(cached)
+       40    0.000    0.000    0.000    0.000 /home/kavi/thesis/Robot.py:207(add_map)
+        1    0.000    0.000    0.000    0.000 test.py:21(get_random_loc)
+       11    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1521(children)
+       20    0.000    0.000    0.000    0.000 {method 'size' of 'torch._C._TensorBase' objects}
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:157(_get_module_lock)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:210(__init__)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:484(_get_cached)
+       40    0.000    0.000    0.000    0.000 /home/kavi/thesis/SensorModel.py:305(append_action_matrix)
+        4    0.000    0.000    0.000    0.000 /home/kavi/thesis/Robot.py:4(__init__)
+        1    0.000    0.000    0.000    0.000 {function Random.seed at 0x7f4d944e61f0}
+        5    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/init.py:67(calculate_gain)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1493(_get_spec)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:45(_is_zipfile)
+        2    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:505(__init__)
+        6    0.000    0.000    0.000    0.000 {built-in method torch._C._log_api_usage_once}
+        3    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:873(find_class)
+        1    0.000    0.000    0.000    0.000 {built-in method io.open_code}
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:725(find_spec)
+       40    0.000    0.000    0.000    0.000 /home/kavi/thesis/Robot.py:70(set_loc)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/util.py:171(register_after_fork)
+        2    0.000    0.000    0.000    0.000 /usr/lib/python3.8/copyreg.py:99(_slotnames)
+       11    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1530(named_children)
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:173(default_restore_location)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:689(spec_from_file_location)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:151(__exit__)
+       60    0.000    0.000    0.000    0.000 {built-in method torch._C.is_grad_enabled}
+       42    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:222(_verbose_message)
+        2    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/utils.py:20(_reverse_repeat_tuple)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:154(_path_isfile)
+        5    0.000    0.000    0.000    0.000 {method 'read' of '_io.BufferedReader' objects}
+       62    0.000    0.000    0.000    0.000 {method 'startswith' of 'str' objects}
+        2    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:222(__init__)
+        7    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:389(parent)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:78(acquire)
+        1    0.000    0.000    0.000    0.000 /home/kavi/thesis/Map.py:104(check_loc)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:127(_path_split)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:103(release)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:406(spec_from_loader)
+       40    0.000    0.000    0.000    0.000 /home/kavi/thesis/SensorModel.py:320(get_final_partial_info)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:145(_path_is_mode_type)
+       15    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1134(remove_from)
+       20    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:803(_maybe_decode_ascii)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/weakref.py:159(__setitem__)
+       40    0.000    0.000    0.000    0.000 /home/kavi/thesis/Robot.py:210(add_sensor_model)
+       76    0.000    0.000    0.000    0.000 {method 'rstrip' of 'str' objects}
+       40    0.000    0.000    0.000    0.000 /home/kavi/thesis/SensorModel.py:329(get_final_path_matrices)
+       21    0.000    0.000    0.000    0.000 {method 'rpartition' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 {function _load.<locals>.UnpicklerWrapper.find_class at 0x7f4d39237310}
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/parameter.py:129(is_lazy)
+       40    0.000    0.000    0.000    0.000 {method 'join' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:213(__exit__)
+       20    0.000    0.000    0.000    0.000 {method 'dim' of 'torch._C._TensorBase' objects}
+       40    0.000    0.000    0.000    0.000 {built-in method torch._C._set_grad_enabled}
+        6    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1314(<dictcomp>)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:58(__init__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1172(exec_module)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:889(_is_torchscript_zip)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:176(cb)
+        4    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:1017(_handle_fromlist)
+       10    0.000    0.000    0.000    0.000 {method 'storage' of 'torch._C._TensorBase' objects}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:553(_classify_pyc)
+       20    0.000    0.000    0.000    0.000 {method 'split' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 <string>:1(__new__)
+        1    0.000    0.000    0.000    0.000 {method 'close' of '_io.BufferedReader' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:210(Condition)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:79(_unpack_uint32)
+        9    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1330(_path_importer_cache)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1075(path_stats)
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/utils.py:26(<genexpr>)
+       22    0.000    0.000    0.000    0.000 /usr/lib/python3.8/_collections_abc.py:392(__subclasshook__)
+        7    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:867(__exit__)
+        7    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:863(__enter__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:586(_validate_timestamp_pyc)
+        5    0.000    0.000    0.000    0.000 /usr/lib/python3.8/_collections_abc.py:72(_check_methods)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/_collections_abc.py:252(__subclasshook__)
+       24    0.000    0.000    0.000    0.000 {method 'items' of 'collections.OrderedDict' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:46(SemLock)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:1306(current_thread)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/_utils.py:158(_validate_loaded_sparse_tensors)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:754(exec_module)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:800(find_spec)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:232(_requires_builtin_wrapper)
+       20    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/_jit_internal.py:881(is_scripting)
+        4    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:129(<genexpr>)
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:126(_cpu_deserialize)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:1177(_make_invoke_excepthook)
+       13    0.000    0.000    0.000    0.000 {built-in method _imp.release_lock}
+       13    0.000    0.000    0.000    0.000 {built-in method _imp.acquire_lock}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:246(__enter__)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:342(__init__)
+        2    0.000    0.000    0.000    0.000 {built-in method _imp.is_builtin}
+        7    0.000    0.000    0.000    0.000 /usr/lib/python3.8/_collections_abc.py:302(__subclasshook__)
+        1    0.000    0.000    0.000    0.000 test.py:151(<listcomp>)
+       10    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/storage.py:13(__init__)
+        2    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:199(__init__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/weakref.py:323(__new__)
+        7    0.000    0.000    0.000    0.000 {built-in method _thread.get_ident}
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:175(_path_isabs)
+        9    0.000    0.000    0.000    0.000 {built-in method _thread.allocate_lock}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:1110(daemon)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:261(_is_owned)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/weakref.py:328(__init__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:249(__exit__)
+        1    0.000    0.000    0.000    0.000 {method 'copy' of 'collections.OrderedDict' objects}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:516(_check_name_wrapper)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/context.py:233(get_context)
+        6    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/nn/modules/module.py:1312(<dictcomp>)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:734(_newname)
+        2    0.000    0.000    0.000    0.000 {method 'get' of 'mappingproxy' objects}
+        6    0.000    0.000    0.000    0.000 {method 'values' of 'collections.OrderedDict' objects}
+        5    0.000    0.000    0.000    0.000 {method 'lower' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:143(__init__)
+        2    0.000    0.000    0.000    0.000 {method 'tell' of '_io.BufferedReader' objects}
+        6    0.000    0.000    0.000    0.000 {method 'keys' of 'collections.OrderedDict' objects}
+       12    0.000    0.000    0.000    0.000 {method 'random' of '_random.Random' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/_collections_abc.py:349(__subclasshook__)
+        3    0.000    0.000    0.000    0.000 {method 'endswith' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:35(_new_module)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:255(_release_save)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/_collections_abc.py:271(__subclasshook__)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:869(UnpicklerWrapper)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:90(_make_methods)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1004(__init__)
+        8    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:68(_relax_case)
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.setattr}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:1095(daemon)
+        2    0.000    0.000    0.000    0.000 {method 'setter' of 'property' objects}
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:193(_is_path)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:321(Event)
+        2    0.000    0.000    0.000    0.000 {built-in method _imp.is_frozen}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:123(Semaphore)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:314(_check_dill_version)
+        1    0.000    0.000    0.000    0.000 {method 'seek' of '_io.BufferedReader' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method posix.getpid}
+        3    0.000    0.000    0.000    0.000 {built-in method from_bytes}
+        3    0.000    0.000    0.000    0.000 {method 'pop' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/threading.py:258(_acquire_restore)
+        1    0.000    0.000    0.000    0.000 {built-in method atexit.register}
+        4    0.000    0.000    0.000    0.000 {built-in method posix.fspath}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1153(__init__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/context.py:197(get_start_method)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:397(has_location)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/tqdm/std.py:100(<listcomp>)
+        2    0.000    0.000    0.000    0.000 {method 'rfind' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method _imp.exec_builtin}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/util.py:48(debug)
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:815(_get_restore_location)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:159(Lock)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:142(BoundedSemaphore)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/process.py:37(current_process)
+        2    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:202(__enter__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.8/multiprocessing/synchronize.py:184(RLock)
+        1    0.000    0.000    0.000    0.000 {built-in method _imp.exec_dynamic}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:771(is_package)
+        1    0.000    0.000    0.000    0.000 {method 'keys' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method _imp._fix_co_filename}
+        1    0.000    0.000    0.000    0.000 {method '__enter__' of '_thread.lock' objects}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 /home/kavi/.local/lib/python3.8/site-packages/torch/serialization.py:205(__exit__)
+        1    0.000    0.000    0.000    0.000 {method 'append' of 'collections.deque' objects}
+        1    0.000    0.000    0.000    0.000 {method 'clear' of 'list' objects}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:839(create_module)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1029(get_filename)
+        1    0.000    0.000    0.000    0.000 {method 'release' of '_thread.lock' objects}
+        1    0.000    0.000    0.000    0.000 {method '__exit__' of '_thread.lock' objects}
+
+

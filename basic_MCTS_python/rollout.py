@@ -1,3 +1,4 @@
+from torch import randint
 from cost import cost
 import random
 import copy
@@ -49,8 +50,8 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=F
     # rollout_map = copy.deepcopy(world_map)
     sequence = copy.copy(subsequence)
     # rollout_map = copy.deepcopy(world_map)
-    unobs_free = copy.deepcopy(world_map.get_unobs_free)
-    unobs_occupied = copy.deepcopy(world_map.get_unobs_occupied)
+    unobs_free = copy.deepcopy(world_map.get_unobs_free())
+    unobs_occupied = copy.deepcopy(world_map.get_unobs_occupied())
     executed_paths = sensor_model.get_final_path()
     other_executed_paths = sensor_model.get_final_other_path()
    
@@ -74,8 +75,8 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=F
                 if loc in executed_paths or loc in other_executed_paths:
                     continue
             else: 
-                # print("FUNCION CAME HERE")
-                # scanned_unobs = sensor_model.scan_mcts(state.get_location(), rollout_map)
+                index = random.randint(0, len(neighbors)-1)
+                state = neighbors[index]
                 scanned_unobs = sensor_model.scan_mcts(state.get_location(), unobs_free, unobs_occupied)
                 if oracle: 
                     action_score = len(scanned_unobs[0])

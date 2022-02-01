@@ -70,28 +70,28 @@ class Simulator:
         action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
         if self.planner == "random":
             action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
-        if self.planner == "greedy-o":
+        if self.planner == "greedy-o" or self.planner == "greedy-o_everyxstep":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=True)                                    
             # results = OraclePlanner.debug_greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, train, self.debug_greedy_score, self.debug_network_score, oracle=True)
             # action = results[0]
             # self.debug_network_score = results[1]
             # self.debug_greedy_score = results[2]
 
-        if self.planner == "greedy-no":
+        if self.planner == "greedy-no" or self.planner == "greedy-no_everyxstep":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=False)
-        if self.planner == "net_everystep":
+        if self.planner == "net_everystep" or self.planner == "net_everyxstep" or self.planner == "net_nocomm":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True)
-        if self.planner == "net_everyxstep":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True)
-        if self.planner == "net_nocomm":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, neural_net=True)
         if self.planner == 'mcts':
             budget = 5
-            max_iterations = 1000
+            max_iterations = 5
             exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
             
+            # times_visited = self.sensor_model.get_final_path().count(tuple(winner_loc)) + self.sensor_model.get_final_other_path().count(tuple(winner_loc))
+            
             # 2 robots cannot be in the same loc condition
+            # times_visited is for backtracking
+            # if tuple(winner_loc) in curr_robot_positions or times_visited > 1:
             if tuple(winner_loc) in curr_robot_positions:
                 idx = random.randint(0, len(solution_locs)-1)
                 winner_loc = solution_locs[idx]

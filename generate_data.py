@@ -110,7 +110,6 @@ def communicate(robots, obs_occupied_oracle, obs_free_oracle):
 def generate_data_matrices(trials, steps, num_robots, planner_options, visualize, bounds, outfile, rollout=True):
     input_partial_info_binary_matrices = list()
     input_path_matrices = list()
-    input_other_path_matricies = list()
     input_actions_binary_matrices = list()
     input_scores = list()
 
@@ -118,7 +117,8 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
         # leaving this print statement out because tqdm takes care of progress
         # print("Trial: ", i)
         map = Map(bounds, 7, (), False)
-        unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
+        # unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
+        unobs_occupied = map.get_unobs_occupied()
         bots_starting_locs = list()
 
         # create robots
@@ -177,12 +177,6 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
 
                 # communicate(robots, obs_occupied_oracle, obs_free_oracle)
             
-            # for debugging scores
-            # for bot in robots:
-            #     sensor_model = bot.get_sensor_model()
-            #     print("bot: ", bot)
-            #     print("score: ", sensor_model.get_final_scores())
-            
             # oracle_visualize(robots, bounds, map, planner)
 
             ### DATA MATRICES
@@ -198,7 +192,6 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
 
                 final_scores = sensor_model.get_final_scores()
-                # print("final_scores: ", final_scores)
 
                 input_path_matrices += path_matricies
                 # print("debug_input_path_matrices: ", input_path_matrices)
@@ -245,10 +238,8 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
             # rollout data is generated after the normal data of each map..
             # ..because when splitting the data at training, if the the normal data is created and the then the rollout..
             # .., the training and validation sets will have the same maps
-            print("final_path_matrices: ", len(input_path_matrices))
-            print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
-            print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
-            print("final_final_scores: ", len(input_scores))
+            
+            print("data length: ", len(input_path_matrices))
             
             if rollout:
                 print("Generating rollout data...")
@@ -356,12 +347,12 @@ if __name__ == "__main__":
     # for pickling
     # alienware
     # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyo_r4_t1000_s50_norollout_diffstartloc'
-    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyo_r4_t1000_s25_rollout_diffstartloc'
+    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_r4_t2000_s25_rollout_diffstartloc'
     # macbook
     # outfile_tensor_images = '/Users/kavisen/osu_thesis/data/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
     
     # generate data
     print("Generating matrices")
-    planner_options = ["random", "greedy-o"]
-    generate_data_matrices(trials=1000, steps=25, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images)
+    planner_options = ["random", "greedy-no"]
+    generate_data_matrices(trials=2000, steps=25, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images)
     
