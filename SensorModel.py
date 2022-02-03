@@ -13,6 +13,7 @@ class SensorModel:
         self.final_path = list()
         self.final_other_path = list() # this is for communicate() with other robots
         self.final_path_matrices = list()
+        self.final_other_path_matrices = list()
         self.final_actions = list()
 
     # update_map is there because in OraclePlanner, we use scan without updating the map
@@ -124,11 +125,9 @@ class SensorModel:
     def create_final_path_matrix(self, update=True):
         bounds = self.map.get_bounds()
         path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
-        debug_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
 
         for path in self.final_path:
             path_matrix[path] = 1
-            debug_matrix[path] = 1
         
         # this is for multi-robot when communication of other_paths is done
         for path in self.final_other_path:
@@ -136,6 +135,34 @@ class SensorModel:
 
         if update:
             self.final_path_matrices.append(path_matrix)
+
+        else:
+            return path_matrix
+    
+    # this was created to combine path and others together for multi-robot rollout
+    def create_final_rollout_path_matrix(self, update=True):
+        bounds = self.map.get_bounds()
+        path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+
+        for path in self.final_path:
+            path_matrix[path] = 1
+        
+        if update:
+            self.final_path_matrices.append(path_matrix)
+
+        else:
+            return path_matrix
+
+    # this was created to combine path and others together for multi-robot rollout
+    def create_final_rollout_other_path_matrix(self, update=True):
+        bounds = self.map.get_bounds()
+        path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+
+        for path in self.final_other_path:
+            path_matrix[path] = 1
+
+        if update:
+            self.final_other_path_matrices.append(path_matrix)
 
         else:
             return path_matrix
@@ -328,6 +355,9 @@ class SensorModel:
 
     def get_final_path_matrices(self):
         return self.final_path_matrices
+    
+    def get_final_other_path_matrices(self):
+        return self.final_other_path_matrices
 
     def set_final_path(self, paths):
         self.final_path = paths

@@ -8,6 +8,7 @@ from tqdm import tqdm
 import pickle
 import torch
 import copy
+import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -110,6 +111,7 @@ def communicate(robots, obs_occupied_oracle, obs_free_oracle):
 def generate_data_matrices(trials, steps, num_robots, planner_options, visualize, bounds, outfile, rollout=True):
     input_partial_info_binary_matrices = list()
     input_path_matrices = list()
+    input_other_path_matrices = list()
     input_actions_binary_matrices = list()
     input_scores = list()
 
@@ -146,7 +148,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 bot.add_simulator(simulator)
                 # this adds the initial matrices to appropriate lists
                 bot_simulator = bot.get_simulator()
-                bot_simulator.initialize_data(bots_starting_locs, obs_occupied_oracle)
+                bot_simulator.initialize_data(bots_starting_locs, obs_occupied_oracle, generate_data=True)
                 # this is needed incase any locations are scanned in the initial position
                 obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
                 obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
@@ -163,7 +165,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                     # false can be used as argument for neural_model here because we don't need mcts here
                     # obs_occupied_oracle is passed in so that scan() will calc the unique reward
                     # using true for train will make sure that the backtracking will consider other bot paths
-                    simulator.run(False, curr_robot_positions=set(), obs_occupied_oracle=obs_occupied_oracle, train=False)
+                    simulator.run(False, curr_robot_positions=set(), obs_occupied_oracle=obs_occupied_oracle, train=False, generate_data=True)
                     # print("DEBUG PARTIAL IMAGE: ", sensor_model.get_final_partial_info()[-1])
                     # print("DEBUG SCORES: ", sensor_model.get_final_scores())
 
@@ -184,6 +186,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 sensor_model = bot.get_sensor_model()
 
                 path_matricies = sensor_model.get_final_path_matrices()
+                other_path_matricies = sensor_model.get_final_other_path_matrices()
                          
                 final_partial_info = sensor_model.get_final_partial_info()
                 partial_info_binary_matrices = sensor_model.create_binary_matrices(final_partial_info)
@@ -194,6 +197,11 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 final_scores = sensor_model.get_final_scores()
 
                 input_path_matrices += path_matricies
+                # print(path_matricies[0])
+                # print(other_path_matricies[0])
+
+                # input_other_path_matrices.append(path_matricies[0])s
+                input_other_path_matrices += other_path_matricies
                 # print("debug_input_path_matrices: ", input_path_matrices)
                 # just for debugging
                 # count = 0
@@ -239,11 +247,16 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
             # ..because when splitting the data at training, if the the normal data is created and the then the rollout..
             # .., the training and validation sets will have the same maps
             
-            print("data length: ", len(input_path_matrices))
+            # print("data length: ", len(input_path_matrices))
+            # print("data final_path_matrices: ", len(input_path_matrices))
+            # print("final_other_path_matrices: ", len(input_other_path_matrices))
+            # print(input_path_matrices[5])
+            # print(input_other_path_matrices[5])
+
             
             if rollout:
                 print("Generating rollout data...")
-                generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile)        
+                generate_data_rollout(input_path_matrices, input_other_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile)        
         
             # print("final_path_matrices: ", len(input_path_matrices))
             # print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
@@ -263,9 +276,10 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
     generate_tensor_images(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, outfile)
 
 
-def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile):
+def generate_data_rollout(input_path_matrices, input_other_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile):
     temp_input_partial_info_binary_matrices = list()
     temp_input_path_matrices = list()
+    temp_input_other_path_matrices = list()
     temp_input_actions_binary_matrices = list()
     temp_input_scores = list()
 
@@ -290,6 +304,12 @@ def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrice
         temp_input_partial_info_binary_matrices.append(input_partial_info_binary_matrices[index1])
         # +1 because we don't want the same idx as index and -1 because it goes outside array otherwise
         index2 = random.randint(index1, boundary-2)
+        # print("index2: ", index2)
+        other_path_index = random.randint(index1, index2)
+        # print("other_path_index: ", other_path_index)
+        # print("len other path: ", len(input_other_path_matrices))
+        # print("len path: ", len(input_path_matrices))
+        # print()
         # debug
         # print()
         # print("index1: ", index1)
@@ -297,7 +317,18 @@ def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrice
         # print("boundary: ", boundary)
         # print()
         
-        temp_input_path_matrices.append(input_path_matrices[index2])
+        curr_input_path_matrix = input_path_matrices[index2]
+        curr_other_path_matrix = input_other_path_matrices[other_path_index]
+
+        # iterate over each row, col idx of the np array and modify path_matrix
+        for irow, icol, in np.ndindex(curr_other_path_matrix.shape):
+            if curr_other_path_matrix[irow, icol] == 1:
+                curr_input_path_matrix[irow, icol]=1
+
+        temp_input_path_matrices.append(curr_input_path_matrix)
+        # these are just fillers so we get the correct idx in the next iteration
+        temp_input_other_path_matrices.append(curr_other_path_matrix)
+
         temp_input_actions_binary_matrices.append(input_actions_binary_matrices[index2])
         temp_input_scores.append(input_scores[index2])
 
@@ -305,6 +336,7 @@ def generate_data_rollout(input_path_matrices, input_partial_info_binary_matrice
 
     input_partial_info_binary_matrices += temp_input_partial_info_binary_matrices
     input_path_matrices += temp_input_path_matrices
+    input_other_path_matrices += temp_input_other_path_matrices
     input_actions_binary_matrices += temp_input_actions_binary_matrices
     input_scores += temp_input_scores
 
@@ -347,7 +379,8 @@ if __name__ == "__main__":
     # for pickling
     # alienware
     # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyo_r4_t1000_s50_norollout_diffstartloc'
-    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_r4_t2000_s25_rollout_diffstartloc'
+    # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_r4_t2000_s25_rollout_diffstartloc'
+    outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_r4_t2000_s25_rollout_diffstartloc_otherpathmix'
     # macbook
     # outfile_tensor_images = '/Users/kavisen/osu_thesis/data/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
     

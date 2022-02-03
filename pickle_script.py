@@ -23,7 +23,8 @@ if __name__ == "__main__":
     # alienware
     # filename = '/home/kavi/thesis/pickles/planner_scores'
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial10_steps25_roll_random_greedy_rew_random_greedy_net_everystep'
-    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps40_roll_random_greedy_net_everystep_rew_greedy_net_everystep'
+    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps40_roll_random_greedy_net_everystep_rew_greedy_net_everystep'
+    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_roll_random_greedy_net_everystep_rew_greedy_net_everystep_notimesvisited'
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/test'
     # macbook
     # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
@@ -38,7 +39,10 @@ if __name__ == "__main__":
     scores = list()
 
     for score_list in score_lists:
+        if len(score_list) == 0: # this condition was added because we are skipping some mcts planners
+            continue
         planner_name = score_list[0]
+        print(planner_name)
         bars.append(planner_name)
         del score_list[0]
         curr_score = sum(score_list)/len(score_list)
@@ -57,6 +61,8 @@ if __name__ == "__main__":
     # Box plot
     score_lists_copy = score_lists
     for score_list in score_lists_copy:
+        if len(score_list) == 0: # this condition was added because we are skipping some mcts planners
+            continue
         score_list.remove(score_list[0])   
 
     # do this otherwise x axis is not correct
@@ -83,8 +89,8 @@ if __name__ == "__main__":
     temp = 'greedy'
     plt.figtext(0.5, 0.01, caption, wrap=True, horizontalalignment='center', fontsize=12)
     # plt.tight_layout() # does not work when using LaTex, add it when doing .show()    
-    plt.text(2.0, 125.0, "greedy planners")
-    plt.text(6.5, 125.0, "mcts planners")
+    plt.text(2.0, 100.0, "greedy planners")
+    plt.text(6.5, 100.0, "mcts planners")
     plt.legend(handles=[green_patch, blue_patch], loc="lower right")
     
     plt.ylabel("Total Reward")

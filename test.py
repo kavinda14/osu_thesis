@@ -1,3 +1,4 @@
+from zmq import device
 from SensorModel import SensorModel
 from Map import Map
 from Robot import Robot
@@ -131,13 +132,13 @@ if __name__ == "__main__":
     # reward_options = ["random"]
     # reward_options = ["random", "greedy"]
     # reward_options = ["greedy"]
-    print("mcts without times visited")
+    print("all without times visited")
     bounds = [21, 21]
     trials = 100
     steps = 25
     num_robots = 4
     # to decide which step the bot communicates
-    comm_step = 5
+    comm_step = 3
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
     # profiling functions
@@ -163,7 +164,9 @@ if __name__ == "__main__":
     # alienware
     neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/"+weight_file)) 
     # macbook 
-    # neural_model.load_state_dict(torch.load("/Users/kavisen/osu_thesis/"+weight_file))    
+    # neural_model.load_state_dict(torch.load("/Users/kavisen/osu_thesis/"+weight_file)) 
+    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # neural_model.to(device) 
     neural_model.eval()
 
     # this is for pickling the score_lists
@@ -171,7 +174,7 @@ if __name__ == "__main__":
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_roll_random_greedy_rew_net_everystep_wbacktracking'.format(trials, steps)
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/test2'
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_roll_random_greedy_net_everystep_rew_greedy_net_everystep_notimesvisited'.format(trials, steps)
-    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_comm_nocomm'.format(trials, steps)
+    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_comm_nocomm_commstep3'.format(trials, steps)
     # macbook
     # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
 
@@ -255,11 +258,12 @@ if __name__ == "__main__":
                                 obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
 
                             steps_count += 1
-                            if rollout_type == "net_everystep" or reward_type == "net_everystep":    
+                            if rollout_type == "net_everystep" or reward_type == "net_everystep":   
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
                             elif rollout_type == "net_everyxstep" and steps_count%comm_step==0:   
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
                             elif reward_type == "net_everyxstep" and steps_count%comm_step==0:   
+                                print("HERE") 
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
                             elif rollout_type == "net_nocomm" or reward_type == "net_nocomm":
                                 pass

@@ -44,26 +44,43 @@ class Simulator:
         return self.debug_greedy_score
 
     # new addition to multi-robot code
-    def initialize_data(self, bots_starting_loc, obs_occupied_oracle=set()):
+    def initialize_data(self, bots_starting_loc, obs_occupied_oracle=set(), generate_data=False):
         # self._update_map(obs_occupied_oracle)
         self.sensor_model.create_partial_info()
         # no initial observation score according to graeme
         self.sensor_model.append_score(self.score)
-        self.sensor_model.append_path(self.robot.get_loc())
+        curr_bot_loc = self.robot.get_loc()
+        self.sensor_model.append_path(curr_bot_loc)
 
-        self.sensor_model.create_final_path_matrix()
         # At the start, there is no action, so we just add the initial partial info into the action matrix list
         initial_partial_info_matrix = self.sensor_model.get_final_partial_info()[0]
        
         self.sensor_model.append_action_matrix(initial_partial_info_matrix)
 
-        # this adds the starting location of the other robots into the initial path matrix
-        path_matrix = self.sensor_model.get_final_path_matrices()[0]
-        for loc in bots_starting_loc:
-            path_matrix[loc[0]][loc[1]] = 1
+        # to initialize a matrix in final_other_path_matrices for data generation ONLY
+        if generate_data:
+            self.sensor_model.create_final_rollout_path_matrix()
+            self.sensor_model.create_final_rollout_other_path_matrix()
+
+            path_matrix = self.sensor_model.get_final_path_matrices()[0]
+            path_matrix[curr_bot_loc[0]][curr_bot_loc[1]] = 1
+
+            path_matrix = self.sensor_model.get_final_other_path_matrices()[0]
+            for loc in bots_starting_loc:
+                if loc != curr_bot_loc:
+                    path_matrix[loc[0]][loc[1]] = 1
+        else:
+            # this contains paths and other paths
+            self.sensor_model.create_final_path_matrix()
+
+            # this adds the starting location of the other robots into the initial path matrix
+            path_matrix = self.sensor_model.get_final_path_matrices()[0]
+            for loc in bots_starting_loc:
+                path_matrix[loc[0]][loc[1]] = 1
         
+
     # train is there because of the backtracking condition in each planner 
-    def run(self, neural_model, curr_robot_positions, obs_occupied_oracle=set(), train=False):
+    def run(self, neural_model, curr_robot_positions, obs_occupied_oracle=set(), train=False, generate_data=False):
         self.iterations += 1        
 
         # Generate an action from the robot path
@@ -72,18 +89,13 @@ class Simulator:
             action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
         if self.planner == "greedy-o" or self.planner == "greedy-o_everyxstep":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=True)                                    
-            # results = OraclePlanner.debug_greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, train, self.debug_greedy_score, self.debug_network_score, oracle=True)
-            # action = results[0]
-            # self.debug_network_score = results[1]
-            # self.debug_greedy_score = results[2]
-
         if self.planner == "greedy-no" or self.planner == "greedy-no_everyxstep":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=False)
         if self.planner == "net_everystep" or self.planner == "net_everyxstep" or self.planner == "net_nocomm":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True)
         if self.planner == 'mcts':
             budget = 5
-            max_iterations = 5
+            max_iterations = 1000
             exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
             
@@ -107,7 +119,11 @@ class Simulator:
         self.sensor_model.create_partial_info()
         self.sensor_model.append_score(self.score)
         self.sensor_model.append_path(self.robot.get_loc())
-        self.sensor_model.create_final_path_matrix()
+        if generate_data:
+            self.sensor_model.create_final_rollout_path_matrix()
+            self.sensor_model.create_final_rollout_other_path_matrix()
+        else:
+            self.sensor_model.create_final_path_matrix()
 
         # Score is calculated in _update function.
         # It needs to be reset otherwise the score will carry on to the next iteration even if no new obstacles were scanned.
