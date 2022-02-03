@@ -51,7 +51,7 @@ def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_
 
             # only in data generation do we want the backtracking to help with the coordination
             # for testing, we want to see if the network implicitly coordinates the robots
-            if train:
+            if train and not neural_net:
                 times_visited = sensor_model.get_final_path().count(potential_next_loc) + sensor_model.get_final_other_path().count(potential_next_loc)
                 # times_visited = sensor_model.get_final_path().count(potential_next_loc) + (potential_next_loc in sensor_model.get_final_other_path())
             else:
