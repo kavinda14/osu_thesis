@@ -23,6 +23,10 @@ def create_image(partial_info_binary_matrices, path_matricies, final_actions_bin
 
         for action in final_actions_binary_matrices[i]:
             image.append(action)
+
+        # this is needed, because torch complains otherwise that converting a list is too slow
+        # it's better to use a np array because of the way a np array is stored in memory (contiguous)
+        image = np.array(image)
         
     return torch.IntTensor(image)
 

@@ -1,5 +1,6 @@
 import random
 import torch
+from zmq import device
 import NeuralNet
 
 def random_planner(robot, sensor_model, train):
@@ -35,7 +36,7 @@ def random_planner(robot, sensor_model, train):
     return action
 
 # model here is the neural net
-def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, neural_net=False, oracle=False):
+def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, neural_net=False, oracle=False, device=False):
     actions = ['left', 'backward', 'right', 'forward']
     best_action_score = float('-inf')
     best_action = random.choice(actions)
@@ -68,7 +69,7 @@ def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_
 
                     # The unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
                     # By unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 
-                    input = input.unsqueeze(0).float()
+                    input = input.unsqueeze(0).float().to(device)
 
                     action_score = neural_model(input).item()
                     
@@ -94,7 +95,7 @@ def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_
     return best_action
 
 
-def debug_greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, train, debug_greedy_score, debug_network_score, neural_net=False, oracle=False):
+def debug_greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, train, debug_greedy_score, debug_network_score, neural_net=False, oracle=False, device=False):
     actions = ['left', 'backward', 'right', 'forward']
     best_action_score = float('-inf')
     best_action = random.choice(actions)
@@ -120,9 +121,6 @@ def debug_greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle,
             # backtrack possibility
             if times_visited <= 0: 
                 
-
-                # print("debug_network_score: ", debug_network_score)
-                    
                 # oracle greedy knows where all the obstacles are
                 if oracle:
                     action_score = len(sensor_model.scan(potential_next_loc, obs_occupied_oracle, False)[0])

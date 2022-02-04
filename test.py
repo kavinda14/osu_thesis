@@ -115,9 +115,9 @@ if __name__ == "__main__":
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "net_nocomm", "net_everystep"]
-    # planner_options = ["random", "greedy-o", "greedy-no", "net_everystep"]
+    planner_options = ["random", "greedy-o", "greedy-no", "net_everystep"]
     # planner_options = ["random", "greedy-o", "greedy-no", "net_everystep", "mcts"]
-    planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
+    # planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
     # planner_options = ["random", "greedy-o", "greedy-no", "mcts"]
     # planner_options = ["random", "greedy-o", "greedy-no"]
     # planner_options = ["mcts"]
@@ -160,7 +160,9 @@ if __name__ == "__main__":
     weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
     # weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc_iter2"
     
-    neural_model = NeuralNet.Net(bounds)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print("Device used: ", device)
+    neural_model = NeuralNet.Net(bounds).to(device)
     # alienware
     neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/"+weight_file)) 
     # macbook 
@@ -172,9 +174,9 @@ if __name__ == "__main__":
     # this is for pickling the score_lists
     # alienware
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_roll_random_greedy_rew_net_everystep_wbacktracking'.format(trials, steps)
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/test2'
+    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/test2'
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_roll_random_greedy_net_everystep_rew_greedy_net_everystep_notimesvisited'.format(trials, steps)
-    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_comm_nocomm_commstep3'.format(trials, steps)
+    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_comm_nocomm_commstep3'.format(trials, steps)
     # macbook
     # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
 
@@ -249,7 +251,7 @@ if __name__ == "__main__":
                                 simulator = bot.get_simulator()
                                 sensor_model = bot.get_sensor_model()
 
-                                simulator.run(neural_model, curr_robot_positions, train=True)
+                                simulator.run(neural_model, curr_robot_positions, train=True, device=device)
 
                                 # communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
@@ -327,7 +329,7 @@ if __name__ == "__main__":
                             simulator.visualize()
 
                         # we run it without obs_occupied_oracle because if not the normal planners have oracle info
-                        simulator.run(neural_model, curr_robot_positions, train=True)
+                        simulator.run(neural_model, curr_robot_positions, train=True, device=device)
 
                         # to keep track of score
                         obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
@@ -355,6 +357,7 @@ if __name__ == "__main__":
                 score = len(obs_occupied_oracle)     
                 print("Score: ", score)
                 curr_list.append(score)
+                oracle_visualize(robots, bounds, map, planner)
 
                 # if planner == "net_nocomm" or planner == "net_everyxstep" or planner == "net_everystep":
                     # oracle_visualize(robots, bounds, map, planner)
