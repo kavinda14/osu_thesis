@@ -16,6 +16,9 @@ pgf_with_latex = {
 }
 matplotlib.rcParams.update(pgf_with_latex)
 
+'''
+This pickle script is the fancy one without the mcts planners.
+'''
 
 if __name__ == "__main__":
 
@@ -25,7 +28,7 @@ if __name__ == "__main__":
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial10_steps25_roll_random_greedy_rew_random_greedy_net_everystep'
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps40_roll_random_greedy_net_everystep_rew_greedy_net_everystep'
     filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_roll_random_greedy_net_everystep_rew_greedy_net_everystep_notimesvisited'
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/test'
+
     # macbook
     # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
     infile = open(filename,'rb')

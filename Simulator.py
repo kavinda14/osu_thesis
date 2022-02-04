@@ -80,7 +80,7 @@ class Simulator:
         
 
     # train is there because of the backtracking condition in each planner 
-    def run(self, neural_model, curr_robot_positions, obs_occupied_oracle=set(), train=False, generate_data=False):
+    def run(self, neural_model, curr_robot_positions, device, obs_occupied_oracle=set(), train=False, generate_data=False, debug_mcts_reward_greedy_list=list(), debug_mcts_reward_network_list=list()):
         self.iterations += 1        
 
         # Generate an action from the robot path
@@ -92,12 +92,14 @@ class Simulator:
         if self.planner == "greedy-no" or self.planner == "greedy-no_everyxstep":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=False)
         if self.planner == "net_everystep" or self.planner == "net_everyxstep" or self.planner == "net_nocomm":
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True)
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True, device=device)
         if self.planner == 'mcts':
             budget = 5
-            max_iterations = 1000
+            # max_iterations = 1000
+            max_iterations = 20000
+            # exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-            solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model)
+            solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model, debug_mcts_reward_greedy_list, debug_mcts_reward_network_list, device=device)
             
             # times_visited = self.sensor_model.get_final_path().count(tuple(winner_loc)) + self.sensor_model.get_final_other_path().count(tuple(winner_loc))
             

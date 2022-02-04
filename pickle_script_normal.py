@@ -4,13 +4,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
 
+'''
+This pickle script is without the fancy visuals for all planners.
+'''
+
 if __name__ == "__main__":
 
     # unpickle scores
     # alienware
     # filename = '/home/kavi/thesis/pickles/planner_scores'
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial10_steps25_roll_random_greedy_rew_random_greedy_net_everystep'
-    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_comm_nocomm_commstep3'
+    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_comm_nocomm_commstep3'
+    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_comm_nocomm'
+    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_comm_nocomm_notimesvisited'
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/test'
     # macbook
     # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
@@ -26,7 +32,7 @@ if __name__ == "__main__":
 
     for score_list in score_lists:
         if len(score_list) == 0:
-            del score_list
+            score_lists.remove(score_list)
             continue
         planner_name = score_list[0]
         print(planner_name)
@@ -49,9 +55,12 @@ if __name__ == "__main__":
     score_lists_copy = score_lists
     for score_list in score_lists_copy:
         if len(score_list) == 0:
-            del score_list
+            score_lists_copy.remove(score_list)
             continue
         score_list.remove(score_list[0])   
+    
+    print(len(score_lists_copy))
+    
 
     # do this otherwise x axis is not correct
     for i in x_pos:
