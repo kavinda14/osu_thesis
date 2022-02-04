@@ -126,19 +126,19 @@ if __name__ == "__main__":
     # rollout_options = ["random", "greedy"]
     # rollout_options = ["random"]
     # rollout_options = ["random", "greedy", "net_everyxstep", "net_everystep"]
-    rollout_options = ["net_everystep"]
+    rollout_options = ["random"]
     # rollout_options = ["random", "greedy"] + network_options
     # reward_options = ["greedy", "net_everyxstep", "net_everystep"]
-    reward_options = ["net_everystep"]
+    reward_options = ["random"]
     # reward_options = network_options
     # reward_options = ["random"]
     # reward_options = ["random", "greedy"]
     # reward_options = ["greedy"]
-    print("all without times visited")
+    print("reward convergence test")
     bounds = [21, 21]
     trials = 1
-    steps = 2
-    num_robots = 4
+    steps = 25
+    num_robots = 1
     # to decide which step the bot communicates
     comm_step = 3
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
@@ -182,6 +182,8 @@ if __name__ == "__main__":
     # macbook
     # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
 
+    debug_mcts_reward_greedy_list = list()
+    debug_mcts_reward_network_list = list()
 
     test_start_time = time.time()
     for i in tqdm(range(trials)):
@@ -232,7 +234,8 @@ if __name__ == "__main__":
                             sensor_model = SensorModel(bot, map)
                             simulator = Simulator(map, bot, sensor_model, planner, rollout_type, reward_type)
                             # start_loc = bot.get_start_loc()
-                            bot.set_loc(start_loc[0], start_loc[1])
+                            # bot.set_loc(start_loc[0], start_loc[1])
+                            bot.set_loc(6, 7)
                             bot.add_map(map)
                             bot.add_sensor_model(sensor_model)
                             bot.add_simulator(simulator)
@@ -242,8 +245,6 @@ if __name__ == "__main__":
                             # this is needed incase any locations are scanned in the initial position
                             obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
                             obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
-
-                            # oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
                             
                         steps_count = 0
                         for step in tqdm(range(steps)):
@@ -253,7 +254,9 @@ if __name__ == "__main__":
                                 simulator = bot.get_simulator()
                                 sensor_model = bot.get_sensor_model()
 
-                                simulator.run(neural_model, curr_robot_positions, train=True, device=device)
+                                # oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
+
+                                simulator.run(neural_model, curr_robot_positions, train=True, debug_mcts_reward_greedy_list=debug_mcts_reward_greedy_list, debug_mcts_reward_network_list=debug_mcts_reward_network_list, device=device)
 
                                 # communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
@@ -267,7 +270,6 @@ if __name__ == "__main__":
                             elif rollout_type == "net_everyxstep" and steps_count%comm_step==0:   
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
                             elif reward_type == "net_everyxstep" and steps_count%comm_step==0:   
-                                print("HERE") 
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
                             elif rollout_type == "net_nocomm" or reward_type == "net_nocomm":
                                 pass
@@ -281,7 +283,7 @@ if __name__ == "__main__":
                         print("Score: ", score)
                         curr_list.append(score)
 
-                        # oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
+                        oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
 
                         # pickle progress
                         outfile = open(filename,'wb')
