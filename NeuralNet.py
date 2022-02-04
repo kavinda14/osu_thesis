@@ -103,11 +103,11 @@ def run_network(data, bounds, epochs, weights_path, net=None):
 
     train_loader, valid_loader = create_data_loaders(data)
 
-    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print("Device used: ", device)
     # condition so that we can retrain an existing network
     if net is None:
-        net = Net(bounds)
-    # net = Net(bounds).to(device)
+        net = Net(bounds).to(device)
 
     # Loss + Optimizer
     criterion = nn.MSELoss()
@@ -127,8 +127,9 @@ def run_network(data, bounds, epochs, weights_path, net=None):
         net.train()
         for i, data in enumerate(train_loader, 0):
             # get the inputs; data is a list of [inputs, labels]
-            # inputs, labels = data[0].to(device), data[1].to(device)
-            inputs, labels = data
+            # torch.stack() converts list of tensors into a tensor of tensors
+            # only then can we apply the to() function
+            inputs, labels = torch.stack(tuple(data[0])).to(device), torch.stack(tuple(data[1])).to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -154,7 +155,8 @@ def run_network(data, bounds, epochs, weights_path, net=None):
                 valid_loss = 0.0
                 net.eval()   
                 for _, data in enumerate(valid_loader, 0):
-                    inputs, labels = data
+                    # inputs, labels = data
+                    inputs, labels = torch.stack(tuple(data[0])).to(device), torch.stack(tuple(data[1])).to(device)
                     target = net(inputs.float())
                     loss = criterion(target, labels)
                     valid_loss += loss.item()
