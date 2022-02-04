@@ -1,6 +1,7 @@
 import NeuralNet
 import pickle
 import torch
+import numpy as np
 
 if __name__ == "__main__":
 
@@ -21,7 +22,8 @@ if __name__ == "__main__":
     
     # alienware
     # weights_path = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch4_random_greedyo_r4_t1000_s50_norollout_diffstartloc"
-    weights_path = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
+    # weights_path = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
+    weights_path = "/home/kavi/thesis/neural_net_weights/test"
     # macbookcircles_random_greedyo_r4_t2000_s25_rollout_diffstartloc
     # weights_path = "/Users/kavisen/osu_thesis/neural_net_weights/circles_21x21_epoch5_random_greedyno_r4_t800_s50_rollout"
 
@@ -29,13 +31,15 @@ if __name__ == "__main__":
     bounds = [21, 21]
     epochs = 1
     print("Training network")
-    # NeuralNet.run_network(data, bounds, epochs, weights_path)
+    # data[0] = torch.from_numpy(np.asarray(data[0]))
+    # data[1] = torch.from_numpy(np.asarray(data[1]))
+    NeuralNet.run_network(data, bounds, epochs, weights_path)
     
     # train already trained network
-    weight_file = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc_iter2"
-    neural_model = NeuralNet.Net(bounds)
-    neural_model.load_state_dict(torch.load(weights_path)) 
-    NeuralNet.run_network(data, bounds, epochs, weight_file, net=neural_model)
+    # weight_file = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc_iter2"
+    # neural_model = NeuralNet.Net(bounds)
+    # neural_model.load_state_dict(torch.load(weights_path)) 
+    # NeuralNet.run_network(data, bounds, epochs, weight_file, net=neural_model)
 
 
 

@@ -29,7 +29,7 @@ def reward_greedy(rollout_sequence, sensor_model, world_map, oracle=False):
 
     return reward
 
-def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
+def reward_network(rollout_sequence, sensor_model, world_map, neural_model, device):
     # the map should be updating as we are iterating through the sequence
     # if not, it is taking the old map and just doing that
     # pass the action_loc to the action matrix function instead of the actual action
@@ -53,7 +53,7 @@ def reward_network(rollout_sequence, sensor_model, world_map, neural_model):
         final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
 
         input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices)
-        input = input.unsqueeze(0).float()
+        input = input.unsqueeze(0).float().to(device)
         
         reward += neural_model(input).item()
 

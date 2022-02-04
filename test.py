@@ -115,27 +115,29 @@ if __name__ == "__main__":
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o", "greedy-no", "net_nocomm", "net_everystep"]
-    planner_options = ["random", "greedy-o", "greedy-no", "net_everystep"]
+    # planner_options = ["random", "greedy-o", "greedy-no", "net_everystep"]
     # planner_options = ["random", "greedy-o", "greedy-no", "net_everystep", "mcts"]
     # planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
     # planner_options = ["random", "greedy-o", "greedy-no", "mcts"]
     # planner_options = ["random", "greedy-o", "greedy-no"]
-    # planner_options = ["mcts"]
+    planner_options = ["mcts"]
     # network_options = ["net_nocomm", "net_everyxstep", "net_everystep"]
     # network_options = ["net_everystep"]
     # rollout_options = ["random", "greedy"]
     # rollout_options = ["random"]
-    rollout_options = ["random", "greedy", "net_everyxstep", "net_everystep"]
+    # rollout_options = ["random", "greedy", "net_everyxstep", "net_everystep"]
+    rollout_options = ["net_everystep"]
     # rollout_options = ["random", "greedy"] + network_options
-    reward_options = ["greedy", "net_everyxstep", "net_everystep"]
+    # reward_options = ["greedy", "net_everyxstep", "net_everystep"]
+    reward_options = ["net_everystep"]
     # reward_options = network_options
     # reward_options = ["random"]
     # reward_options = ["random", "greedy"]
     # reward_options = ["greedy"]
     print("all without times visited")
     bounds = [21, 21]
-    trials = 100
-    steps = 25
+    trials = 1
+    steps = 2
     num_robots = 4
     # to decide which step the bot communicates
     comm_step = 3
@@ -374,7 +376,7 @@ if __name__ == "__main__":
     if profile:
         pr.disable()
         pr.print_stats()
-        with open("cProfile_stats_multirobot.txt", "w") as f:
+        with open("cProfile_stats_multirobot2.txt", "w") as f:
             ps = pstats.Stats(pr, stream=f)
             ps.sort_stats('cumtime')
             ps.print_stats()
