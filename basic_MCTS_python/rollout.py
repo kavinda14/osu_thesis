@@ -28,6 +28,13 @@ def generate_valid_neighbors(current_state, state_sequence, robot):
             # sequence.append(new_loc)
             neighbors.append(State(action, new_loc))
 
+    # condition added because rollout_random ends up in spot with no neighbors sometimes
+    if len(neighbors) == 0:
+        action_idx = random.randint(0, len(actions)-1)
+        action = actions[action_idx]
+        new_loc = robot.get_action_loc(action, curr_loc=current_loc)
+        neighbors.append(State(action, new_loc))
+
     return neighbors
 
 def rollout_random(subsequence, budget, robot):
@@ -36,6 +43,7 @@ def rollout_random(subsequence, budget, robot):
     # sequence = copy.deepcopy(subsequence)
     sequence = copy.copy(subsequence)
 
+     
     while cost(sequence) < budget:
         neighbors = generate_valid_neighbors(current_state, subsequence, robot)
         r = random.randint(0, len(neighbors)-1)

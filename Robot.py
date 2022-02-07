@@ -149,8 +149,12 @@ class Robot:
         """ Move the robot while respecting bounds"""
         self.check_valid_move(direction, updateState=True)
 
-    def get_action_loc(self, action):
-        robot_loc = self.get_loc()
+    def get_action_loc(self, action, curr_loc=None):
+        # added in generate_neighbors() for random rollout
+        if curr_loc is not None:
+            robot_loc = curr_loc
+        else:
+            robot_loc = self.get_loc()
         action_loc = []
 
         if action == 'left':
@@ -170,6 +174,7 @@ class Robot:
             action_loc = robot_loc
 
         return action_loc
+
 
     def get_direction(self, current_loc, next_loc):
         if (next_loc[0] - current_loc[0] == -1):
