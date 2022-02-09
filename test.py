@@ -60,21 +60,11 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
     neural_model = NeuralNet.Net(bounds).to(device)
-    # alienware
     neural_model.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+weight_file))
-    # macbook 
-    # neural_model.load_state_dict(torch.load("/Users/kavisen/osu_thesis/"+weight_file)) 
-    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    # neural_model.to(device) 
     neural_model.eval()
 
-    # this is for pickling the score_lists
-    # alienware
     test_type = "trials{}_steps{}_allplanners".format(trials, steps)
     filename = '{}planner_scores_multibot/{}'.format(CONF[json_comp_conf]["pickle_path"], test_type)
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_roll_random_greedy_net_everystep_rew_greedy_net_everystep_notimesvisited'.format(trials, steps)
-    # macbook
-    # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
 
     debug_mcts_reward_greedy_list = list()
     debug_mcts_reward_network_list = list()
