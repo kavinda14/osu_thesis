@@ -1,3 +1,4 @@
+from util import get_CONF, get_json_comp_conf
 import pickle
 from turtle import title
 import matplotlib.pyplot as plt
@@ -6,6 +7,7 @@ import matplotlib
 import matplotlib.patches as mpatches
 from matplotlib.backends.backend_pgf import FigureCanvasPgf
 matplotlib.backend_bases.register_backend('pdf', FigureCanvasPgf)
+
 
 pgf_with_latex = {
     "text.usetex": True,            # use LaTeX to write all text
@@ -22,15 +24,11 @@ This pickle script is the fancy one without the mcts planners.
 
 if __name__ == "__main__":
 
-    # unpickle scores
-    # alienware
-    # filename = '/home/kavi/thesis/pickles/planner_scores'
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial10_steps25_roll_random_greedy_rew_random_greedy_net_everystep'
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps40_roll_random_greedy_net_everystep_rew_greedy_net_everystep'
-    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_roll_random_greedy_net_everystep_rew_greedy_net_everystep_notimesvisited'
+    CONF = get_CONF()
+    json_comp_conf = get_json_comp_conf()
 
-    # macbook
-    # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
+    # unpickle scores
+    filename = CONF[json_comp_conf]["pickle_path"] + "planner_scores_multibot/trial100_steps25_roll_random_greedy_net_everystep_rew_greedy_net_everystep_notimesvisited"
     infile = open(filename,'rb')
     score_lists = pickle.load(infile)
     infile.close()
