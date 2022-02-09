@@ -3,32 +3,7 @@ from cost import cost
 import random
 import copy
 import NeuralNet
-
-class State():
-    def __init__(self, action, location):
-        self.action = action
-        self.location = location
-
-    def get_action(self):
-        return self.action
-    
-    def get_location(self):
-        return self.location
-
-def generate_valid_neighbors(current_state, state_sequence, robot):
-    neighbors = list()
-    current_loc = current_state.get_location()
-
-    actions = ['left', 'right', 'forward', 'backward']
-    for action in actions:
-        valid, new_loc = robot.check_valid_move_mcts(action, current_loc, True)
-        if valid:
-        # if valid and new_loc not in sequence:
-            # this makes the rollout not backtrack (might be too strict)
-            # sequence.append(new_loc)
-            neighbors.append(State(action, new_loc))
-
-    return neighbors
+from util import State, generate_valid_neighbors
 
 def rollout_random(subsequence, budget, robot):
     # THESE ARE STATES

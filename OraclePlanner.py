@@ -1,6 +1,4 @@
 import random
-import torch
-from zmq import device
 import NeuralNet
 
 def random_planner(robot, sensor_model, train):

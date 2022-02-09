@@ -1,3 +1,4 @@
+from util import get_CONF, get_json_comp_conf
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,14 +11,17 @@ if __name__ == "__main__":
     3) To see if the ACCUMULATED reward for mcts rollout_reward converges (see google slides)
     """
 
+    CONF = get_CONF()
+    json_comp_conf = get_json_comp_conf()
+
     # unpickle scores
-    filename = '/home/kavi/thesis/pickles/debug_reward_greedy_list'
+    filename = CONF[json_comp_conf]["pickle_path"] + "debug_reward_greedy_list"
     infile = open(filename,'rb')
     debug_reward_greedy_list = pickle.load(infile)
     infile.close()
 
-    filename = '/home/kavi/thesis/pickles/debug_reward_network_list'
-    infile = open(filename,'rb')
+    filename = CONF[json_comp_conf]["pickle_path"] + "debug_reward_network_list"
+    infile = open(filename, 'rb')
     debug_reward_network_list = pickle.load(infile)
     infile.close()
 
@@ -33,10 +37,10 @@ if __name__ == "__main__":
     Network should be linear with greedy because the network is trained mostly on greedy data
     The 90-100k is there because we want to check only for a single trial 
     """
-    # plt.scatter(y1, y2, s=2.0)
-    # plt.xlabel("greedy")
-    # plt.ylabel("network")
-    # plt.show()
+    plt.scatter(y1, y2, s=2.0)
+    plt.xlabel("greedy")
+    plt.ylabel("network")
+    plt.show()
 
     """ 
     Reward convergence:
@@ -51,7 +55,9 @@ if __name__ == "__main__":
     end = increment
     data_dict = {}
 
-    modified_list = debug_reward_greedy_list[10000:11000]
+    # modified_list = debug_reward_greedy_list[0:20000]
+    # modified_list = debug_reward_network_list[0:12000]
+    modified_list = debug_reward_network_list[12000:24000]
 
     y1 = [i for i in range(len(modified_list))]
     y2 = modified_list

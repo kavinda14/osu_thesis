@@ -1,11 +1,13 @@
+from copy import copy
 import pickle
-from turtle import title
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
 import matplotlib.patches as mpatches
 from matplotlib.backends.backend_pgf import FigureCanvasPgf
 matplotlib.backend_bases.register_backend('pdf', FigureCanvasPgf)
+
+from util import get_CONF, get_json_comp_conf
 
 pgf_with_latex = {
     "text.usetex": True,            # use LaTeX to write all text
@@ -23,26 +25,53 @@ This pickle script is for all the greedy planners + mcts variations.
 '''
 
 if __name__ == "__main__":
+    
+    CONF = get_CONF()
+    json_comp_conf = get_json_comp_conf()
 
     # unpickle scores
-    # alienware
-    # filename = '/home/kavi/thesis/pickles/planner_scores'
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial10_steps25_roll_random_greedy_rew_random_greedy_net_everystep'
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps40_roll_random_greedy_net_everystep_rew_greedy_net_everystep'
-    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_comm_nocomm'
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/test'
-    # macbook
-    # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
-    infile = open(filename,'rb')
+    experiment1 = "trial100_steps25_comm_nocomm_newrolloutdata_epoch2"
+    filename1 = CONF[json_comp_conf]["pickle_path"] + "planner_scores_multibot/{}".format(experiment1)
+    infile = open(filename1,'rb')
     score_lists = pickle.load(infile)
     infile.close()
 
+    experiment2 = "trial100_steps25_comm_nocomm"
+    filename2 = CONF[json_comp_conf]["pickle_path"] + "planner_scores_multibot/{}".format(experiment2)
+    infile = open(filename2,'rb')
+    score_lists2 = pickle.load(infile)
+    infile.close()
+
     # print(score_lists)
+    for score_list in score_lists:
+        if 0 <= 3 < len(score_list):
+            del score_list[3]
+    print(score_lists)
+
+    # print(score_lists2)
+    for score_list in score_lists2:
+        if 0 <= 3 < len(score_list):
+            del score_list[3]
+    print(score_lists2)
+
+    new_score_lists = copy(score_lists)
+    for i, score_list in enumerate(score_lists):
+        if len(score_list)> 0:
+            for j, score_list2 in enumerate(score_lists2):
+                if len(score_list2)> 0:
+                    if score_list[0] == score_list2[0]:
+                        new_score_lists[i].append(score_list2[1])
+                        new_score_lists[i].append(score_list2[2])
+
+    print()
+    print(new_score_lists)
+    
 
     ## Bar graphs
     bars = list()
     scores = list()
 
+    score_lists = new_score_lists
     for score_list in score_lists:
         if len(score_list) == 0: # this condition was added because we are skipping some mcts planners
             score_lists.remove(score_list)
@@ -131,4 +160,4 @@ if __name__ == "__main__":
     
     plt.ylabel("Total Reward")
     # plt.show()
-    plt.savefig("test_allplanners3.pdf")
+    plt.savefig(CONF[json_comp_conf]["experiments_path"] + "exp.pdf")

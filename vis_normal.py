@@ -1,8 +1,10 @@
+
 import pickle
 from turtle import title
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib
+from copy import copy
+from util import get_CONF, get_json_comp_conf
 
 '''
 This pickle script is without the fancy visuals for all planners.
@@ -10,19 +12,43 @@ This pickle script is without the fancy visuals for all planners.
 
 if __name__ == "__main__":
 
+    CONF = get_CONF()
+    json_comp_conf = get_json_comp_conf()
+
     # unpickle scores
-    # alienware
-    # filename = '/home/kavi/thesis/pickles/planner_scores'
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial10_steps25_roll_random_greedy_rew_random_greedy_net_everystep'
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_comm_nocomm_commstep3'
-    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_comm_nocomm'
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial100_steps25_comm_nocomm_notimesvisited'
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/test'
-    # macbook
-    # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
+    filename = CONF[json_comp_conf]["pickle_path"] + "planner_scores_multibot/trial100_steps25_comm_nocomm_newrolloutdata_epoch2"
     infile = open(filename,'rb')
     score_lists = pickle.load(infile)
     infile.close()
+
+    filename = CONF[json_comp_conf]["pickle_path"] + "planner_scores_multibot/trial100_steps25_comm_nocomm"
+    infile = open(filename,'rb')
+    score_lists2 = pickle.load(infile)
+    infile.close()
+
+    # print(score_lists)
+    for score_list in score_lists:
+        if 0 <= 3 < len(score_list):
+            del score_list[3]
+    print(score_lists)
+
+    # print(score_lists2)
+    for score_list in score_lists2:
+        if 0 <= 3 < len(score_list):
+            del score_list[3]
+    print(score_lists2)
+
+    new_score_lists = copy(score_lists)
+    for i, score_list in enumerate(score_lists):
+        if len(score_list)> 0:
+            for j, score_list2 in enumerate(score_lists2):
+                if len(score_list2)> 0:
+                    if score_list[0] == score_list2[0]:
+                        new_score_lists[i].append(score_list2[1])
+                        new_score_lists[i].append(score_list2[2])
+
+    print()
+    print(new_score_lists)
 
     # print(score_lists)
 
@@ -82,4 +108,4 @@ if __name__ == "__main__":
     
     plt.ylabel("Total Reward")
     plt.show()
-    # plt.savefig("test.pdf")
+    # plt.savefig(CONF[json_comp_conf]["experiments_path"] + "exp.pdf")
