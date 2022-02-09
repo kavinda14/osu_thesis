@@ -9,7 +9,8 @@ import pickle
 import torch
 import copy
 import numpy as np
-from util import get_random_loc, oracle_visualize, communicate
+from util import get_random_loc, oracle_visualize, communicate, get_CONF, get_json_comp_conf
+
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -32,9 +33,9 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
 
         # create robots
         robots = list()
-        # start_loc = get_random_loc(map, bounds)
+        start_loc = get_random_loc(map, bounds)
         for _ in range(num_robots):
-            start_loc = get_random_loc(map, bounds)
+            # start_loc = get_random_loc(map, bounds)
             bot = Robot(start_loc[0], start_loc[1], bounds, map)
             robots.append(bot)
             bots_starting_locs.append(start_loc)
@@ -270,6 +271,10 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, final_a
 
         for action in final_actions_binary_matrices[i]:
             image.append(action)
+
+        # this is needed, because torch complains otherwise that converting a list is too slow
+        # it's better to use a np array because of the way a np array is stored in memory (contiguous)
+        image = np.array(image)
         
         data.append([torch.IntTensor(image), final_scores[i]])
 
@@ -283,14 +288,14 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, final_a
 
 if __name__ == "__main__":
 
+    CONF = get_CONF()
+    json_comp_conf = get_json_comp_conf()
+
     # for pickling
-    # alienware
-    # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyo_r4_t1000_s50_norollout_diffstartloc'
-    # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_r4_t2000_s25_rollout_diffstartloc'
     # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_r4_t2000_s25_rollout_diffstartloc_otherpathmix'
-    outfile_tensor_images = '/home/kavi/thesis/pickles/test'
-    # macbook
-    # outfile_tensor_images = '/Users/kavisen/osu_thesis/data/data_21x21_circles_random_greedyno_r4_t800_s50_rollout'
+    datafile = "data_21x21_circles_random_greedyno_r4_t2000_s25_rolloutotherpath_samestartloc"
+    datafile = "test"
+    outfile_tensor_images = CONF[json_comp_conf]["pickle_path"] + datafile
     
     # generate data
     print("Generating matrices")
