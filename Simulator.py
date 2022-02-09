@@ -80,7 +80,8 @@ class Simulator:
         
 
     # train is there because of the backtracking condition in each planner 
-    def run(self, neural_model, curr_robot_positions, device, obs_occupied_oracle=set(), train=False, generate_data=False, debug_mcts_reward_greedy_list=list(), debug_mcts_reward_network_list=list()):
+
+    def run(self, neural_model, curr_robot_positions, device=None, obs_occupied_oracle=set(), train=False, generate_data=False, debug_mcts_reward_greedy_list=list(), debug_mcts_reward_network_list=list(), CONF=None, json_comp_conf=None):
         self.iterations += 1        
 
         # Generate an action from the robot path
@@ -99,7 +100,8 @@ class Simulator:
             max_iterations = 12000
             # exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             exploration_exploitation_parameter = 2.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-            solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model, debug_mcts_reward_greedy_list, debug_mcts_reward_network_list, device=device)
+            solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model, debug_mcts_reward_greedy_list, 
+                                                                                                  debug_mcts_reward_network_list, device=device, CONF=CONF, json_comp_conf=json_comp_conf)
             # plot_tree.plotTree(list_of_all_nodes, winner_node, True, budget, "1", exploration_exploitation_parameter)
             
             # times_visited = self.sensor_model.get_final_path().count(tuple(winner_loc)) + self.sensor_model.get_final_other_path().count(tuple(winner_loc))

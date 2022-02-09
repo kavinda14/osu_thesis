@@ -13,38 +13,12 @@ import copy
 import random
 import math
 import pickle
+from util import State, generate_valid_neighbors
 
-
-class State():
-    def __init__(self, action, location):
-        self.action = action
-        self.location = location
-
-    def get_action(self):
-        return self.action
-    
-    def get_location(self):
-        return self.location
-
-# returns valid State objects (contains action and location) from a given position
-def generate_valid_neighbors(current_state, state_sequence, robot):
-    neighbors = list()
-    current_loc = current_state.get_location()
-
-    sequence = [state.get_location() for state in state_sequence]
-    actions = ['left', 'right', 'forward', 'backward']
-    for action in actions:
-        valid, new_loc = robot.check_valid_move_mcts(action, current_loc, True)
-        if valid and new_loc not in sequence:
-            neighbors.append(State(action, new_loc))
-
-    return neighbors
-
-# debug_reward_greedy_list = list()
-# debug_reward_network_list = list()
 
 # def mcts(action_set, budget, max_iterations, exploration_exploitation_parameter, robot, input_map):
-def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sensor_model, world_map, rollout_type, reward_type, neural_model, debug_mcts_reward_greedy_list, debug_mcts_reward_network_list, device=False):
+def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sensor_model, world_map, rollout_type, reward_type, neural_model, 
+         debug_mcts_reward_greedy_list, debug_mcts_reward_network_list, CONF, json_comp_conf, device=False):
 
     ################################
     # Setup
@@ -171,8 +145,8 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
         debug_mcts_reward_network_list.append(debug_reward_network)
 
         # pickle progress
-        filename1 = '/home/kavi/thesis/pickles/debug_reward_greedy_list'
-        filename2 = '/home/kavi/thesis/pickles/debug_reward_network_list'
+        filename1 = CONF[json_comp_conf]["pickle_path"] + "debug_reward_greedy_list"
+        filename2 = CONF[json_comp_conf]["pickle_path"] + "debug_reward_network_list"
         outfile = open(filename1,'wb')
         pickle.dump(debug_mcts_reward_greedy_list, outfile)
         outfile.close()
@@ -240,6 +214,5 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
     solution = current.sequence
     winner_node = best_child
     winner_loc = winner_node.get_coords()
-
 
     return [solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc]

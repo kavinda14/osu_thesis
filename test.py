@@ -1,144 +1,39 @@
-from zmq import device
 from SensorModel import SensorModel
 from Map import Map
 from Robot import Robot
 from Simulator import Simulator
 import copy
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import numpy as np
-import random as random
 import time as time
 import pickle
 import NeuralNet
 import torch
 from tqdm import tqdm
-from basic_MCTS_python.reward import reward_greedy
+from util import get_random_loc, oracle_visualize, communicate, get_CONF, get_json_comp_conf
 
 import cProfile
 import pstats
 
-# used to create random, valid starting locs
-def get_random_loc(map, bounds):
-    valid_starting_loc = False
-    while not valid_starting_loc:
-        x = random.randint(0, bounds[0]-1)
-        y = random.randint(0, bounds[0]-1)
-        valid_starting_loc = map.check_loc(x, y)
-
-    return [x, y]
-
-def oracle_visualize(robots, bounds, map, planner, reward_type=None, rollout_type=None):
-    plt.xlim(0, bounds[0])
-    plt.ylim(0, bounds[1])
-    # plt.title("Planner: {}, Score: {}".format(self.planner, sum(self.sensor_model.get_final_scores())))
-
-    ax = plt.gca()
-    ax.set_aspect('equal', 'box')
-
-    # this has to be done before the bot for loop to avoid red patches
-    # ..going over the other obs_occupied patches
-    for spot in map.unobs_occupied:
-        hole = patches.Rectangle(spot, 1, 1, facecolor='red')
-        ax.add_patch(hole)
-
-    for spot in map.unobs_free:
-        hole = patches.Rectangle(spot, 1, 1, facecolor='black')
-        ax.add_patch(hole)
-    
-    # get all the observed locations from all robots
-    obs_free = set()
-    obs_occupied = set()
-    for bot in robots:
-        simulator = bot.get_simulator()
-        map = bot.get_map()
-
-        obs_free = obs_free.union(simulator.get_obs_free())
-        obs_occupied = obs_occupied.union(simulator.get_obs_occupied())
-
-        bot_color = bot.get_color()
-
-        # plot robot
-        robot_x = bot.get_loc()[0] + 0.5
-        robot_y = bot.get_loc()[1] + 0.5
-        plt.scatter(robot_x, robot_y, color=bot_color, zorder=5)
-
-        # plot robot path
-        x_values = list()
-        y_values = list()
-        for path in bot.get_sensor_model().get_final_path():
-            x_values.append(path[0] + 0.5)
-            y_values.append(path[1] + 0.5)
-        plt.plot(x_values, y_values, color=bot_color)
-
-        for spot in obs_occupied:
-            hole = patches.Rectangle(spot, 1, 1, facecolor=bot_color)
-            ax.add_patch(hole)
-        obs_occupied = set()
-    
-    for spot in obs_free:
-        hole = patches.Rectangle(spot, 1, 1, facecolor='white')
-        ax.add_patch(hole)
-    
-    if reward_type and rollout_type is not None:
-        plt.title(planner + "_" + reward_type + "_" + rollout_type)
-    else:
-        plt.title(planner)
-
-    plt.show()
-
-def communicate(robots, obs_occupied_oracle, obs_free_oracle):
-    for bot1 in robots:
-        sensor_model_bot1 = bot1.get_sensor_model()
-        map_bot1 = bot1.get_map()
-        other_paths = list()
-
-        # for communicating the belief maps
-        # by communicating these sets, the maps will contain these updates
-        map_bot1.add_oracle_obs_free(obs_free_oracle)
-        map_bot1.add_oracle_obs_occupied(obs_occupied_oracle)
-
-        for bot2 in robots:
-            if bot1 is not bot2:
-                sensor_model_bot2 = bot2.get_sensor_model()
-                final_path_bot2 = sensor_model_bot2.get_final_path()
-                other_paths += final_path_bot2
-                
-        final_other_path_bot1 = sensor_model_bot1.get_final_other_path() + other_paths
-        # final_other_path_bot1 = sensor_model_bot1.get_final_other_path().union(other_paths)
-        sensor_model_bot1.set_final_other_path(final_other_path_bot1)
-        
         
 if __name__ == "__main__":
+
+    CONF = get_CONF()
+    json_comp_conf = get_json_comp_conf()
 
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
-    # planner_options = ["random", "greedy-o", "greedy-no", "net_nocomm", "net_everystep"]
-    # planner_options = ["random", "greedy-o", "greedy-no", "net_everystep"]
-    # planner_options = ["random", "greedy-o", "greedy-no", "net_everystep", "mcts"]
     # planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
-    # planner_options = ["random", "greedy-o", "greedy-no", "mcts"]
-    # planner_options = ["random", "greedy-o", "greedy-no"]
     planner_options = ["mcts"]
-    # network_options = ["net_nocomm", "net_everyxstep", "net_everystep"]
-    # network_options = ["net_everystep"]
-    # rollout_options = ["random", "greedy"]
-    # rollout_options = ["random"]
     # rollout_options = ["random", "greedy", "net_everyxstep", "net_everystep"]
     rollout_options = ["random"]
-    # rollout_options = ["random", "greedy"] + network_options
-    # reward_options = ["greedy", "net_everyxstep", "net_everystep"]
     reward_options = ["random"]
-    # reward_options = network_options
-    # reward_options = ["random"]
-    # reward_options = ["random", "greedy"]
-    # reward_options = ["greedy"]
-    print("reward convergence test")
+    # reward_options = ["greedy", "net_everyxstep", "net_everystep"]
     bounds = [21, 21]
-    trials = 1
+    trials = 100
     steps = 25
-    num_robots = 1
+    num_robots = 4
     # to decide which step the bot communicates
     comm_step = 3
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
@@ -159,14 +54,14 @@ if __name__ == "__main__":
     
     # load neural net
     # weight_file = "circles_21x21_epoch3_random_greedyo_r4_t1000_s50_norollout_diffstartloc"
-    weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
-    # weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc_iter2"
+    # weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
+    weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s25_rollout_diffstartloc_otherpathmix"
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
     neural_model = NeuralNet.Net(bounds).to(device)
     # alienware
-    neural_model.load_state_dict(torch.load("/home/kavi/thesis/neural_net_weights/"+weight_file)) 
+    neural_model.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+weight_file))
     # macbook 
     # neural_model.load_state_dict(torch.load("/Users/kavisen/osu_thesis/"+weight_file)) 
     # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -175,15 +70,17 @@ if __name__ == "__main__":
 
     # this is for pickling the score_lists
     # alienware
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_roll_random_greedy_rew_net_everystep_wbacktracking'.format(trials, steps)
-    filename = '/home/kavi/thesis/pickles/planner_scores_multibot/test2'
+    test_type = "trials{}_steps{}_allplanners".format(trials, steps)
+    filename = '{}planner_scores_multibot/{}'.format(CONF[json_comp_conf]["pickle_path"], test_type)
     # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_roll_random_greedy_net_everystep_rew_greedy_net_everystep_notimesvisited'.format(trials, steps)
-    # filename = '/home/kavi/thesis/pickles/planner_scores_multibot/trial{}_steps{}_comm_nocomm_commstep3'.format(trials, steps)
     # macbook
     # filename = '/Users/kavisen/osu_thesis/pickles/planner_scores_test'
 
     debug_mcts_reward_greedy_list = list()
     debug_mcts_reward_network_list = list()
+
+    # so we know which experiement we are running
+    print("TEST: test budget 6 - {} - {}".format(weight_file, test_type))
 
     test_start_time = time.time()
     for i in tqdm(range(trials)):
@@ -234,8 +131,7 @@ if __name__ == "__main__":
                             sensor_model = SensorModel(bot, map)
                             simulator = Simulator(map, bot, sensor_model, planner, rollout_type, reward_type)
                             # start_loc = bot.get_start_loc()
-                            # bot.set_loc(start_loc[0], start_loc[1])
-                            bot.set_loc(6, 7)
+                            bot.set_loc(start_loc[0], start_loc[1])
                             bot.add_map(map)
                             bot.add_sensor_model(sensor_model)
                             bot.add_simulator(simulator)
@@ -247,6 +143,7 @@ if __name__ == "__main__":
                             obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
                             
                         steps_count = 0
+                        acc_score = list()
                         for step in tqdm(range(steps)):
                             curr_robot_positions = set()
                         
@@ -256,13 +153,21 @@ if __name__ == "__main__":
 
                                 # oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
 
-                                simulator.run(neural_model, curr_robot_positions, train=True, debug_mcts_reward_greedy_list=debug_mcts_reward_greedy_list, debug_mcts_reward_network_list=debug_mcts_reward_network_list, device=device)
+                                simulator.run(neural_model, curr_robot_positions, train=True, 
+                                debug_mcts_reward_greedy_list=debug_mcts_reward_greedy_list, 
+                                debug_mcts_reward_network_list=debug_mcts_reward_network_list, 
+                                device=device, CONF=CONF, json_comp_conf=json_comp_conf)
 
                                 # communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
                                 # to keep track of score
                                 obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
                                 obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+                            
+                            step_score = len(obs_occupied_oracle)
+                            if len(acc_score) > 0:
+                                acc_score.append(acc_score[-1] + step_score)
+                            acc_score.append(step_score)
 
                             steps_count += 1
                             if rollout_type == "net_everystep" or reward_type == "net_everystep":   
@@ -283,7 +188,7 @@ if __name__ == "__main__":
                         print("Score: ", score)
                         curr_list.append(score)
 
-                        oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
+                        # oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
 
                         # pickle progress
                         outfile = open(filename,'wb')
@@ -361,7 +266,7 @@ if __name__ == "__main__":
                 score = len(obs_occupied_oracle)     
                 print("Score: ", score)
                 curr_list.append(score)
-                oracle_visualize(robots, bounds, map, planner)
+                # oracle_visualize(robots, bounds, map, planner)
 
                 # if planner == "net_nocomm" or planner == "net_everyxstep" or planner == "net_everystep":
                     # oracle_visualize(robots, bounds, map, planner)
