@@ -108,4 +108,4 @@ if __name__ == "__main__":
     
     plt.ylabel("Total Reward")
     plt.show()
-    # plt.savefig("test.pdf")
+    # plt.savefig(CONF[json_comp_conf]["experiments_path"] + "exp.pdf")
