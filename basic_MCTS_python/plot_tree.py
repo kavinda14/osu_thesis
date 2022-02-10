@@ -1,31 +1,29 @@
-
-
 import matplotlib
 import matplotlib.pyplot as plt
 import math
 from action import printActionSequence
 
-# def plotTree(list_of_all_nodes, winner, action_set, use_UCT, budget, fig_num, exploration_exploitation_parameter):
 def plotTree(list_of_all_nodes, winner, use_UCT, budget, fig_num, exploration_exploitation_parameter):
 
     def ucb(average, n_parent, n_child):
-        return average + exploration_exploitation_parameter * math.sqrt( (2*math.log(n_parent)) / float(n_child) )
+        return average + exploration_exploitation_parameter * math.sqrt((2*math.log(n_parent)) / float(n_child))
 
     # Setup figure
     fig = plt.figure(fig_num)
-    ax = fig.add_axes([0,0,1,1])
+    ax = fig.add_axes([0, 0, 1, 1])
     ax.set_axis_off()
 
     num_actions = 4
     # num_actions = len(action_set)
 
     # Compute colour bounds
-    r_min = 1.0
-    r_max = 0.0
+    r_min = 1000.0
+    r_max = -1000.0
     for n in list_of_all_nodes:
         if n.parent:
             if use_UCT:
-                r = ucb(n.average_evaluation_score, n.parent.num_updates, n.num_updates)
+                r = ucb(n.average_evaluation_score,
+                        n.parent.num_updates, n.num_updates)
             else:
                 r = n.average_evaluation_score
 
@@ -55,9 +53,12 @@ def plotTree(list_of_all_nodes, winner, use_UCT, budget, fig_num, exploration_ex
         if n.parent:
 
             if use_UCT:
-                r = ucb(n.average_evaluation_score, n.parent.num_updates, n.num_updates)
+                r = ucb(n.average_evaluation_score,
+                        n.parent.num_updates, n.num_updates)
             else:
                 r = n.average_evaluation_score
+
+            print(r)
 
             # Normalise and saturate
             r = (r - r_min)/(r_max-r_min)
@@ -84,23 +85,26 @@ def plotTree(list_of_all_nodes, winner, use_UCT, budget, fig_num, exploration_ex
             if n == winner:
                 x = my_position
                 y = -my_depth
-                winner_handle = ax.plot(x, y, 'or', zorder=2, linewidth=5, markersize=12)
+                winner_handle = ax.plot(
+                    x, y, 'or', zorder=2, linewidth=5, markersize=12)
 
-    plt.axis('off') 
-    plt.show(block=False)
+    plt.axis('off')
+    # plt.show(block=False)
+    plt.show(block=True)
 
 
 def getPosition(seq, n):
-
     # Compute horizontal position based on sequence
     pos = -scramble(0, n)
     eps = 0
     maxn = 6
 
     for i in range(len(seq)):
-        pos = max(((-eps/maxn)*i+eps),1)*(pos + scramble(seq[i].id, n) * math.pow(n, -i))
+        pos = max(((-eps/maxn)*(i+0.5)+eps), 1) * \
+            (pos + scramble(seq[i].id, n) * math.pow(n, -i))
 
     return -pos
 
+
 def scramble(i, n):
-    return -(i - math.floor(float(n)/2.0)) / float(n)
+    return -((i+0.5) - math.floor(float(n)/2.0)) / float(n)

@@ -113,6 +113,17 @@ class State():
         self.action = action
         self.location = location
 
+        self.id = -1
+
+        if self.action == 'left':
+            self.id = 0
+        elif self.action == 'right':
+            self.id = 1
+        elif self.action == 'forward':
+            self.id = 2
+        elif self.action == 'backward':
+            self.id = 3
+
     def get_action(self):
         return self.action
 
