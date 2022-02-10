@@ -24,14 +24,17 @@ if __name__ == "__main__":
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
-    # planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
-    planner_options = ["mcts"]
-    # rollout_options = ["random", "greedy", "net_everyxstep", "net_everystep"]
-    rollout_options = ["random"]
-    reward_options = ["random"]
-    # reward_options = ["greedy", "net_everyxstep", "net_everystep"]
+    # planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep"]
+    planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
+    # planner_options = ["mcts"]
+    # planner_options = ["random"]
+    rollout_options = ["random", "greedy", "net_everyxstep", "net_everystep"]
+    # rollout_options = ["random"]
+    # reward_options = ["net_everystep"]
+    # reward_options = ["random"]
+    reward_options = ["greedy", "net_everyxstep", "net_everystep"]
     bounds = [21, 21]
-    trials = 100
+    trials = 3
     steps = 25
     num_robots = 4
     # to decide which step the bot communicates
@@ -54,8 +57,8 @@ if __name__ == "__main__":
     
     # load neural net
     # weight_file = "circles_21x21_epoch3_random_greedyo_r4_t1000_s50_norollout_diffstartloc"
-    # weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
-    weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s25_rollout_diffstartloc_otherpathmix"
+    weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
+    # weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s25_rollout_diffstartloc_otherpathmix"
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
@@ -63,7 +66,8 @@ if __name__ == "__main__":
     neural_model.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+weight_file))
     neural_model.eval()
 
-    test_type = "trials{}_steps{}_allplanners".format(trials, steps)
+    # test_type = "trials{}_steps{}_allplanners".format(trials, steps)
+    test_type = "trials{}_steps{}_test".format(trials, steps)
     filename = '{}planner_scores_multibot/{}'.format(CONF[json_comp_conf]["pickle_path"], test_type)
 
     debug_mcts_reward_greedy_list = list()
@@ -259,7 +263,7 @@ if __name__ == "__main__":
                 # oracle_visualize(robots, bounds, map, planner)
 
                 # if planner == "net_nocomm" or planner == "net_everyxstep" or planner == "net_everystep":
-                    # oracle_visualize(robots, bounds, map, planner)
+                #     oracle_visualize(robots, bounds, map, planner)
 
                 # pickle progress
                 outfile = open(filename,'wb')

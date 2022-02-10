@@ -74,7 +74,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
                 # Setup the new action sequence
                 # what does it mean to add something to a treenode sequence?
                 # -> is it the order of traversal down the tree?
-                new_sequence = copy.deepcopy(current.sequence)
+                new_sequence = copy.copy(current.sequence)
                 new_sequence.append(child_action)
                 new_budget_left = budget - cost(new_sequence)
 
@@ -82,9 +82,9 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
                 # Remove any over budget children from this set
                 new_unpicked_child_actions = generate_valid_neighbors(child_action, new_sequence, robot)
                 def is_overbudget(a):
-                    seq_copy = copy.deepcopy(current.sequence)
+                    seq_copy = copy.copy(current.sequence)
                     seq_copy.append(a)
-                    return cost(seq_copy) > budget
+                    return cost(seq_copy) >= budget
                 
                 # for the next node created, this adds actions to it only if there is budget left to do those actions
                 new_unpicked_child_actions = [a for a in new_unpicked_child_actions if not is_overbudget(a)]
@@ -139,24 +139,24 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
             rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map, neural_model=neural_model, device=device)
 
         # TEST TO CHECK IF GREEDY AND NETWORK REWARDS ARE LINEAR
-        debug_reward_greedy = reward.reward_greedy(rollout_sequence, sensor_model, world_map, oracle=True)
-        debug_reward_network = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model, device=device)
-        debug_mcts_reward_greedy_list.append(debug_reward_greedy)
-        debug_mcts_reward_network_list.append(debug_reward_network)
+        # debug_reward_greedy = reward.reward_greedy(rollout_sequence, sensor_model, world_map, oracle=True)
+        # debug_reward_network = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model, device=device)
+        # debug_mcts_reward_greedy_list.append(debug_reward_greedy)
+        # debug_mcts_reward_network_list.append(debug_reward_network)
 
-        # pickle progress
-        filename1 = CONF[json_comp_conf]["pickle_path"] + "debug_reward_greedy_list"
-        filename2 = CONF[json_comp_conf]["pickle_path"] + "debug_reward_network_list"
-        outfile = open(filename1,'wb')
-        pickle.dump(debug_mcts_reward_greedy_list, outfile)
-        outfile.close()
-        outfile = open(filename2,'wb')
-        pickle.dump(debug_mcts_reward_network_list, outfile)
-        outfile.close()
+        # # pickle progress
+        # filename1 = CONF[json_comp_conf]["pickle_path"] + "debug_reward_greedy_list"
+        # filename2 = CONF[json_comp_conf]["pickle_path"] + "debug_reward_network_list"
+        # outfile = open(filename1,'wb')
+        # pickle.dump(debug_mcts_reward_greedy_list, outfile)
+        # outfile.close()
+        # outfile = open(filename2,'wb')
+        # pickle.dump(debug_mcts_reward_network_list, outfile)
+        # outfile.close()
 
-        if reward_type == 'random':
-            rollout_reward = reward.reward_random(rollout_sequence)
-        elif reward_type == 'greedy':
+        # if reward_type == 'random':
+        #     rollout_reward = reward.reward_random(rollout_sequence)
+        if reward_type == 'greedy':
             rollout_reward = reward.reward_greedy(rollout_sequence, sensor_model, world_map)
         else: # all networks will run this
             rollout_reward = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model, device=device)

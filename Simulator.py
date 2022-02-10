@@ -95,14 +95,14 @@ class Simulator:
         if self.planner == "net_everystep" or self.planner == "net_everyxstep" or self.planner == "net_nocomm":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True, device=device)
         if self.planner == 'mcts':
-            budget = 5
-            # max_iterations = 1000
-            max_iterations = 12000
+            budget = 6
+            max_iterations = 1000
+            # max_iterations = 5
             # exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-            exploration_exploitation_parameter = 2.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
+            exploration_exploitation_parameter = 5.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model, debug_mcts_reward_greedy_list, 
                                                                                                   debug_mcts_reward_network_list, device=device, CONF=CONF, json_comp_conf=json_comp_conf)
-            # plot_tree.plotTree(list_of_all_nodes, winner_node, True, budget, "1", exploration_exploitation_parameter)
+            # plot_tree.plotTree(list_of_all_nodes, winner_node, False, budget, "1", exploration_exploitation_parameter)
             
             # times_visited = self.sensor_model.get_final_path().count(tuple(winner_loc)) + self.sensor_model.get_final_other_path().count(tuple(winner_loc))
             

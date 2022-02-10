@@ -146,9 +146,12 @@ def generate_valid_neighbors(current_state, state_sequence, robot):
 
     # condition added because rollout_random ends up in spot with no neighbors sometimes
     if len(neighbors) == 0:
-        action_idx = random.randint(0, len(actions)-1)
-        action = actions[action_idx]
-        new_loc = robot.get_action_loc(action, curr_loc=current_loc)
-        neighbors.append(State(action, new_loc))
+        while True:
+            action_idx = random.randint(0, len(actions)-1)
+            action = actions[action_idx]
+            new_loc = robot.get_action_loc(action, curr_loc=current_loc)
+            if robot.check_new_loc(new_loc[0], new_loc[1]):
+                neighbors.append(State(action, new_loc))
+                break
 
     return neighbors

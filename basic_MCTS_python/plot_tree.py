@@ -1,4 +1,3 @@
-import matplotlib
 import matplotlib.pyplot as plt
 import math
 from action import printActionSequence
@@ -58,7 +57,7 @@ def plotTree(list_of_all_nodes, winner, use_UCT, budget, fig_num, exploration_ex
             else:
                 r = n.average_evaluation_score
 
-            print(r)
+            # print(r)
 
             # Normalise and saturate
             r = (r - r_min)/(r_max-r_min)
@@ -87,6 +86,9 @@ def plotTree(list_of_all_nodes, winner, use_UCT, budget, fig_num, exploration_ex
                 y = -my_depth
                 winner_handle = ax.plot(
                     x, y, 'or', zorder=2, linewidth=5, markersize=12)
+
+            # show the average_evaluation_score for the root children
+
 
     plt.axis('off')
     # plt.show(block=False)
