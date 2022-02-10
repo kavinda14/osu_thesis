@@ -2,7 +2,8 @@
     "alienware - kavi": {
         "neural_net_weights_path": "/home/kavi/thesis/neural_net_weights/",
         "pickle_path": "/home/kavi/thesis/pickles/",
-        "experiments_path": "/home/kavi/thesis/experiments/"
+        "experiments_path": "/home/kavi/thesis/experiments/",
+        "shared_files_path": "/home/kavi/thesis/shared_files/"
     },
 
     "graeme desktop": {
