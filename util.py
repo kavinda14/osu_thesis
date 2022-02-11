@@ -78,7 +78,7 @@ def oracle_visualize(robots, bounds, map, planner, reward_type=None, rollout_typ
         ax.add_patch(hole)
 
     if reward_type and rollout_type is not None:
-        plt.title(planner + "_" + reward_type + "_" + rollout_type)
+        plt.title(planner + "_" + rollout_type + "_" + reward_type)
     else:
         plt.title(planner)
 

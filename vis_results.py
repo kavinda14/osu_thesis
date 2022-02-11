@@ -43,10 +43,7 @@ for key, value in pickles_dict.items():
                 full_comms_dict[key] += score_list[1:]
         for key in less_comms_dict.keys():
             if score_list[0] == key:
-                if score_list[0] == "net_everysxtep":
-                    print(score_list)
                 less_comms_dict[key] += score_list[1:]
-
 
 # create the score lists for the boxplot                
 results_full_comms = [np.array(value) for value in full_comms_dict.values()]
@@ -92,9 +89,9 @@ plt.xticks(np.arange(0, len(ticks) * 3, 3), ticks, rotation=40, ha='right', rota
 plt.xlim(-1.5, len(ticks)*3-1.5)
  
 ymin=-2
-ymax=150
+ymax=130
 plt.ylim(ymin, ymax)
-plt.yticks(range(0,ymax,5))
+plt.yticks(range(0,ymax,10))
 
 plt.ylabel('Cells Observed')
 plt.xlabel('Planning Algorithm')
