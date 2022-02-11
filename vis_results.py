@@ -26,8 +26,10 @@ for i in range(file_count):
 # list the planners in each list
 full_comms_planners = ["net_everystep_net_everystep", "random_net_everystep",
                        "net_everystep", "greedy_greedy", "random_greedy", "greedy-no", "random"]
+# less_comms_planners = ["net_everyxstep_net_everyxstep", "random_net_everyxstep",
+#                        "net_everyxstep", "greedy_greedy", "random_greedy", "greedy-no_everyxstep", "random"]
 less_comms_planners = ["net_everyxstep_net_everyxstep", "random_net_everyxstep",
-                       "net_everyxstep", "greedy_greedy", "random_greedy", "greedy-no_everyxstep", "random"]
+                       "net_everyxstep", "NaN", "NaN", "greedy-no_everyxstep", "NaN"]
 no_comms_planners = []
 
 # aggregate the scores from the different pickles for the same planner
