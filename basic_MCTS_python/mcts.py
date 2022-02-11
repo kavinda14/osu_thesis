@@ -131,9 +131,9 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
 
         ################################
         # Rollout
-        if rollout_type == 'random':
+        if rollout_type in ("random_poorcomm", "random_partialcomm", "random_fullcomm"):
             rollout_sequence = rollout_random(subsequence=current.sequence, budget=budget, robot=robot)
-        elif rollout_type == 'greedy':
+        elif rollout_type in ("greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm"):
             rollout_sequence = rollout_greedy(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map)
         else: # all networks will run this
             rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map, neural_model=neural_model, device=device)
@@ -156,7 +156,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
 
         # if reward_type == 'random':
         #     rollout_reward = reward.reward_random(rollout_sequence)
-        if reward_type == 'greedy':
+        if reward_type in ("greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm"):
             rollout_reward = reward.reward_greedy(rollout_sequence, sensor_model, world_map)
         else: # all networks will run this
             rollout_reward = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model, device=device)

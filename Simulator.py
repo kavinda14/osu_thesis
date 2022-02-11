@@ -86,24 +86,18 @@ class Simulator:
 
         # Generate an action from the robot path
         action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
-        if self.planner == "random":
+        if self.planner in ("random_fullcomm", "random_partialcomm", "random_poorcomm"):
             action = OraclePlanner.random_planner(self.robot, self.sensor_model, train=True)
-        elif self.planner == "random_everyxstep":
-            action = OraclePlanner.random_planner(self.robot, self.sensor_model, train=False)
-        elif self.planner in ("greedy-o", "greedy-o_everyxstep"):
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=True)                                    
-        elif self.planner in ("greedy-no", "greedy-no_everyxstep"):
+        elif self.planner in ("greedy_fullcomm", "greedy_partialcomm", "greedy_poorcomm"):
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=False)
-        elif self.planner in ("net_everystep", "net_everyxstep", "net_nocomm"):
+        elif self.planner in ("net_fullcomm", "net_partialcomm", "net_poorcomm"):
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True, device=device)
         elif self.planner == "net_trial":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model_trial, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True, device=device)
         elif self.planner == 'mcts':
             budget = 6
-            max_iterations = 2
-            # max_iterations = 5
-            # exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
-            exploration_exploitation_parameter = 5.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
+            max_iterations = 1000
+            exploration_exploitation_parameter = 5.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
             solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model, debug_mcts_reward_greedy_list, 
                                                                                                   debug_mcts_reward_network_list, device=device, CONF=CONF, json_comp_conf=json_comp_conf)
             # plot_tree.plotTree(list_of_all_nodes, winner_node, False, budget, "1", exploration_exploitation_parameter)
