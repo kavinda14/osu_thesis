@@ -25,7 +25,8 @@ if __name__ == "__main__":
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep"]
-    planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
+    planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_trial", "net_everyxstep", "net_everystep"]
+    # planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
     # planner_options = ["mcts"]
     # planner_options = ["random"]
     rollout_options = ["random", "greedy", "net_everyxstep", "net_everystep"]
@@ -34,11 +35,11 @@ if __name__ == "__main__":
     # reward_options = ["random"]
     reward_options = ["greedy", "net_everyxstep", "net_everystep"]
     bounds = [21, 21]
-    trials = 3
+    trials = 100
     steps = 25
     num_robots = 4
     # to decide which step the bot communicates
-    comm_step = 3
+    comm_step = 5
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
     # profiling functions
@@ -57,7 +58,8 @@ if __name__ == "__main__":
     
     # load neural net
     # weight_file = "circles_21x21_epoch3_random_greedyo_r4_t1000_s50_norollout_diffstartloc"
-    weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
+    # weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
+    weight_file = "circles_21x21_epoch1_random_greedyno_r4_t4000_s25_rolloutotherpath_samestartloc"
     # weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s25_rollout_diffstartloc_otherpathmix"
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -65,6 +67,12 @@ if __name__ == "__main__":
     neural_model = NeuralNet.Net(bounds).to(device)
     neural_model.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+weight_file))
     neural_model.eval()
+
+    # if testing other neural models
+    # neural_model_trial1 = NeuralNet.Net(bounds).to(device)
+    # weight_file_trial1 = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
+    # neural_model_trial1.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+weight_file_trial1))
+    # neural_model_trial1.eval()
 
     # test_type = "trials{}_steps{}_allplanners".format(trials, steps)
     test_type = "trials{}_steps{}_test".format(trials, steps)
@@ -232,7 +240,7 @@ if __name__ == "__main__":
                             simulator.visualize()
 
                         # we run it without obs_occupied_oracle because if not the normal planners have oracle info
-                        simulator.run(neural_model, curr_robot_positions, train=True, device=device)
+                        simulator.run(neural_model, curr_robot_positions, neural_model_trial1, train=True, device=device)
 
                         # to keep track of score
                         obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
@@ -243,7 +251,7 @@ if __name__ == "__main__":
                             # communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
                     steps_count += 1
-                    if planner == "net_everystep":    
+                    if planner == "net_everystep" or planner == "net_trial":    
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
                     elif planner == "greedy-o_everyxstep" and steps_count%comm_step==0:   
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)

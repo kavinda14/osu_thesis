@@ -8,6 +8,7 @@ import random as random
 
 import OraclePlanner
 import NeuralNet
+import torch
 
 sys.path.insert(0, './basic_MCTS_python')
 from basic_MCTS_python import mcts
@@ -80,20 +81,21 @@ class Simulator:
         
 
     # train is there because of the backtracking condition in each planner 
-
-    def run(self, neural_model, curr_robot_positions, device=None, obs_occupied_oracle=set(), train=False, generate_data=False, debug_mcts_reward_greedy_list=list(), debug_mcts_reward_network_list=list(), CONF=None, json_comp_conf=None):
+    def run(self, neural_model, curr_robot_positions, neural_model_trial=None, device=None, obs_occupied_oracle=set(), train=False, generate_data=False, debug_mcts_reward_greedy_list=list(), debug_mcts_reward_network_list=list(), CONF=None, json_comp_conf=None):
         self.iterations += 1        
 
         # Generate an action from the robot path
         action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
         if self.planner == "random":
             action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
-        if self.planner == "greedy-o" or self.planner == "greedy-o_everyxstep":
+        if self.planner in ("greedy-o", "greedy-o_everyxstep"):
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=True)                                    
-        if self.planner == "greedy-no" or self.planner == "greedy-no_everyxstep":
+        if self.planner in ("greedy-no", "greedy-no_everyxstep"):
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=False)
-        if self.planner == "net_everystep" or self.planner == "net_everyxstep" or self.planner == "net_nocomm":
+        if self.planner in ("net_everystep", "net_everyxstep", "net_nocomm"):
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True, device=device)
+        if self.planner == "net_trial":
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model_trial, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True, device=device)
         if self.planner == 'mcts':
             budget = 6
             max_iterations = 1000

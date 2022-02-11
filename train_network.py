@@ -19,8 +19,7 @@ if __name__ == "__main__":
     print("Unpickling done!")
 
     # this is the path where the NN weights will be saved
-    
-    weights_path = CONF[json_comp_conf]["neural_net_weights_path"] + "circles_21x21_epoch1_random_greedyno_r4_t2500_s25_rolloutotherpath_samestartloc"
+    weights_path = CONF[json_comp_conf]["neural_net_weights_path"] + "circles_21x21_epoch1_random_greedyno_r4_t4000_s25_rolloutotherpath_samestartloc"
 
     # train network - initial 
     bounds = [21, 21]
