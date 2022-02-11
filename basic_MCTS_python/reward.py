@@ -35,9 +35,13 @@ def reward_network(rollout_sequence, sensor_model, world_map, neural_model, devi
     # pass the action_loc to the action matrix function instead of the actual action
     reward_final_path = copy.copy(sensor_model.get_final_path()) # these are the executed paths + all the incremental rollout paths
     # we don't need other_paths here because it is already handled by the create_final_path_matrix_mcts() function
-    reward_map = copy.deepcopy(world_map)
     
-    partial_info = [sensor_model.create_partial_info_mcts(reward_map, False)]
+    partial_info = [sensor_model.create_partial_info_mcts(unobs_free=world_map.get_unobs_free(),
+    unobs_occupied=world_map.get_unobs_occupied(), obs_occupied=world_map.get_obs_occupied(),
+    obs_free=world_map.get_obs_free(), bounds=world_map.get_bounds(), update=False)]
+
+    partial_info_binary_matrices = sensor_model.create_binary_matrices(
+        partial_info)
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
 
     reward = 0

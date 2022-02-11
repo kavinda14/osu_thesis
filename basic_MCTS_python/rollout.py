@@ -72,16 +72,29 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=F
     return sequence
 
 def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_model, device):
-    # rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
     rollout_final_path = copy.copy(sensor_model.get_final_path())
-    rollout_map = copy.deepcopy(world_map)
+    
+    def get_unobs_free(self):
+        return self.unobs_free
+
+    def get_unobs_occupied(self):
+        return self.unobs_occupied
+
+    def get_obs_occupied(self):
+        return self.obs_occupied
+
+    def get_obs_free(self):
+        return self.obs_free
     # sequence = copy.deepcopy(subsequence)
     sequence = copy.copy(subsequence)
     # paths already traversed before mcts     
     executed_paths = sensor_model.get_final_path()
     other_executed_paths = sensor_model.get_final_other_path()
 
-    partial_info = [sensor_model.create_partial_info_mcts(rollout_map, False)]
+    # partial_info = [sensor_model.create_partial_info_mcts(rollout_map, False)]
+    partial_info = [sensor_model.create_partial_info_mcts(unobs_free=world_map.get_unobs_free(),
+    unobs_occupied=world_map.get_unobs_occupied(), obs_occupied=world_map.get_obs_occupied(),
+    obs_free=world_map.get_obs_free(), bounds=world_map.get_bounds(), update=False)]
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
 
     # these are State objects
