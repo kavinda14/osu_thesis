@@ -43,7 +43,7 @@ if __name__ == "__main__":
     steps = 15
     num_robots = 4
     # to decide which step the bot communicates
-    partial_comm_step = 3
+    partial_comm_step = 5
     poor_comm_step = 10
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
@@ -128,7 +128,7 @@ if __name__ == "__main__":
                     for reward_type in reward_options:
                         mcts_planner = rollout_type + '_' + reward_type
 
-                        if (mcts_planner) in mcts_plot_planners:
+                        if mcts_planner in mcts_plot_planners:
 
                             print("Rollout: {}, Reward: {}".format(
                                 rollout_type, reward_type))
