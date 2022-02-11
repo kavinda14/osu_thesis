@@ -6,7 +6,6 @@ def random_planner(robot, sensor_model, train):
     valid_move = False # Checks if the pixel is free
     visited_before = True # Check if the pixel has been visited before
     action = random.choice(actions)
-    action = random.choice(actions)
    
     counter = 0
     while True:

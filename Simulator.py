@@ -87,18 +87,20 @@ class Simulator:
         # Generate an action from the robot path
         action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
         if self.planner == "random":
-            action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
-        if self.planner in ("greedy-o", "greedy-o_everyxstep"):
+            action = OraclePlanner.random_planner(self.robot, self.sensor_model, train=True)
+        elif self.planner == "random_everyxstep":
+            action = OraclePlanner.random_planner(self.robot, self.sensor_model, train=False)
+        elif self.planner in ("greedy-o", "greedy-o_everyxstep"):
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=True)                                    
-        if self.planner in ("greedy-no", "greedy-no_everyxstep"):
+        elif self.planner in ("greedy-no", "greedy-no_everyxstep"):
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=False)
-        if self.planner in ("net_everystep", "net_everyxstep", "net_nocomm"):
+        elif self.planner in ("net_everystep", "net_everyxstep", "net_nocomm"):
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True, device=device)
-        if self.planner == "net_trial":
+        elif self.planner == "net_trial":
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model_trial, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True, device=device)
-        if self.planner == 'mcts':
+        elif self.planner == 'mcts':
             budget = 6
-            max_iterations = 1000
+            max_iterations = 2
             # max_iterations = 5
             # exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
             exploration_exploitation_parameter = 5.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration. 
@@ -117,6 +119,8 @@ class Simulator:
 
             curr_robot_positions.add(tuple(winner_loc))
             action = self.robot.get_direction(self.robot.get_loc(), winner_loc)
+        else:
+            print("Wrong planner name!")
 
         self.sensor_model.create_action_matrix(action)
         # Move the robot

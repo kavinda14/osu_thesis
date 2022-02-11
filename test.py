@@ -25,21 +25,21 @@ if __name__ == "__main__":
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
     # planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep"]
-    planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_trial", "net_everyxstep", "net_everystep"]
-    # planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
+    # planner_options = ["random", "greedy-o_everyxstep", "greedy-o", "greedy-no_everyxstep", "greedy-no", "net_trial", "net_everyxstep", "net_everystep"]
+    planner_options = ["random_everyxstep", "random", "greedy-no_everyxstep", "greedy-no", "net_everyxstep", "net_everystep", "mcts"]
     # planner_options = ["mcts"]
     # planner_options = ["random"]
-    rollout_options = ["random", "greedy", "net_everyxstep", "net_everystep"]
+    rollout_options = ["random", "greedy_everyxstep", "greedy", "net_everyxstep", "net_everystep"]
     # rollout_options = ["random"]
     # reward_options = ["net_everystep"]
     # reward_options = ["random"]
-    reward_options = ["greedy", "net_everyxstep", "net_everystep"]
+    reward_options = ["greedy", "greedy_everyxstep", "net_everyxstep", "net_everystep"]
     bounds = [21, 21]
     trials = 100
     steps = 25
     num_robots = 4
     # to decide which step the bot communicates
-    comm_step = 5
+    comm_step = 3
     # obs_occupied_oracle = set() # this is for calculating the end score counting only unique seen cells
     visualize = False
     # profiling functions
@@ -112,10 +112,15 @@ if __name__ == "__main__":
             if planner == "mcts":
                 for rollout_type in rollout_options:
                     for reward_type in reward_options:
-                        if rollout_type == "net_everystep" and reward_type == "net_everyxstep":
+                        if rollout_type == "net_everystep" and reward_type in ("net_everyxstep", "greedy_everyxstep", "greedy"):
                             continue
-                        if rollout_type == "net_everyxstep" and reward_type == "net_everystep":
+                        if rollout_type == "net_everyxstep" and reward_type in ("net_everystep", "greedy_everyxstep", "greedy"):
                             continue
+                        if rollout_type == "greedy_everyxstep" and reward_type in ("greedy", "net_everyxstep", "net_everystep"):
+                            continue
+                        if rollout_type == "greedy" and reward_type in ("greedy_everyxstep", "net_everyxstep", "net_everystep"):
+                            continue
+
                         print("Rollout: {}, Reward: {}".format(rollout_type, reward_type))
 
                         # this is for pickling the data
@@ -172,11 +177,15 @@ if __name__ == "__main__":
                             acc_score.append(step_score)
 
                             steps_count += 1
-                            if rollout_type == "net_everystep" or reward_type == "net_everystep":   
+                            if rollout_type == "net_everystep" or reward_type == "net_everystep":  
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
                             elif rollout_type == "net_everyxstep" and steps_count%comm_step==0:   
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
                             elif reward_type == "net_everyxstep" and steps_count%comm_step==0:   
+                                communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                            elif rollout_type == "greedy_everyxstep" and steps_count % comm_step == 0:
+                                communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                            elif reward_type == "greedy_everyxstep" and steps_count % comm_step == 0:
                                 communicate(robots, obs_occupied_oracle, obs_free_oracle)
                             elif rollout_type == "net_nocomm" or reward_type == "net_nocomm":
                                 pass
@@ -240,7 +249,7 @@ if __name__ == "__main__":
                             simulator.visualize()
 
                         # we run it without obs_occupied_oracle because if not the normal planners have oracle info
-                        simulator.run(neural_model, curr_robot_positions, neural_model_trial1, train=True, device=device)
+                        simulator.run(neural_model, curr_robot_positions, train=True, device=device)
 
                         # to keep track of score
                         obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
@@ -251,13 +260,17 @@ if __name__ == "__main__":
                             # communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
                     steps_count += 1
-                    if planner == "net_everystep" or planner == "net_trial":    
+                    if planner == "random":
+                        communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                    if planner == "random_everyxstep" and steps_count % comm_step == 0:
+                        communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                    elif planner == "net_everystep" or planner == "net_trial":    
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
                     elif planner == "greedy-o_everyxstep" and steps_count%comm_step==0:   
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
                     elif planner == "greedy-no_everyxstep" and steps_count%comm_step==0:   
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)    
-                    elif planner == "net_everyxstep" and steps_count%comm_step==0:   
+                    elif planner == "net_everyxstep" and steps_count%comm_step==0:  
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
                     elif planner == "net_nocomm":
                         pass
@@ -332,6 +345,7 @@ if __name__ == "__main__":
     plt.boxplot(score_lists_copy)
     plt.xticks(x_pos, bars, rotation=25)
     plt.title(weight_file+"_trials:"+str(trials)+"_steps:"+str(steps))
+    plt.tight_layout()
     plt.show()
 
 
