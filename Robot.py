@@ -13,6 +13,7 @@ class Robot:
         self.velocity = 1.0
         self.sensing_range = 2.85 # Range for square with bounds 21, 21
         # self.sensing_range = 4.3 # Range for circles with bounds 41, 41
+        # self.sensing_range = 3.0 # Range for circles with bounds 41, 41
         self.lim = bounds
         self.map = map
         self.sensor_model = None

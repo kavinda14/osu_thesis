@@ -28,8 +28,7 @@ if __name__ == "__main__":
                        "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
                        "net_poorcomm", "net_partialcomm", "net_fullcomm",
                        "mcts"]
-    # planner_options = ["mcts"]
-    # planner_options = ["random"]
+    # planner_options = ["random_poorcomm", "random_partialcomm"]
     rollout_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
                        "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
                        "net_poorcomm", "net_partialcomm", "net_fullcomm"]
@@ -81,8 +80,8 @@ if __name__ == "__main__":
     # neural_model_trial1.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+weight_file_trial1))
     # neural_model_trial1.eval()
 
-    # test_type = "trials{}_steps{}_allplanners".format(trials, steps)
-    test_type = "trials{}_steps{}_test".format(trials, steps)
+    test_type = "trials{}_steps{}_allplanners_8".format(trials, steps)
+    # test_type = "trials{}_steps{}_test".format(trials, steps)
     filename = '{}planner_scores_multibot/{}'.format(
         CONF[json_comp_conf]["pickle_path"], test_type)
 
@@ -151,8 +150,7 @@ if __name__ == "__main__":
                                 simulator = Simulator(
                                     map, bot, sensor_model, planner, rollout_type, reward_type)
                                 # start_loc = bot.get_start_loc()
-                                # bot.set_loc(start_loc[0], start_loc[1])
-                                bot.set_loc(14, 8)
+                                bot.set_loc(start_loc[0], start_loc[1])
                                 bot.add_map(map)
                                 bot.add_sensor_model(sensor_model)
                                 bot.add_simulator(simulator)
@@ -182,15 +180,19 @@ if __name__ == "__main__":
                                                   debug_mcts_reward_network_list=debug_mcts_reward_network_list,
                                                   device=device, CONF=CONF, json_comp_conf=json_comp_conf)
 
-                                    # communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                                    # simulator.visualize(robots, step)
 
                                     # to keep track of score
                                     obs_occupied_oracle = obs_occupied_oracle.union(
                                         simulator.get_obs_occupied())
                                     obs_free_oracle = obs_free_oracle.union(
-                                        bot_simulator.get_obs_free())
+                                        simulator.get_obs_free())
 
                                 step_score = len(obs_occupied_oracle)
+
+                                # oracle_visualize(robots, bounds, map, planner, step, CONF, json_comp_conf, step_score,
+                                #      show=False, save=True, rollout_type=rollout_type, reward_type=reward_type)
+                                
                                 if len(acc_score) > 0:
                                     acc_score.append(
                                         acc_score[-1] + step_score)
@@ -198,18 +200,14 @@ if __name__ == "__main__":
 
                                 steps_count += 1
                                 if rollout_type in ("random_fullcomm", "greedy_fullcomm", "net_fullcomm") or reward_type in ("greedy_fullcomm", "net_fullcomm"):
-                                    communicate(
-                                        robots, obs_occupied_oracle, obs_free_oracle)
-                                elif rollout_type in ("random_partialcomm", "greedy_partialcomm", "net_partialcomm") and steps_count % partial_comm_step == 0:
-                                    communicate(
-                                        robots, obs_occupied_oracle, obs_free_oracle)
-                                elif reward_type in ("random_partialcomm", "greedy_partialcomm", "net_partialcomm") and steps_count % partial_comm_step == 0:
-                                    communicate(
-                                        robots, obs_occupied_oracle, obs_free_oracle)
-                                elif rollout_type in ("random_poorcomm", "greedy_poorcomm", "net_poorcomm") and steps_count % poor_comm_step == 0:
-                                    communicate(
-                                        robots, obs_occupied_oracle, obs_free_oracle)
-                                elif reward_type in ("random_poorcomm", "greedy_poorcomm", "net_poorcomm") and steps_count % poor_comm_step == 0:
+                                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                                elif rollout_type in ("random_partialcomm", "greedy_partialcomm", "net_partialcomm") and (steps_count%partial_comm_step == 0):
+                                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                                elif reward_type in ("random_partialcomm", "greedy_partialcomm", "net_partialcomm") and (steps_count%partial_comm_step) == 0:
+                                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                                elif rollout_type in ("random_poorcomm", "greedy_poorcomm", "net_poorcomm") and (steps_count%poor_comm_step) == 0:
+                                    communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                                elif reward_type in ("random_poorcomm", "greedy_poorcomm", "net_poorcomm") and (steps_count%poor_comm_step) == 0:
                                     communicate(
                                         robots, obs_occupied_oracle, obs_free_oracle)
                                 steps_end = time.time()
@@ -256,7 +254,7 @@ if __name__ == "__main__":
                         bot_simulator.get_obs_occupied())
                     # obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
                     obs_free_oracle = obs_free_oracle.union(
-                        simulator.get_obs_free())
+                        bot_simulator.get_obs_free())
 
                 steps_count = 0
                 for step in range(steps):
@@ -267,12 +265,11 @@ if __name__ == "__main__":
                         simulator = bot.get_simulator()
                         sensor_model = bot.get_sensor_model()
 
-                        if visualize:
-                            simulator.visualize()
-
                         # we run it without obs_occupied_oracle because if not the normal planners have oracle info
                         simulator.run(
                             neural_model, curr_robot_positions, train=True, device=device)
+
+                        # simulator.visualize(robots, step)
 
                         # to keep track of score
                         obs_occupied_oracle = obs_occupied_oracle.union(
@@ -281,19 +278,18 @@ if __name__ == "__main__":
                         obs_free_oracle = obs_free_oracle.union(
                             simulator.get_obs_free())
 
-                        # if planner == "network":
-                        # communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                        # oracle_visualize(robots, bounds, map, planner)
+
+
+                    step_score = len(obs_occupied_oracle)
 
                     steps_count += 1
                     if planner in ("random_fullcomm", "greedy_fullcomm", "net_fullcomm", "net_trial"):
-                        communicate(robots, obs_occupied_oracle,
-                                    obs_free_oracle)
-                    elif planner in ("random_partialcomm", "greedy_partialcomm", "net_partialcomm") and steps_count % partial_comm_step == 0:
-                        communicate(robots, obs_occupied_oracle,
-                                    obs_free_oracle)
-                    elif planner in ("random_poorcomm", "greedy_poorcomm", "net_poorcomm") and steps_count % poor_comm_step == 0:
-                        communicate(robots, obs_occupied_oracle,
-                                    obs_free_oracle)
+                        communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                    elif planner in ("random_partialcomm", "greedy_partialcomm", "net_partialcomm") and (steps_count%partial_comm_step == 0):
+                        communicate(robots, obs_occupied_oracle, obs_free_oracle)
+                    elif planner in ("random_poorcomm", "greedy_poorcomm", "net_poorcomm") and (steps_count%poor_comm_step == 0):
+                        communicate(robots, obs_occupied_oracle, obs_free_oracle)
                     steps_end = time.time()
 
                 score = len(obs_occupied_oracle)

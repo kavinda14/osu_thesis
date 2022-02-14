@@ -182,10 +182,10 @@ class Simulator:
         self.map.obs_occupied = self.map.obs_occupied.union(self.obs_occupied)
         self.map.obs_free = self.map.obs_free.union(self.obs_free)
 
-    def visualize(self):
+    def visualize(self, robots, step):
         plt.xlim(0, self.map.bounds[0])
         plt.ylim(0, self.map.bounds[1])
-        plt.title("Planner: {}, Score: {}".format(self.planner, sum(self.sensor_model.get_final_scores())))
+        plt.title("Planner: {}, Score: {} Step:{}".format(self.planner, sum(self.sensor_model.get_final_scores()), step))
 
         ax = plt.gca()
         ax.set_aspect('equal', 'box')
@@ -198,11 +198,11 @@ class Simulator:
             hole = patches.Rectangle(spot, 1, 1, facecolor='black')
             ax.add_patch(hole)
         
-        for spot in self.obs_free:
+        for spot in self.map.obs_free:
             hole = patches.Rectangle(spot, 1, 1, facecolor='white')
             ax.add_patch(hole)
         
-        for spot in self.obs_occupied:
+        for spot in self.map.obs_occupied:
             hole = patches.Rectangle(spot, 1, 1, facecolor='green')
             ax.add_patch(hole)
 
@@ -217,8 +217,19 @@ class Simulator:
         for path in self.sensor_model.get_final_path():
             x_values.append(path[0] + 0.5)
             y_values.append(path[1] + 0.5)
-
         plt.plot(x_values, y_values)
 
+        # Plot other robot paths
+        for bot in robots:
+            sensor_model = bot.get_sensor_model()
+            if bot is not self.robot:
+                x_values_other = list()
+                y_values_other = list()
+                bot_path = sensor_model.get_final_path()
+                for path in bot_path:
+                    if path in set(self.sensor_model.get_final_other_path()):
+                        x_values_other.append(path[0] + 0.5)
+                        y_values_other.append(path[1] + 0.5)
+                plt.plot(x_values_other, y_values_other, zorder=1,  color='orange')
 
         plt.show()
