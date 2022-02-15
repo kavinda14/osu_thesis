@@ -166,7 +166,7 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
 
             
             if rollout:
-                print("Generating rollout data...")
+                # print("Generating rollout data...")
                 generate_data_rollout(input_path_matrices, input_other_path_matrices, input_partial_info_binary_matrices, input_actions_binary_matrices, input_scores, steps, num_robots, outfile)        
         
             # print("final_path_matrices: ", len(input_path_matrices))
@@ -296,12 +296,11 @@ if __name__ == "__main__":
 
     # for pickling
     # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_r4_t2000_s25_rollout_diffstartloc_otherpathmix'
-    datafile = "data_21x21_circles_random_greedyno_r4_t8000_s15_rolloutotherpath_samestartloc"
-    datafile = "test"
+    datafile = "data_21x21_circles_random_greedyno_r4_t2000_s25_rolloutotherpath_samestartloc_commscorrected"
     outfile_tensor_images = CONF[json_comp_conf]["pickle_path"] + datafile
     
     # generate data
     print("Generating matrices")
     planner_options = ["random_fullcomm", "greedy_fullcomm"]
-    generate_data_matrices(trials=8000, steps=15, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images)
+    generate_data_matrices(trials=2000, steps=25, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images)
     
