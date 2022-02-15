@@ -76,9 +76,12 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                     simulator.run(False, curr_robot_positions=set(), obs_occupied_oracle=obs_occupied_oracle, train=False, generate_data=True)
                     # print("DEBUG PARTIAL IMAGE: ", sensor_model.get_final_partial_info()[-1])
                     # print("DEBUG SCORES: ", sensor_model.get_final_scores())
+                    
+                    # simulator.visualize(robots, step)
+
 
                     obs_occupied_oracle = obs_occupied_oracle.union(simulator.get_obs_occupied())
-                    obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+                    obs_free_oracle = obs_free_oracle.union(simulator.get_obs_free())
                     
                     communicate(robots, obs_occupied_oracle, obs_free_oracle)
 
@@ -293,12 +296,12 @@ if __name__ == "__main__":
 
     # for pickling
     # outfile_tensor_images = '/home/kavi/thesis/pickles/data_21x21_circles_random_greedyno_r4_t2000_s25_rollout_diffstartloc_otherpathmix'
-    datafile = "data_21x21_circles_random_greedyno_r4_t2000_s25_rolloutotherpath_samestartloc"
+    datafile = "data_21x21_circles_random_greedyno_r4_t8000_s15_rolloutotherpath_samestartloc"
     datafile = "test"
     outfile_tensor_images = CONF[json_comp_conf]["pickle_path"] + datafile
     
     # generate data
     print("Generating matrices")
-    planner_options = ["random", "greedy-no"]
-    generate_data_matrices(trials=2000, steps=25, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images)
+    planner_options = ["random_fullcomm", "greedy_fullcomm"]
+    generate_data_matrices(trials=8000, steps=15, num_robots=4, planner_options=planner_options, visualize=False, bounds=[21, 21], outfile=outfile_tensor_images)
     
