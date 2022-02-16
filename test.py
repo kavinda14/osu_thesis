@@ -24,10 +24,13 @@ if __name__ == "__main__":
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
+    # planner_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
+    #                    "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
+    #                    "net_poorcomm", "net_partialcomm", "net_fullcomm",
+    #                    "mcts"]
     planner_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
                        "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
-                       "net_poorcomm", "net_partialcomm", "net_fullcomm",
-                       "mcts"]
+                       "net_poorcomm", "net_partialcomm", "net_fullcomm"]
     # planner_options = ["random_poorcomm", "random_partialcomm"]
     rollout_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
                        "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
@@ -38,8 +41,8 @@ if __name__ == "__main__":
     reward_options = ["greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
                       "net_poorcomm", "net_partialcomm", "net_fullcomm"]
     bounds = [21, 21]
-    trials = 3
-    steps = 15
+    trials = 100
+    steps = 25
     num_robots = 4
     # to decide which step the bot communicates
     partial_comm_step = 5
@@ -64,7 +67,7 @@ if __name__ == "__main__":
     # load neural net
     # weight_file = "circles_21x21_epoch3_random_greedyo_r4_t1000_s50_norollout_diffstartloc"
     # weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
-    weight_file = "circles_21x21_epoch1_random_greedyno_r4_t4000_s25_rolloutotherpath_samestartloc"
+    weight_file = "circles_21x21_epoch1_random_greedyno_r4_t4000_s25_rolloutotherpath_samestartloc_commscorrected"
     # weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s25_rollout_diffstartloc_otherpathmix"
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -80,7 +83,7 @@ if __name__ == "__main__":
     # neural_model_trial1.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+weight_file_trial1))
     # neural_model_trial1.eval()
 
-    test_type = "trials{}_steps{}_allplanners_8".format(trials, steps)
+    test_type = "trials{}_steps{}_allplanners_10".format(trials, steps)
     # test_type = "trials{}_steps{}_test".format(trials, steps)
     filename = '{}planner_scores_multibot/{}'.format(
         CONF[json_comp_conf]["pickle_path"], test_type)
@@ -89,7 +92,7 @@ if __name__ == "__main__":
     debug_mcts_reward_network_list = list()
 
     # so we know which experiement we are running
-    print("TEST: test budget 6 - {} - {}".format(weight_file, test_type))
+    print("{} - {}".format(weight_file, test_type))
 
     mcts_plot_planners = [
         "net_fullcomm_net_fullcomm", "net_partialcomm_net_partialcomm", "net_poorcomm_net_poorcomm",
@@ -101,7 +104,8 @@ if __name__ == "__main__":
     for i in tqdm(range(trials)):
         trial_start_time = time.time()
         print("TRIAL NO: {}".format(i+1))
-        map = Map(bounds, 7, (), False)
+        obs_density = 14
+        map = Map(bounds, obs_density, (), False)
         # unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
         unobs_occupied = map.get_unobs_occupied()
         bots_starting_locs = list()
@@ -144,7 +148,7 @@ if __name__ == "__main__":
 
                             # the map has to be the same for each planner
                             for bot in robots:
-                                map = Map(bounds, 7, copy.deepcopy(
+                                map = Map(bounds, obs_density, copy.deepcopy(
                                     unobs_occupied), True)
                                 sensor_model = SensorModel(bot, map)
                                 simulator = Simulator(
@@ -237,7 +241,8 @@ if __name__ == "__main__":
 
                 # the map has to be the same for each planner
                 for bot in robots:
-                    map = Map(bounds, 7, copy.deepcopy(unobs_occupied), True)
+                    map = Map(bounds, obs_density,
+                              copy.deepcopy(unobs_occupied), True)
                     sensor_model = SensorModel(bot, map)
                     simulator = Simulator(map, bot, sensor_model, planner)
                     # start_loc = bot.get_start_loc()
@@ -280,15 +285,17 @@ if __name__ == "__main__":
 
                         # oracle_visualize(robots, bounds, map, planner)
 
-
                     step_score = len(obs_occupied_oracle)
 
                     steps_count += 1
                     if planner in ("random_fullcomm", "greedy_fullcomm", "net_fullcomm", "net_trial"):
+                        # print("DEBUG FULL, Step {}".format(step))
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
-                    elif planner in ("random_partialcomm", "greedy_partialcomm", "net_partialcomm") and (steps_count%partial_comm_step == 0):
+                    elif planner in ("random_partialcomm", "greedy_partialcomm", "net_partialcomm") and (steps_count%partial_comm_step == 1):
+                        # print("DEBUG PARTIAL, Step {}".format(step))
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
                     elif planner in ("random_poorcomm", "greedy_poorcomm", "net_poorcomm") and (steps_count%poor_comm_step == 0):
+                        # print("DEBUG POOR, Step {}".format(step))
                         communicate(robots, obs_occupied_oracle, obs_free_oracle)
                     steps_end = time.time()
 
