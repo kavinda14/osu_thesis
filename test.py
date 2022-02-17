@@ -24,22 +24,22 @@ if __name__ == "__main__":
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
-    # planner_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
-    #                    "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
-    #                    "net_poorcomm", "net_partialcomm", "net_fullcomm",
-    #                    "mcts"]
+    planner_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
+                       "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
+                       "net_poorcomm", "net_partialcomm", "net_fullcomm",
+                       "mcts"]
     # planner_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
     #                    "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
     #                    "net_poorcomm", "net_partialcomm", "net_fullcomm"]
-    planner_options = ["mcts"]
-    # rollout_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
-    #                    "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
-    #                    "net_poorcomm", "net_partialcomm", "net_fullcomm"]
-    rollout_options = ["random_fullcomm"]
-    reward_options = ["net_fullcomm"]
+    # planner_options = ["mcts"]
+    rollout_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
+                       "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
+                       "net_poorcomm", "net_partialcomm", "net_fullcomm"]
+    # rollout_options = ["random_fullcomm"]
+    # reward_options = ["net_fullcomm"]
     # reward_options = ["random"]
-    # reward_options = ["greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
-    #                   "net_poorcomm", "net_partialcomm", "net_fullcomm"]
+    reward_options = ["greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
+                      "net_poorcomm", "net_partialcomm", "net_fullcomm"]
     bounds = [21, 21]
     trials = 100
     steps = 25
@@ -83,10 +83,9 @@ if __name__ == "__main__":
     # neural_model_trial1.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+weight_file_trial1))
     # neural_model_trial1.eval()
 
-    # test_type = "trials{}_steps{}_allplanners_6".format(trials, steps)
-    test_type = "trials{}_steps{}_test".format(trials, steps)
-    filename = '{}planner_scores_multibot/{}'.format(
-        CONF[json_comp_conf]["pickle_path"], test_type)
+    test_type = "trials{}_steps{}_allplanners_5".format(trials, steps)
+    # test_type = "trials{}_steps{}_test".format(trials, steps)
+    filename = '{}planner_scores_multibot/{}'.format(CONF[json_comp_conf]["pickle_path"], test_type)
 
     debug_mcts_reward_greedy_list = list()
     debug_mcts_reward_network_list = list()
