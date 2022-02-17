@@ -3,12 +3,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import sys
 from torch import randint
-from tqdm import tqdm
 import random as random
+import copy
 
 import OraclePlanner
-import NeuralNet
-import torch
 
 sys.path.insert(0, './basic_MCTS_python')
 from basic_MCTS_python import mcts
@@ -85,11 +83,11 @@ class Simulator:
         self.iterations += 1        
 
         # Generate an action from the robot path
-        action = OraclePlanner.random_planner(self.robot, self.sensor_model, train)
+        action = OraclePlanner.random_planner(self.robot, self.sensor_model, train=True)
         if self.planner in ("random_fullcomm", "random_partialcomm", "random_poorcomm"):
             action = OraclePlanner.random_planner(self.robot, self.sensor_model, train=True)
         elif self.planner in ("greedy_fullcomm", "greedy_partialcomm", "greedy_poorcomm"):
-            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, oracle=False)
+            action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, oracle=False)
         elif self.planner in ("net_fullcomm", "net_partialcomm", "net_poorcomm"):
             action = OraclePlanner.greedy_planner(self.robot, self.sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train=True, neural_net=True, device=device)
         elif self.planner == "net_trial":
@@ -97,17 +95,16 @@ class Simulator:
         elif self.planner == 'mcts':
             budget = 6
             max_iterations = 1000
-            exploration_exploitation_parameter = 5.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
+            # exploration_exploitation_parameter = 5.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
+            exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
             solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.robot, self.sensor_model, self.map, self.rollout_type, self.reward_type, neural_model, debug_mcts_reward_greedy_list, 
                                                                                                   debug_mcts_reward_network_list, device=device, CONF=CONF, json_comp_conf=json_comp_conf)
             # plot_tree.plotTree(list_of_all_nodes, winner_node, False, budget, "1", exploration_exploitation_parameter)
             
-            # times_visited = self.sensor_model.get_final_path().count(tuple(winner_loc)) + self.sensor_model.get_final_other_path().count(tuple(winner_loc))
-            
+            times_visited = self.sensor_model.get_final_path().count(tuple(winner_loc)) + self.sensor_model.get_final_other_path().count(tuple(winner_loc))
             # 2 robots cannot be in the same loc condition
             # times_visited is for backtracking
-            # if tuple(winner_loc) in curr_robot_positions or times_visited > 1:
-            if tuple(winner_loc) in curr_robot_positions:
+            if (tuple(winner_loc) in curr_robot_positions) or (times_visited >= 4):
                 idx = random.randint(0, len(solution_locs)-1)
                 winner_loc = solution_locs[idx]
 

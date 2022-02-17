@@ -28,22 +28,22 @@ if __name__ == "__main__":
     #                    "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
     #                    "net_poorcomm", "net_partialcomm", "net_fullcomm",
     #                    "mcts"]
-    planner_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
-                       "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
-                       "net_poorcomm", "net_partialcomm", "net_fullcomm"]
-    # planner_options = ["random_poorcomm", "random_partialcomm"]
-    rollout_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
-                       "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
-                       "net_poorcomm", "net_partialcomm", "net_fullcomm"]
-    # rollout_options = ["random"]
-    # reward_options = ["net_fullcomm"]
+    # planner_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
+    #                    "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
+    #                    "net_poorcomm", "net_partialcomm", "net_fullcomm"]
+    planner_options = ["mcts"]
+    # rollout_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
+    #                    "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
+    #                    "net_poorcomm", "net_partialcomm", "net_fullcomm"]
+    rollout_options = ["random_fullcomm"]
+    reward_options = ["net_fullcomm"]
     # reward_options = ["random"]
-    reward_options = ["greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
-                      "net_poorcomm", "net_partialcomm", "net_fullcomm"]
+    # reward_options = ["greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
+    #                   "net_poorcomm", "net_partialcomm", "net_fullcomm"]
     bounds = [21, 21]
     trials = 100
     steps = 25
-    num_robots = 4
+    num_robots = 3
     # to decide which step the bot communicates
     partial_comm_step = 5
     poor_comm_step = 10
@@ -83,8 +83,8 @@ if __name__ == "__main__":
     # neural_model_trial1.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+weight_file_trial1))
     # neural_model_trial1.eval()
 
-    test_type = "trials{}_steps{}_allplanners_10".format(trials, steps)
-    # test_type = "trials{}_steps{}_test".format(trials, steps)
+    # test_type = "trials{}_steps{}_allplanners_6".format(trials, steps)
+    test_type = "trials{}_steps{}_test".format(trials, steps)
     filename = '{}planner_scores_multibot/{}'.format(
         CONF[json_comp_conf]["pickle_path"], test_type)
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     for i in tqdm(range(trials)):
         trial_start_time = time.time()
         print("TRIAL NO: {}".format(i+1))
-        obs_density = 14
+        obs_density = 18
         map = Map(bounds, obs_density, (), False)
         # unobs_occupied = copy.deepcopy(map.get_unobs_occupied())
         unobs_occupied = map.get_unobs_occupied()

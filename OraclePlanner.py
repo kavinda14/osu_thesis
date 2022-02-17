@@ -1,4 +1,5 @@
 import random
+from time import time
 import NeuralNet
 
 def random_planner(robot, sensor_model, train):
@@ -42,6 +43,9 @@ def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
     path_matrix = sensor_model.create_final_path_matrix(False)
 
+    exec_paths = sensor_model.get_final_path()
+    other_exec_paths = sensor_model.get_final_other_path()
+
     for action in actions:
         if robot.check_valid_move(action):
             # tuple is needed here for count()
@@ -49,14 +53,14 @@ def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_
 
             # only in data generation do we want the backtracking to help with the coordination
             # for testing, we want to see if the network implicitly coordinates the robots
-            if train and not neural_net:
-                times_visited = sensor_model.get_final_path().count(potential_next_loc) + sensor_model.get_final_other_path().count(potential_next_loc)
-                # times_visited = sensor_model.get_final_path().count(potential_next_loc) + (potential_next_loc in sensor_model.get_final_other_path())
+            # if train and not neural_net:
+            if train:
+                times_visited = exec_paths.count(potential_next_loc) + other_exec_paths.count(potential_next_loc)
             else:
-                times_visited = sensor_model.get_final_path().count(potential_next_loc) 
+                times_visited = exec_paths.count(potential_next_loc)
             
             # backtrack possibility
-            if times_visited <= 1 and potential_next_loc not in curr_robot_positions: 
+            if times_visited <= 1 and (potential_next_loc not in curr_robot_positions): 
                 if neural_net:
                     # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
                     final_actions = [sensor_model.create_action_matrix(action, True)]
