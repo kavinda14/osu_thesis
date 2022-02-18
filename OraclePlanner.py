@@ -1,6 +1,7 @@
 import random
-from time import time
+from turtle import back
 import NeuralNet
+from util import backtrack_count
 
 def random_planner(robot, sensor_model, train):
     actions = ['left', 'right', 'backward', 'forward']
@@ -34,7 +35,7 @@ def random_planner(robot, sensor_model, train):
     return action
 
 # model here is the neural net
-def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_robot_positions, train, neural_net=False, oracle=False, device=False):
+def greedy_planner(robot, sensor_model, neural_model, curr_robot_positions, neural_net=False, device=False):
     actions = ['left', 'backward', 'right', 'forward']
     best_action_score = float('-inf')
     best_action = random.choice(actions)
@@ -43,24 +44,17 @@ def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
     path_matrix = sensor_model.create_final_path_matrix(False)
 
-    exec_paths = sensor_model.get_final_path()
-    other_exec_paths = sensor_model.get_final_other_path()
+    exec_path = sensor_model.get_final_path()
+    other_exec_path = sensor_model.get_final_other_path()
 
     for action in actions:
         if robot.check_valid_move(action):
             # tuple is needed here for count()
-            potential_next_loc = tuple(robot.get_action_loc(action))
-
-            # only in data generation do we want the backtracking to help with the coordination
-            # for testing, we want to see if the network implicitly coordinates the robots
-            # if train and not neural_net:
-            if train:
-                times_visited = exec_paths.count(potential_next_loc) + other_exec_paths.count(potential_next_loc)
-            else:
-                times_visited = exec_paths.count(potential_next_loc)
+            potential_loc = tuple(robot.get_action_loc(action))
             
             # backtrack possibility
-            if times_visited <= 1 and (potential_next_loc not in curr_robot_positions): 
+            if backtrack_count(exec_path, other_exec_path, potential_loc) <= 1 \
+                and (potential_loc not in curr_robot_positions):
                 if neural_net:
                     # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
                     final_actions = [sensor_model.create_action_matrix(action, True)]
@@ -75,12 +69,15 @@ def greedy_planner(robot, sensor_model, neural_model, obs_occupied_oracle, curr_
                     action_score = neural_model(input).item()
                     
                 else:
+                    scanned_items = sensor_model.scan(potential_loc, False)
                     # oracle greedy knows where all the obstacles are
-                    if oracle:
-                        action_score = len(sensor_model.scan(potential_next_loc, obs_occupied_oracle, False)[0])
-                    else:
-                        scanned_unobs = sensor_model.scan(potential_next_loc, obs_occupied_oracle, False)
-                        action_score = len(scanned_unobs[0]) + len(scanned_unobs[1])
+                    # if oracle:
+                        # action_score = len(scanned_items[0])
+                    # else:
+                        # action_score = len(scanned_items[0]) + len(scanned_items[1])
+                    
+                    action_score = len(scanned_items[0]) + len(scanned_items[1])
+
 
                 if action_score > best_action_score:
                     best_action_score = action_score
