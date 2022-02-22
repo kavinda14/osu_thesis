@@ -1,4 +1,3 @@
-from random import random
 import numpy as np
 from util import euclidean_distance
 
@@ -16,8 +15,7 @@ class GroundTruthMap:
     def in_bounds(self, x_loc, y_loc):
         x = x_loc
         y = y_loc
-        in_bounds = (
-            x >= 0 and x < self.bounds[0] and y >= 0 and y < self.bounds[1])
+        in_bounds = (x >= 0 and x < self.bounds[0] and y >= 0 and y < self.bounds[1])
 
         # Check unobs_occupied and obs_occupied from map
         for loc in self.occupied_locs:
@@ -65,20 +63,19 @@ class GroundTruthMap:
                 self.occupied_locs.add((x, y+2))
                 self.occupied_locs.add((x, y-1))
 
-
     def populate_obs_circles(self):
         # circle at center
         x = self.bounds[0]//2
         y = self.bounds[1]//2
-        create_obs(x, y, self.bounds)
+        self._create_obs(x, y, self.bounds)
 
         # circle at other locs
         for _ in range(self.obs_density):
             x = int(np.random.uniform(3, self.bounds[0] - 2, size=1))
             y = int(np.random.uniform(3, self.bounds[1] - 2, size=1))
-            create_obs(x, y, self.bounds)
+            self._create_obs(x, y, self.bounds)
  
-    def create_obs(self, x, y, circle=True):
+    def _create_obs(self, x, y, circle=True):
         mid_point = (x, y)
         self.occupied_locs.add(mid_point)
 
@@ -97,6 +94,21 @@ class GroundTruthMap:
             for y in range(self.bounds[1]):
                 if (x, y) not in self.occupied_locs:
                     self.free_locs.add((x, y))
+
+    def get_observation(self, bot_loc):
+        scanned_occupied = set()
+        scanned_free = set()
+
+        self._scan_locs(bot_loc, self.occupied_locs, scanned_occupied)
+        self._scan_locs(bot_loc, self.free_locs, scanned_free)
+
+        return [scanned_occupied, scanned_free]
+
+    def _scan_locs(self, bot_loc, exist_locs, scanned_list):
+        for loc in exist_locs:
+            distance = euclidean_distance(bot_loc, loc)
+            if (distance <= self.sense_range):
+                scanned_list.add(loc)
 
     def get_occupied_locs(self):
         return self.occupied_locs
