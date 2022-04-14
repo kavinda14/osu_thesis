@@ -10,7 +10,7 @@ import pickle
 import NeuralNet
 import torch
 from tqdm import tqdm
-from util import get_random_loc, oracle_visualize, communicate, get_CONF, get_json_comp_conf
+from utils import get_random_loc, oracle_visualize, communicate, get_CONF, get_json_comp_conf
 
 import cProfile
 import pstats
@@ -24,18 +24,19 @@ if __name__ == "__main__":
     # Bounds need to be an odd number for the action to always be in the middle
     # greedy-o: greedy oracle (knows where the obstacles are in map)
     # greedy-no: greedy non-oracle (counts total unobserved cells in map)
-    planner_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
-                       "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
-                       "net_poorcomm", "net_partialcomm", "net_fullcomm",
-                       "mcts"]
+    # planner_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
+    #                    "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
+    #                    "net_poorcomm", "net_partialcomm", "net_fullcomm",
+    #                    "mcts"]
     # planner_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
     #                    "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
     #                    "net_poorcomm", "net_partialcomm", "net_fullcomm"]
-    # planner_options = ["mcts"]
+    planner_options = ["greedy_poorcomm",
+                       "greedy_partialcomm", "greedy_fullcomm"]
     rollout_options = ["random_poorcomm", "random_partialcomm", "random_fullcomm",
                        "greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
                        "net_poorcomm", "net_partialcomm", "net_fullcomm"]
-    # rollout_options = ["random_fullcomm"]
+    # rollout_options = ["net_fullcomm"]
     # reward_options = ["net_fullcomm"]
     # reward_options = ["random"]
     reward_options = ["greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm",
@@ -67,7 +68,7 @@ if __name__ == "__main__":
     # load neural net
     # weight_file = "circles_21x21_epoch3_random_greedyo_r4_t1000_s50_norollout_diffstartloc"
     # weight_file = "circles_21x21_epoch1_random_greedyo_r4_t2000_s25_rollout_diffstartloc"
-    weight_file = "circles_21x21_epoch1_random_greedyno_r4_t4000_s25_rolloutotherpath_samestartloc_commscorrected"
+    weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s35_rolloutotherpath_samestartloc_obsdensity18"
     # weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s25_rollout_diffstartloc_otherpathmix"
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -83,15 +84,18 @@ if __name__ == "__main__":
     # neural_model_trial1.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+weight_file_trial1))
     # neural_model_trial1.eval()
 
-    test_type = "trials{}_steps{}_allplanners_5".format(trials, steps)
-    # test_type = "trials{}_steps{}_test".format(trials, steps)
+    # test_type = "trials{}_steps{}_allplanners_7".format(trials, steps)
+    test_type = "trials{}_steps{}_test".format(trials, steps)
+    accscore = "trials{}_steps{}_accscore_10".format(trials, steps)
+    accsore_list = list()
     filename = '{}planner_scores_multibot/{}'.format(CONF[json_comp_conf]["pickle_path"], test_type)
+    filename_accscore = '{}planner_scores_multibot/{}'.format(CONF[json_comp_conf]["pickle_path"], accscore)
 
     debug_mcts_reward_greedy_list = list()
     debug_mcts_reward_network_list = list()
 
     # so we know which experiement we are running
-    print("{} - {}".format(weight_file, test_type))
+    print("Acc reward test - {} - {}".format(weight_file, test_type))
 
     mcts_plot_planners = [
         "net_fullcomm_net_fullcomm", "net_partialcomm_net_partialcomm", "net_poorcomm_net_poorcomm",
@@ -159,21 +163,25 @@ if __name__ == "__main__":
                                 bot.add_simulator(simulator)
                                 # this adds the initial matrices to appropriate lists
                                 bot_simulator = bot.get_simulator()
+                                bot_map = bot.get_map()
                                 bot_simulator.initialize_data(
                                     bots_starting_locs, obs_occupied_oracle)
                                 # this is needed incase any locations are scanned in the initial position
                                 obs_occupied_oracle = obs_occupied_oracle.union(
-                                    bot_simulator.get_obs_occupied())
+                                    bot_map.get_obs_occupied())
                                 obs_free_oracle = obs_free_oracle.union(
-                                    bot_simulator.get_obs_free())
+                                    bot_map.get_obs_free())
+                            
+                            # oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
 
                             steps_count = 0
-                            acc_score = list()
+                            acc_step_score = [mcts_planner]
                             for step in tqdm(range(steps)):
                                 curr_robot_positions = set()
 
                                 for bot in tqdm(robots):
                                     simulator = bot.get_simulator()
+                                    bot_map = bot.get_map()
                                     sensor_model = bot.get_sensor_model()
 
                                     # oracle_visualize(robots, bounds, map, planner, reward_type, rollout_type)
@@ -187,19 +195,16 @@ if __name__ == "__main__":
 
                                     # to keep track of score
                                     obs_occupied_oracle = obs_occupied_oracle.union(
-                                        simulator.get_obs_occupied())
+                                        bot_map.get_obs_occupied())
                                     obs_free_oracle = obs_free_oracle.union(
-                                        simulator.get_obs_free())
+                                        bot_map.get_obs_free())
 
                                 step_score = len(obs_occupied_oracle)
+                                acc_step_score.append(step_score)
 
                                 # oracle_visualize(robots, bounds, map, planner, step, CONF, json_comp_conf, step_score,
                                 #      show=False, save=True, rollout_type=rollout_type, reward_type=reward_type)
                                 
-                                if len(acc_score) > 0:
-                                    acc_score.append(
-                                        acc_score[-1] + step_score)
-                                acc_score.append(step_score)
 
                                 steps_count += 1
                                 if rollout_type in ("random_fullcomm", "greedy_fullcomm", "net_fullcomm") or reward_type in ("greedy_fullcomm", "net_fullcomm"):
@@ -224,6 +229,11 @@ if __name__ == "__main__":
                             # pickle progress
                             outfile = open(filename, 'wb')
                             pickle.dump(score_lists, outfile)
+                            outfile.close()
+                            
+                            accsore_list.append(acc_step_score)
+                            outfile = open(filename_accscore, 'wb')
+                            pickle.dump(accsore_list, outfile)
                             outfile.close()
 
             else:  # these are the myopic planners
@@ -251,22 +261,25 @@ if __name__ == "__main__":
                     bot.add_simulator(simulator)
                     # this adds the initial matrices to appropriate lists
                     bot_simulator = bot.get_simulator()
+                    bot_map = bot.get_map()
                     bot_simulator.initialize_data(
                         bots_starting_locs, obs_occupied_oracle)
                     # this is needed incase any locations are scanned in the initial position
                     obs_occupied_oracle = obs_occupied_oracle.union(
-                        bot_simulator.get_obs_occupied())
+                        bot_map.get_obs_occupied())
                     # obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
                     obs_free_oracle = obs_free_oracle.union(
-                        bot_simulator.get_obs_free())
+                        bot_map.get_obs_free())
 
                 steps_count = 0
+                acc_step_score = [planner]
                 for step in range(steps):
                     curr_robot_positions = set()
 
                     # run multiple robots in same map
                     for bot in robots:
                         simulator = bot.get_simulator()
+                        bot_map = bot.get_map()
                         sensor_model = bot.get_sensor_model()
 
                         # we run it without obs_occupied_oracle because if not the normal planners have oracle info
@@ -277,10 +290,13 @@ if __name__ == "__main__":
 
                         # to keep track of score
                         obs_occupied_oracle = obs_occupied_oracle.union(
-                            simulator.get_obs_occupied())
+                            bot_map.get_obs_occupied())
                         # obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
                         obs_free_oracle = obs_free_oracle.union(
-                            simulator.get_obs_free())
+                            bot_map.get_obs_free())
+                    
+                    step_score = len(obs_occupied_oracle)
+                    acc_step_score.append(step_score)
 
                         # oracle_visualize(robots, bounds, map, planner)
 
@@ -301,7 +317,7 @@ if __name__ == "__main__":
                 score = len(obs_occupied_oracle)
                 print("Score: ", score)
                 curr_list.append(score)
-                # oracle_visualize(robots, bounds, map, planner)
+                oracle_visualize(robots, bounds, map, planner)
 
                 # if planner == "net_nocomm" or planner == "net_partialcomm" or planner == "net_fullcomm":
                 #     oracle_visualize(robots, bounds, map, planner)
@@ -309,6 +325,11 @@ if __name__ == "__main__":
                 # pickle progress
                 outfile = open(filename, 'wb')
                 pickle.dump(score_lists, outfile)
+                outfile.close()
+
+                accsore_list.append(acc_step_score)
+                outfile = open(filename_accscore, 'wb')
+                pickle.dump(accsore_list, outfile)
                 outfile.close()
 
         trial_end_time = time.time()

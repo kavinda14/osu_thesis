@@ -4,7 +4,7 @@ from turtle import title
 import matplotlib.pyplot as plt
 import numpy as np
 from copy import copy
-from util import get_CONF, get_json_comp_conf
+from utils import get_CONF, get_json_comp_conf
 
 '''
 This pickle script is without the fancy visuals for all planners.

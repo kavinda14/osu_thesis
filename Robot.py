@@ -1,23 +1,23 @@
 import random as random
 
 class Robot:
-    def __init__(self, x, y, bounds, map):
-        # Variables that changes
+    def __init__(self, x, y, belief_map):
+        # variables that changes
         self.x_loc = x
         self.y_loc = y
-        self.path = list() # Variable to track where the robot has been
-        self.index = 0
 
-        # Static variables
+        # static variables
         self.start_loc = x, y
-        self.velocity = 1.0
         # self.sensing_range = 2.85 # Range for square with bounds 21, 21
         # self.sensing_range = 4.3 # Range for circles with bounds 41, 41
-        self.sensing_range = 3.0 # Range for circles with bounds 41, 41
-        self.lim = bounds
-        self.map = map
+        self.SENSE_RANGE = 3.0 # Range for circles with bounds 41, 41
+        self.belief_map = belief_map
+        self.bounds = self.belief_map.get_bounds()
         self.sensor_model = None
         self.simulator = None
+
+        self.exec_paths = list()
+        self.comm_exec_paths = list()  # this is for communicate() with other robots
 
         # for oracle visualization
         r = random.random()
@@ -28,173 +28,61 @@ class Robot:
     def reset_robot(self):
         self.x_loc = self.start_loc[0]
         self.y_loc = self.start_loc[1]
-        self.path = list()
-        self.index = 0
+        self.exec_paths = list()
     
-    def check_valid_loc(self):
-        x = self.x_loc
-        y = self.y_loc
-        in_bounds = (x >= 0 and x <= self.lim[0] and y >= 0 and y <= self.lim[1])
-
-        # Check if new location is intersecting with obstacles from map
-        for loc in self.map.unobs_occupied:
-            if x == loc[0] and y == loc[1]:
-                print("Invalid Location {}".format(loc))
-                return False
-
-        for loc in self.map.obs_occupied:
-            if x == loc[0] and y == loc[1]:
-                print("Invalid Location {}".format(loc))
-                return False
-
-        return in_bounds
-
-    def check_new_loc(self, x_loc, y_loc):
-        x = x_loc
-        y = y_loc
-        in_bounds = (x >= 0 and x < self.lim[0] and y >= 0 and y < self.lim[1])
-
-        # Check unobs_occupied and obs_occupied from map
-        for loc in self.map.unobs_occupied:
-            if x == loc[0] and y == loc[1]:
-                return False
-
-        for loc in self.map.obs_occupied:
-            if x == loc[0] and y == loc[1]:
-                return False
-
-        return in_bounds
-
-    def get_loc(self):
-        return (self.x_loc, self.y_loc)
-
-    def set_loc(self, x_loc, y_loc):
-        self.x_loc = x_loc
-        self.y_loc = y_loc
-
-    def check_valid_move(self, direction, updateState=False):
-        """ Checks if the direction is valid
-        direction (str): "left", "right", "up", "down" directions to move the robot
-        updateState (bool): if True, function also moves the robot if direction is valid
-                            otherwise, only perform validity check without moving robot
-        """
-        # Just don't move
-        if not direction:
-            return True
-
-        if direction == 'left':
-            valid = self.check_new_loc(self.x_loc-1, self.y_loc)
-            if valid and updateState:
-                self.x_loc -= 1
-
-        elif direction == 'right':
-            valid = self.check_new_loc(self.x_loc+1, self.y_loc)
-            if valid and updateState:
-                self.x_loc += 1
-
-        elif direction == 'backward':
-            valid = self.check_new_loc(self.x_loc, self.y_loc+1)
-            if valid and updateState:
-                self.y_loc += 1
-
-        elif direction == 'forward':
-            valid = self.check_new_loc(self.x_loc, self.y_loc-1)
-            if valid and updateState:
-                self.y_loc -= 1
-        else:
-            raise ValueError(f"Robot received invalid direction: {direction}!")
-
-        return valid
-
-    def check_valid_move_mcts(self, direction, location, updateState=False):
-        """ Checks if the direction is valid
-        direction (str): "left", "right", "up", "down" directions to move the robot
-        updateState (bool): if True, function also moves the robot if direction is valid
-                            otherwise, only perform validity check without moving robot
-        """
-        # Just don't move
-        if not direction:
-            return True
-        
-        x_loc = location[0]
-        y_loc = location[1]
-
-        if direction == 'left':
-            valid = self.check_new_loc(x_loc-1, y_loc)
-            if valid and updateState:
-                x_loc -= 1
-
-        elif direction == 'right':
-            valid = self.check_new_loc(x_loc+1, y_loc)
-            if valid and updateState:
-                x_loc += 1
-
-        elif direction == 'backward':
-            valid = self.check_new_loc(x_loc, y_loc+1)
-            if valid and updateState:
-                y_loc += 1
-
-        elif direction == 'forward':
-            valid = self.check_new_loc(x_loc, y_loc-1)
-            if valid and updateState:
-                y_loc -= 1
-        else:
-            raise ValueError(f"Robot received invalid direction: {direction}!")
-        
-        if updateState:
-            return [valid, [x_loc, y_loc]]
-
-        return valid
-
     def move(self, direction):
-        """ Move the robot while respecting bounds"""
+        # move the robot while respecting bounds
         self.check_valid_move(direction, updateState=True)
 
-    def get_action_loc(self, action, curr_loc=None):
-        # added in generate_neighbors() for random rollout
-        if curr_loc is not None:
-            robot_loc = curr_loc
-        else:
-            robot_loc = self.get_loc()
-        action_loc = []
-
-        if action == 'left':
-            action_loc = [robot_loc[0]-1, robot_loc[1]]
-
-        elif action == 'right':
-            action_loc = [robot_loc[0]+1, robot_loc[1]]
-        
-        elif action == 'backward':
-            action_loc = [robot_loc[0], robot_loc[1]+1]
-
-        elif action == 'forward':
-            action_loc = [robot_loc[0], robot_loc[1]-1]
-
-        # this was added for the mcts reward function
-        elif action == 'root':
-            action_loc = robot_loc
-
-        return action_loc
-
-
-    def get_direction(self, current_loc, next_loc):
-        if (next_loc[0] - current_loc[0] == -1):
+    def get_direction(self, curr_loc, next_loc):
+        if (next_loc[0] - curr_loc[0] == -1):
             return 'left'
-        if (next_loc[0] - current_loc[0] == 1):
+        if (next_loc[0] - curr_loc[0] == 1):
             return 'right'
-        if (next_loc[1] - current_loc[1] == 1):
+        if (next_loc[1] - curr_loc[1] == 1):
             return 'backward'
-        if (next_loc[1] - current_loc[1] == -1):
+        if (next_loc[1] - curr_loc[1] == -1):
             return 'forward'
 
         return None
-    
+
+    def communicate_path(self, robots):
+        for bot in robots:
+            bot.set_comm_exec_paths(self.exec_paths)
+
+    def communicate_belief_map(self, robots):
+        occupied_locs = self.bot.get_belief_map().get_occupied_locs()
+        for bot in robots:
+            bot_belief_map = bot.get_belief_map()
+            bot_belief_map.set_occupied_locs(occupied_locs)
+
+    # def communicate(robots, obs_occupied_oracle, obs_free_oracle):
+    # for bot1 in robots:
+    #     sensor_model_bot1 = bot1.get_sensor_model()
+    #     map_bot1 = bot1.get_map()
+    #     other_paths = list()
+
+    #     # for communicating the belief maps
+    #     # by communicating these sets, the maps will contain these updates
+    #     map_bot1.add_oracle_obs_free(obs_free_oracle)
+    #     map_bot1.add_oracle_obs_occupied(obs_occupied_oracle)
+
+    #     for bot2 in robots:
+    #         if bot1 is not bot2:
+    #             sensor_model_bot2 = bot2.get_sensor_model()
+    #             final_path_bot2 = sensor_model_bot2.get_final_path()
+    #             other_paths += final_path_bot2
+
+    #     final_other_path_bot1 = sensor_model_bot1.get_final_other_path() + other_paths
+    #     # final_other_path_bot1 = sensor_model_bot1.get_final_other_path().union(other_paths)
+    #     sensor_model_bot1.set_final_other_path(final_other_path_bot1)
+
     def get_bounds(self):
-        return self.lim
+        return self.bounds
 
-    def get_map(self):
-        return self.map
-
+    def get_belief_map(self):
+        return self.belief_map
+    
     def get_sensor_model(self):
         return self.sensor_model
 
@@ -206,16 +94,32 @@ class Robot:
 
     def get_start_loc(self):
         return self.start_loc
+
+    def get_loc(self):
+        return (self.x_loc, self.y_loc)
+
+    def get_exec_paths(self):
+        return self.exec_paths
+
+    def get_comm_exec_paths(self):
+        return self.comm_exec_paths
+
+    def set_comm_exec_paths(self, exec_paths):
+        self.comm_exec_paths += exec_paths
+
+    def set_loc(self, x_loc, y_loc):
+        self.x_loc = x_loc
+        self.y_loc = y_loc
     
     def set_color(self, color):
         self.color = color
     
-    def add_map(self, map):
-        self.map = map
+    def set_belief_map(self, belief_map):
+        self.belief_map = belief_map
 
-    def add_sensor_model(self, sensor_model):
+    def set_sensor_model(self, sensor_model):
         self.sensor_model = sensor_model
 
-    def add_simulator(self, simulator):
+    def set_simulator(self, simulator):
         self.simulator = simulator
 

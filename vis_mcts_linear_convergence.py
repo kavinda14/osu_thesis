@@ -1,4 +1,4 @@
-from util import get_CONF, get_json_comp_conf
+from utils import get_CONF, get_json_comp_conf
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     # modified_list = debug_reward_greedy_list[0:20000]
     # modified_list = debug_reward_network_list[0:12000]
-    modified_list = debug_reward_network_list[12000:24000]
+    modified_list = debug_reward_network_list[4000:5000]
 
     y1 = [i for i in range(len(modified_list))]
     y2 = modified_list

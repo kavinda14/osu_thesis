@@ -2,7 +2,7 @@ import NeuralNet
 import pickle
 import torch
 import numpy as np
-from util import get_random_loc, oracle_visualize, communicate, get_CONF, get_json_comp_conf
+from utils import get_random_loc, oracle_visualize, communicate, get_CONF, get_json_comp_conf
 
 
 if __name__ == "__main__":

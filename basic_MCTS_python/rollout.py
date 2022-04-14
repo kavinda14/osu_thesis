@@ -3,7 +3,7 @@ from cost import cost
 import random
 import copy
 import NeuralNet
-from util import State, generate_valid_neighbors
+from utils import State, generate_valid_neighbors
 
 def rollout_random(subsequence, budget, robot):
     # THESE ARE STATES
@@ -20,13 +20,9 @@ def rollout_random(subsequence, budget, robot):
     return sequence
 
 def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=False):
-    # rollout_final_path = copy.deepcopy(sensor_model.get_final_path())
-    # sequence = copy.deepcopy(subsequence)
-    # rollout_map = copy.deepcopy(world_map)
     sequence = copy.copy(subsequence)
-    # rollout_map = copy.deepcopy(world_map)
-    unobs_free = copy.deepcopy(world_map.get_unobs_free())
-    unobs_occupied = copy.deepcopy(world_map.get_unobs_occupied())
+    unobs_free = world_map.get_unobs_free()
+    unobs_occupied = world_map.get_unobs_occupied()
     executed_paths = sensor_model.get_final_path()
     other_executed_paths = sensor_model.get_final_other_path()
    
@@ -47,7 +43,9 @@ def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=F
             count += 1
             if count != len(neighbors):
                 loc = tuple(state.get_location())
-                if loc in executed_paths or loc in other_executed_paths:
+                # times_visited = executed_paths.count(loc) + other_executed_paths.count(loc)
+                if loc in (executed_paths, other_executed_paths):
+                # if times_visited >= 1:
                     continue
             else: 
                 index = random.randint(0, len(neighbors)-1)
@@ -82,6 +80,7 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_
     partial_info = [sensor_model.create_partial_info_mcts(unobs_free=world_map.get_unobs_free(),
     unobs_occupied=world_map.get_unobs_occupied(), obs_occupied=world_map.get_obs_occupied(),
     obs_free=world_map.get_obs_free(), bounds=world_map.get_bounds(), update=False)]
+
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
 
     # these are State objects
@@ -97,7 +96,9 @@ def rollout_network(subsequence, budget, robot, sensor_model, world_map, neural_
 
         for state in neighbors:
             loc = tuple(state.get_location())
-            if loc in executed_paths or loc in other_executed_paths:
+            # times_visited = executed_paths.count(loc) + other_executed_paths.count(loc)
+            if loc in (executed_paths, other_executed_paths):
+            # if times_visited >= 1:
                 continue
             action = state.get_action()
             final_actions = [sensor_model.create_action_matrix(action, True)]

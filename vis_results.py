@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
-from util import get_CONF, get_json_comp_conf
+from utils import get_CONF, get_json_comp_conf
 import os
 
 # get the file paths from the .json config
@@ -13,11 +13,10 @@ json_comp_conf = get_json_comp_conf()
 _, _, files = next(os.walk(CONF[json_comp_conf]["shared_files_path"]))
 file_count = len(files)
 
-
 # this holds all the pickle data
 pickles_dict = dict()
 for i in range(file_count):
-    filename = CONF[json_comp_conf]["shared_files_path"] +  "trials100_steps15_allplanners_{}".format(i+1)
+    filename = CONF[json_comp_conf]["shared_files_path"] +  "trials100_steps25_allplanners_{}".format(i+1)
     infile = open(filename, 'rb')
     pickles_dict[i] = list(filter(None, pickle.load(infile))) # removes empty lists
     infile.close()
@@ -82,7 +81,7 @@ plt.xticks(np.arange(0, len(ticks) * 3, 3), ticks, rotation=40, ha='right', rota
 plt.xlim(-1.5, len(ticks)*3-1.5)
  
 ymin=-2
-ymax=90
+ymax=130
 plt.ylim(ymin, ymax)
 plt.yticks(range(0,ymax,10))
 

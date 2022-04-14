@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pickle
 import json
-from util import get_CONF, get_json_comp_conf
+from utils import get_CONF, get_json_comp_conf
 
 """
 This script is to see which step size is the most appropriate, where mcts performs the best.

@@ -9,7 +9,7 @@ import pickle
 import torch
 import copy
 import numpy as np
-from util import get_random_loc, oracle_visualize, communicate, get_CONF, get_json_comp_conf
+from utils import get_random_loc, oracle_visualize, communicate, get_CONF, get_json_comp_conf
 
 
 import matplotlib.pyplot as plt
@@ -56,10 +56,11 @@ def generate_data_matrices(trials, steps, num_robots, planner_options, visualize
                 bot.add_simulator(simulator)
                 # this adds the initial matrices to appropriate lists
                 bot_simulator = bot.get_simulator()
+                bot_map = bot.get_map()
                 bot_simulator.initialize_data(bots_starting_locs, obs_occupied_oracle, generate_data=True)
                 # this is needed incase any locations are scanned in the initial position
-                obs_occupied_oracle = obs_occupied_oracle.union(bot_simulator.get_obs_occupied())
-                obs_free_oracle = obs_free_oracle.union(bot_simulator.get_obs_free())
+                obs_occupied_oracle = obs_occupied_oracle.union(bot_map.get_obs_occupied())
+                obs_free_oracle = obs_free_oracle.union(bot_map.get_obs_free())
     
             for step in range(steps):
                 # run multiple robots in same map

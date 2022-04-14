@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import random as random
+from random import randint
 import json
+import math
 
 # json conf for working with diff directories from diff computers
 def get_CONF():
@@ -15,15 +16,21 @@ def get_json_comp_conf():
     return json_comp_conf
 
 # used to create random, valid starting locs
-def get_random_loc(map, bounds):
-    valid_starting_loc = False
-    while not valid_starting_loc:
-        x = random.randint(0, bounds[0]-1)
-        y = random.randint(0, bounds[0]-1)
-        valid_starting_loc = map.check_loc(x, y)
-
+def get_random_loc(belief_map):
+    valid_start_loc = False
+    bounds = belief_map.get_bounds()
+    while not valid_start_loc:
+        x = randint(0, bounds[0]-1)
+        y = randint(0, bounds[0]-1)
+        valid_start_loc = belief_map.is_valid_loc(x, y)
     return [x, y]
 
+def euclidean_distance(p1, p2):
+    x1 = p1[0]
+    y1 = p1[1]
+    x2 = p2[0]
+    y2 = p2[1]
+    return math.sqrt((y2-y1)**2 + (x2-x1)**2)
 
 def oracle_visualize(robots, bounds, map, planner, reward_type=None, rollout_type=None):
     plt.xlim(0, bounds[0])
@@ -47,11 +54,10 @@ def oracle_visualize(robots, bounds, map, planner, reward_type=None, rollout_typ
     obs_free = set()
     obs_occupied = set()
     for bot in robots:
-        simulator = bot.get_simulator()
-        map = bot.get_map()
+        bot_map = bot.get_map()
 
-        obs_free = obs_free.union(simulator.get_obs_free())
-        obs_occupied = obs_occupied.union(simulator.get_obs_occupied())
+        obs_free = obs_free.union(bot_map.get_obs_free())
+        obs_occupied = obs_occupied.union(bot_map.get_obs_occupied())
 
         bot_color = bot.get_color()
 
@@ -147,7 +153,7 @@ def generate_valid_neighbors(current_state, state_sequence, robot):
     # condition added because rollout_random ends up in spot with no neighbors sometimes
     if len(neighbors) == 0:
         while True:
-            action_idx = random.randint(0, len(actions)-1)
+            action_idx = randint(0, len(actions)-1)
             action = actions[action_idx]
             new_loc = robot.get_action_loc(action, curr_loc=current_loc)
             if robot.check_new_loc(new_loc[0], new_loc[1]):

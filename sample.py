@@ -1,21 +1,37 @@
-from multiprocessing import Pool
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 if __name__ == "__main__":
+
+    def somefunction():
+        this = list()
+
+        x = np.array([0, 1, 2, 3])
+        y = np.array([3, 8, 1, 10])
+
+        fig, ax = plt.subplots()
+        fig.suptitle('FIG 1')
+        ax.plot(x, y)
+        this.append(fig)
+        fig.show()
+
+        fig, ax = plt.subplots()
+        fig.suptitle('FIG 2')
+        ax.plot(x, y)
+        this.append(fig)
+
+        return this[1]
+
     
-    global_thing = 0
-    def do_something(a, b, global_thing):
-        global_thing += 1
-        return a+b 
+    this = somefunction()
 
-    input_list = list()
-    for i in range(5):
-        sub_list = [i, i+1, global_thing]
-        input_list.append(sub_list)
+    plt.show()
 
-    pool = Pool()
-    results = pool.starmap(do_something, input_list)
-    pool.close()
-    pool.join()
 
-    print(results)
-    print(global_thing)
+    # print(len(this))
+
+    
+
+
+

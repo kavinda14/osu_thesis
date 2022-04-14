@@ -2,14 +2,14 @@
     "alienware - kavi": {
         "neural_net_weights_path": "/home/kavi/thesis/neural_net_weights/",
         "pickle_path": "/home/kavi/thesis/pickles/",
-        "experiments_path": "/home/kavi/thesis/experiments/",
+        "vis_figs_path:": "/home/kavi/thesis/vis_figs",
         "shared_files_path": "/home/kavi/thesis/shared_files/"
     },
 
     "graeme desktop": {
         "neural_net_weights_path": "/home/subt/kavi/osu_thesis/neural_net_weights/",
         "pickle_path": "/home/subt/kavi/osu_thesis/pickles/",
-        "experiments_path": "/home/subt/kavi/osu_thesis/experiments/"
+        "visualize_figs_path:": "/home/subt/kavi/thesis/visualize_figs/"
     },
 
     "macbook - kavi": {
