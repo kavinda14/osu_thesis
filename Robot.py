@@ -46,15 +46,22 @@ class Robot:
 
         return None
 
-    def communicate_path(self, robots):
+    def communicate_path(self, curr_bot, robots):
         for bot in robots:
-            bot.set_comm_exec_paths(self.exec_paths)
+            if bot == curr_bot:
+                continue
+            bot.append_exec_paths(self.exec_paths)
 
-    def communicate_belief_map(self, robots):
-        occupied_locs = self.bot.get_belief_map().get_occupied_locs()
+    # we just comm the occ and free locs
+    def communicate_belief_map(self, curr_bot, robots):
+        occupied_locs = self.belief_map.get_occupied_locs()
+        free_locs = self.belief_map.get_free_locs()
         for bot in robots:
+            if bot == curr_bot:
+                continue
             bot_belief_map = bot.get_belief_map()
-            bot_belief_map.set_occupied_locs(occupied_locs)
+            bot_belief_map.append_occupied_locs(occupied_locs)
+            bot_belief_map.append_free_locs(free_locs)
 
     # def communicate(robots, obs_occupied_oracle, obs_free_oracle):
     # for bot1 in robots:
@@ -104,7 +111,7 @@ class Robot:
     def get_comm_exec_paths(self):
         return self.comm_exec_paths
 
-    def set_comm_exec_paths(self, exec_paths):
+    def append_exec_paths(self, exec_paths):
         self.comm_exec_paths += exec_paths
 
     def set_loc(self, x_loc, y_loc):

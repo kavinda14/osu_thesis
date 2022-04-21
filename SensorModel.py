@@ -9,31 +9,6 @@ class SensorModel:
         self.path_matrices = list()
         self.comm_path_matrices = list()
         self.action_matrices = list()
-
-    # # update_map is there because in OraclePlanner, we use scan without updating the map
-    # # in Simulator with _update_map(), we use the update_map as True
-    # def scan(self, robot_loc, update_map=True):
-    #     scanned_obstacles = set()
-    #     scanned_free = set()
-    #     obs_free = self.belief_map.get_obs_occupied()
-    #     obs_occupied = self.belief_map.get_obs_free()
-
-    #     for o_loc in set(self.belief_map.unobs_occupied):
-    #         distance = self.euclidean_distance(robot_loc , o_loc)
-    #         # the second part of the if statement was added for calculating unique reward
-    #         if distance <= self.sensing_range and o_loc not in obs_occupied:
-    #             scanned_obstacles.add(o_loc)
-    #             if update_map:
-    #                 self.belief_map.unobs_occupied.remove(o_loc)
-
-    #     for f_loc in set(self.belief_map.unobs_free):
-    #         distance = self.euclidean_distance(robot_loc, f_loc)
-    #         if distance <= self.sensing_range and f_loc not in obs_free:
-    #             scanned_free.add(f_loc)
-    #             if update_map:
-    #                 self.belief_map.unobs_free.remove(f_loc)
-
-    #     return [scanned_obstacles, scanned_free]
     
     # this was created for mcts rollout as we are making a copy of the world map for simulations
     def scan_mcts(self, robot_loc, unobs_free, unobs_occupied):

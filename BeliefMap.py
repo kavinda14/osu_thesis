@@ -105,6 +105,9 @@ class BeliefMap:
     def get_free_locs(self):
         return self.free_locs
 
-    def set_occupied_locs(self, occupied_locs):
+    def append_occupied_locs(self, occupied_locs):
         self.occupied_locs += occupied_locs
+
+    def append_free_locs(self, free_locs):
+        self.free_locs += free_locs
 
