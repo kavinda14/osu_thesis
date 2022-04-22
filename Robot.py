@@ -32,7 +32,7 @@ class Robot:
     
     def move(self, direction):
         # move the robot while respecting bounds
-        self.check_valid_move(direction, updateState=True)
+        self.belief_map.is_valid_action(direction, self.get_loc(), self, update_state=True)
 
     def get_direction(self, curr_loc, next_loc):
         if (next_loc[0] - curr_loc[0] == -1):
@@ -46,11 +46,12 @@ class Robot:
 
         return None
 
-    def communicate_path(self, curr_bot, robots):
-        for bot in robots:
-            if bot == curr_bot:
-                continue
-            bot.append_exec_paths(self.exec_paths)
+    def communicate_path(self, curr_bot, robots, planner, step_count):
+        if (step_count % self.poorcomm_step) == 0:
+            for bot in robots:
+                if bot == curr_bot:
+                    continue
+                bot.append_exec_paths(self.exec_paths)
 
     # we just comm the occ and free locs
     def communicate_belief_map(self, curr_bot, robots):
@@ -62,27 +63,6 @@ class Robot:
             bot_belief_map = bot.get_belief_map()
             bot_belief_map.append_occupied_locs(occupied_locs)
             bot_belief_map.append_free_locs(free_locs)
-
-    # def communicate(robots, obs_occupied_oracle, obs_free_oracle):
-    # for bot1 in robots:
-    #     sensor_model_bot1 = bot1.get_sensor_model()
-    #     map_bot1 = bot1.get_map()
-    #     other_paths = list()
-
-    #     # for communicating the belief maps
-    #     # by communicating these sets, the maps will contain these updates
-    #     map_bot1.add_oracle_obs_free(obs_free_oracle)
-    #     map_bot1.add_oracle_obs_occupied(obs_occupied_oracle)
-
-    #     for bot2 in robots:
-    #         if bot1 is not bot2:
-    #             sensor_model_bot2 = bot2.get_sensor_model()
-    #             final_path_bot2 = sensor_model_bot2.get_final_path()
-    #             other_paths += final_path_bot2
-
-    #     final_other_path_bot1 = sensor_model_bot1.get_final_other_path() + other_paths
-    #     # final_other_path_bot1 = sensor_model_bot1.get_final_other_path().union(other_paths)
-    #     sensor_model_bot1.set_final_other_path(final_other_path_bot1)
 
     def get_bounds(self):
         return self.bounds
@@ -111,8 +91,17 @@ class Robot:
     def get_comm_exec_paths(self):
         return self.comm_exec_paths
 
-    def append_exec_paths(self, exec_paths):
-        self.comm_exec_paths += exec_paths
+    def get_sense_range(self):
+        return self.SENSE_RANGE
+
+    def append_exec_paths(self, loc):
+        self.exec_paths.append(loc)
+
+    def change_xloc(self, x):
+        self.x_loc += x
+
+    def change_yloc(self, y):
+        self.y_loc += y
 
     def set_loc(self, x_loc, y_loc):
         self.x_loc = x_loc

@@ -90,7 +90,9 @@ class GroundTruthMap:
 
         return free_locs
 
-    def is_valid_loc(self, x_loc, y_loc):
+    def is_valid_loc(self, bot_loc):
+        x_loc = bot_loc[0]
+        y_loc = bot_loc[1]
         in_bounds = (x_loc >= 0 and x_loc <
                      self.bounds[0] and y_loc >= 0 and y_loc < self.bounds[1])
 
@@ -100,19 +102,20 @@ class GroundTruthMap:
 
         return in_bounds
 
-    def get_observation(self, bot_loc):
+    def get_observation(self, bot, bot_loc):
         scanned_occupied = set()
         scanned_free = set()
 
-        self._scan_locs(bot_loc, self.occupied_locs, scanned_occupied)
-        self._scan_locs(bot_loc, self.free_locs, scanned_free)
+        self._scan_locs(bot, bot_loc, self.occupied_locs, scanned_occupied)
+        self._scan_locs(bot, bot_loc, self.free_locs, scanned_free)
 
         return [scanned_occupied, scanned_free]
 
-    def _scan_locs(self, bot_loc, exist_locs, scanned_list):
+    def _scan_locs(self, bot, bot_loc, exist_locs, scanned_list):
+        SENSE_RANGE = bot.get_sense_range()
         for loc in exist_locs:
             distance = euclidean_distance(bot_loc, loc)
-            if (distance <= self.sense_range):
+            if (distance <= SENSE_RANGE):
                 scanned_list.add(loc)
 
     def get_occupied_locs(self):

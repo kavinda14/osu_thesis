@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from GroundTruthMap import GroundTruthMap
-from utils import get_random_loc, communicate, get_CONF, get_json_comp_conf
+from utils import get_random_loc, get_CONF, get_json_comp_conf
 import torch
 from NeuralNet import Net
 from time import time
@@ -10,6 +10,7 @@ from BeliefMap import BeliefMap
 from Robot import Robot
 from SensorModel import SensorModel
 from Simulator import Simulator
+from Planners import RandomPlanner, CellCountPlanner
 from copy import deepcopy
 
 def vis_belief_map(robots, bounds, belief_map):
@@ -78,13 +79,13 @@ def get_neural_model(CONF, bounds):
     
     return neural_model, device
 
-def get_robots(num_robots, belief_map, ground_truth_map, planner, robots_start_locs):
+def get_robots(num_robots, belief_map, ground_truth_map):
     robots = set()
     start_loc = get_random_loc(ground_truth_map)
     for _ in range(num_robots):
-        bot = Robot(start_loc[0], start_loc[1], deepcopy(belief_map))
+        bot = Robot(start_loc[0], start_loc[1], belief_map)
         sensor_model = SensorModel(bot, belief_map)
-        simulator = Simulator(belief_map, bot, sensor_model, planner, generate_data=False)
+        simulator = Simulator(belief_map, ground_truth_map, bot, sensor_model, generate_data=False)
         # start_loc = get_random_loc(belief_map)
         bot.set_sensor_model(sensor_model)
         bot.set_simulator(simulator)
@@ -99,11 +100,14 @@ if __name__ == "__main__":
     json_comp_conf = get_json_comp_conf()
 
     BOUNDS = [21, 21]
-    TRIALS = 100
+    TRIALS = 1
     TOTAL_STEPS = 25
     NUM_ROBOTS = 3
+    ACTIONS = ['left', 'right', 'backward', 'forward']
+    FULLCOMM_STEP = 1
+    PARTIALCOMM_STEP = 5
+    POORCOMM_STEP = 10
     neural_model = get_neural_model(CONF, BOUNDS)
-    planner_options = ["random_fullcomm"]
 
     score_occ_locs = set()
     for i in tqdm(range(TRIALS)):
@@ -114,21 +118,23 @@ if __name__ == "__main__":
         ground_truth_map = GroundTruthMap(BOUNDS, OCC_DENSITY)
         belief_map = BeliefMap(BOUNDS)
         robot_start_locs = list()
+        # deepcopy the map because we need the same map in the trial for each planner
+        planner_options = [RandomPlanner(ACTIONS, FULLCOMM_STEP), CellCountPlanner(ACTIONS, neural_model[0], FULLCOMM_STEP)]
 
         for planner in planner_options:
-
-            robots = get_robots(NUM_ROBOTS, belief_map, ground_truth_map, planner, robot_start_locs)
-
-            # this is for calculating the end score counting only unique seen cells
-            obs_occupied_global = set()
-            obs_free_global = set()
-
+            robots = get_robots(NUM_ROBOTS, deepcopy(belief_map), ground_truth_map)
+            # initialize matrices for network
             for bot in robots:
                 bot_simulator = bot.get_simulator()
                 bot_simulator.initialize_data(robot_start_locs)
-
+            
+            cum_score = 0
             for step in range(TOTAL_STEPS):
-                robot_curr_locs = set()
+                robot_curr_locs = list()
+                step_score = 0
+
+                for bot in robots:
+                    robot_curr_locs.append(bot.get_loc())
 
                 # run multiple robots in same map
                 for bot in robots:
@@ -136,18 +142,17 @@ if __name__ == "__main__":
                     bot_belief_map = bot.get_belief_map()
                     bot_sensor_model = bot.get_sensor_model()
 
-                    bot_simulator.run(neural_model[0], robot_curr_locs, device=neural_model[1])
+                    bot_simulator.run(planner, robot_curr_locs, neural_model[0], device=neural_model[1])
 
-                    # to keep track of score
-                    score_occ_locs = score_occ_locs.union(bot_belief_map.get_obs_occupied())
+                    step_score += bot_simulator.get_score()
+                    bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
                 
-                step_score = len(score_occ_locs)
+                cum_score += step_score
+            
+            steps_end = time()
+            print("CUM_SCORE: ", cum_score)
 
-                # COMMUICATE FUNCTION
-                steps_end = time.time()
 
-            trial_score = len(score_occ_locs)
-            print("Score: ", trial_score)
             # curr_list.append(score)
             # oracle_visualize(robots, BOUNDS, map, planner)
 

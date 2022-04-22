@@ -1,17 +1,14 @@
-from time import time
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import sys
-import random as random
-
-import Planners
 
 sys.path.insert(0, './basic_MCTS_python')
 from basic_MCTS_python import mcts
 from basic_MCTS_python import plot_tree
 
 class Simulator:
-    def __init__(self, belief_map, bot, sensor_model, planner, generate_data):
+    def __init__(self, belief_map, ground_truth_map, bot, sensor_model, generate_data):
+        self.ground_truth_map = ground_truth_map
         self.belief_map = belief_map
         self.bot = bot
         self.sensor_model = sensor_model
@@ -19,8 +16,6 @@ class Simulator:
         self.curr_score = 0
         self.final_scores = list()
         self.iterations = 0
-
-        self.planner = planner
 
         # Simulator.py is used for eval and data generation
         self.generate_data = generate_data
@@ -62,81 +57,44 @@ class Simulator:
         
 
     # train is there because of the backtracking condition in each planner 
-    def run(self, neural_model, curr_robot_positions, neural_model_trial=None, device=None, obs_occupied_oracle=set(), train=False, generate_data=False, debug_mcts_reward_greedy_list=list(), debug_mcts_reward_network_list=list(), CONF=None, json_comp_conf=None):
+    def run(self, planner, robot_curr_locs, neural_model, device=None, obs_occupied_oracle=set(), generate_data=False):
         self.iterations += 1        
 
-        # Generate an action from the robot path
-        action = None
-        if self.planner in ("random_fullcomm", "random_partialcomm", "random_poorcomm"):
-            action = Planners.random_planner(self.bot, curr_robot_positions)
-        elif self.planner in ("greedy_fullcomm", "greedy_partialcomm", "greedy_poorcomm"):
-            action = Planners.greedy_planner(self.bot, self.sensor_model, neural_model, curr_robot_positions)
-        elif self.planner in ("net_fullcomm", "net_partialcomm", "net_poorcomm"):
-            action = Planners.greedy_planner(self.bot, self.sensor_model, neural_model, curr_robot_positions, neural_net=True, device=device)
-        elif self.planner == "net_trial":
-            action = Planners.greedy_planner(self.bot, self.sensor_model, neural_model_trial, curr_robot_positions, neural_net=True, device=device)
-        elif self.planner == 'mcts':
-            budget = 6
-            max_iterations = 1000
-            exploration_exploitation_parameter = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
-            solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(budget, max_iterations, exploration_exploitation_parameter, self.bot, self.sensor_model, self.belief_map, self.rollout_type, self.reward_type, neural_model, debug_mcts_reward_greedy_list, 
-                                                                                                  debug_mcts_reward_network_list, device=device, CONF=CONF, json_comp_conf=json_comp_conf)
-            # plot_tree.plotTree(list_of_all_nodes, winner_node, False, budget, "1", exploration_exploitation_parameter)
-            
-            times_visited = self.sensor_model.get_final_path().count(tuple(winner_loc)) + self.sensor_model.get_final_other_path().count(tuple(winner_loc))
-            # 2 robots cannot be in the same loc condition
-            # times_visited is for backtracking
-            if (tuple(winner_loc) in curr_robot_positions) or (times_visited >= 4):
-                idx = random.randint(0, len(solution_locs)-1)
-                winner_loc = solution_locs[idx]
-
-            curr_robot_positions.add(tuple(winner_loc))
-            action = self.bot.get_direction(self.bot.get_loc(), winner_loc)
-        else:
-            print("Wrong planner name!")
+        action = planner.get_action(self.bot, robot_curr_locs)
 
         self.sensor_model.create_action_matrix(action, self.bot.get_loc())
-        # Move the robot
+
         self.bot.move(action)
-        # Update the explored map based on robot position
-        self._update_map(obs_occupied_oracle)
+
+        # sanity check the robot is in bounds after moving
+        if not self.ground_truth_map.is_valid_loc(self.bot.get_loc()):
+            raise ValueError(
+                f"Robot has left the map. It is at position: {self.bot.get_loc()}, outside of the map boundary")
+
+        # update belief map
+        new_observations = self.ground_truth_map.get_observation(self.bot, self.bot.get_loc())
+        score = len(new_observations[0]) # len of occupied cells in observation
+        self.set_score(score)
+        self.belief_map.update_map(new_observations[0], new_observations[1])
+
+        # create matrices/lists for net
+        self.final_scores.append(score)
         self.sensor_model.create_partial_info()
-        self.sensor_model.append_score(self.curr_score)
-        self.sensor_model.append_path(self.bot.get_loc())
+        self.bot.append_exec_paths(self.bot.get_loc())
         if generate_data:
             self.sensor_model.create_final_rollout_path_matrix()
             self.sensor_model.create_final_rollout_other_path_matrix()
         else:
-            self.sensor_model.create_final_path_matrix()
+            self.sensor_model.create_path_matrix()
 
-        # Score is calculated in _update function.
-        # It needs to be reset otherwise the score will carry on to the next iteration even if no new obstacles were scanned.
         self.reset_score()
 
-        # End when all objects have been observed
-        # if (len(self.obs_occupied) == self.map.unobs_occupied):
-        #     return True
-        # else:
-        #     return False
 
     def reset_game(self):
         self.iterations = 0
         self.curr_score = 0
         self.obs_occupied = set()
         self.obs_free = set()
-
-    def _update_map(self, obs_occupied_oracle):
-        # Sanity check the robot is in bounds
-        if not self.bot.check_valid_loc():
-            print(self.bot.get_loc())
-            raise ValueError(f"Robot has left the map. It is at position: {self.bot.get_loc()}, outside of the map boundary")
-        
-        new_observations = self.sensor_model.scan(self.bot.get_loc(), obs_occupied_oracle)
-        # Score is the number of new obstacles found
-        # random thing is just for debugging - delete after testing
-        self.set_score(len(new_observations[0]))
-        self.belief_map.obs_occupied = self.belief_map.obs_occupied.union(new_observations[0])
-        self.belief_map.obs_free = self.belief_map.obs_free.union(new_observations[1])
 
     def visualize(self, robots, step):
         plt.xlim(0, self.belief_map.bounds[0])

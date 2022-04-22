@@ -22,7 +22,7 @@ def get_random_loc(belief_map):
     while not valid_start_loc:
         x = randint(0, bounds[0]-1)
         y = randint(0, bounds[0]-1)
-        valid_start_loc = belief_map.is_valid_loc(x, y)
+        valid_start_loc = belief_map.is_valid_loc([x, y])
     return [x, y]
 
 def euclidean_distance(p1, p2):
@@ -90,27 +90,6 @@ def oracle_visualize(robots, bounds, map, planner, reward_type=None, rollout_typ
 
     plt.show()
 
-
-def communicate(robots, obs_occupied_oracle, obs_free_oracle):
-    for bot1 in robots:
-        sensor_model_bot1 = bot1.get_sensor_model()
-        map_bot1 = bot1.get_map()
-        other_paths = list()
-
-        # for communicating the belief maps
-        # by communicating these sets, the maps will contain these updates
-        map_bot1.add_oracle_obs_free(obs_free_oracle)
-        map_bot1.add_oracle_obs_occupied(obs_occupied_oracle)
-
-        for bot2 in robots:
-            if bot1 is not bot2:
-                sensor_model_bot2 = bot2.get_sensor_model()
-                final_path_bot2 = sensor_model_bot2.get_final_path()
-                other_paths += final_path_bot2
-
-        final_other_path_bot1 = sensor_model_bot1.get_final_other_path() + other_paths
-        # final_other_path_bot1 = sensor_model_bot1.get_final_other_path().union(other_paths)
-        sensor_model_bot1.set_final_other_path(final_other_path_bot1)
 
 ## MCTS classes + functions ##
 
