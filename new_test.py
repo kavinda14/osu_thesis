@@ -13,7 +13,7 @@ from Simulator import Simulator
 from Planners import RandomPlanner, CellCountPlanner
 from copy import deepcopy
 
-def vis_belief_map(robots, bounds, belief_map):
+def vis_map(robots, bounds, belief_map=None, ground_truth_map=None):
     plt.xlim(0, bounds[0])
     plt.ylim(0, bounds[1])
 
@@ -22,23 +22,24 @@ def vis_belief_map(robots, bounds, belief_map):
 
     # this has to be done before the bot for loop to avoid red patches
     # ..going over the other obs_occupied patches
-    for spot in belief_map.get_unknown_locs():
-    # for spot in map.unobs_occupied:
-    # for spot in map.unobs_free:
-        hole = patches.Rectangle(spot, 1, 1, facecolor='black')
-        ax.add_patch(hole)
+    if ground_truth_map is None:
+        for spot in belief_map.get_unknown_locs():
+            hole = patches.Rectangle(spot, 1, 1, facecolor='black')
+            ax.add_patch(hole)
 
     # get all the observed locations from all robots
     free_locs = set()
     occupied_locs = set()
     for bot in robots:
-        # bot_map = bot.get_map()
-        bot_map = bot.get_belief_map()
+        if ground_truth_map is None:
+            bot_map = bot.get_belief_map()
+        else:
+            bot_map = ground_truth_map
 
         # obs_free = obs_free.union(bot_map.get_obs_free())
         free_locs = free_locs.union(bot_map.get_free_locs())
         # obs_occupied = obs_occupied.union(bot_map.get_obs_occupied())
-        occupied_locs = obs_occupied.union(bot_map.get_occupied_locs())
+        occupied_locs = occupied_locs.union(bot_map.get_occupied_locs())
 
         bot_color = bot.get_color()
 
@@ -51,7 +52,7 @@ def vis_belief_map(robots, bounds, belief_map):
         x_values = list()
         y_values = list()
         # for path in bot.get_sensor_model().get_final_path():
-        for path in bot.get_exec_path():
+        for path in bot.get_exec_paths():
             x_values.append(path[0] + 0.5)
             y_values.append(path[1] + 0.5)
         plt.plot(x_values, y_values, color=bot_color)
@@ -147,6 +148,9 @@ if __name__ == "__main__":
                     step_score += bot_simulator.get_score()
                     bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
                 
+                vis_map(robots, BOUNDS, belief_map=belief_map)
+                vis_map(robots, BOUNDS, ground_truth_map=ground_truth_map)
+
                 cum_score += step_score
             
             steps_end = time()
