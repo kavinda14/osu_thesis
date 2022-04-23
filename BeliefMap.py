@@ -22,16 +22,16 @@ class BeliefMap:
         return scanned_unknown
 
     # call get_observation() from GroundTruthMap.py before calling this in Simulator.py 
-    def update_map(self, gt_occupied_locs, gt_free_locs):
+    def update_map(self, obs_occupied_locs, obs_free_locs):
         # add occ locs to belief map
-        for loc in gt_occupied_locs:
+        for loc in obs_occupied_locs:
             if loc not in self.occupied_locs:
                 self.occupied_locs.add(loc)
             if loc in self.unknown_locs:
                 self.unknown_locs.remove(loc)
 
         # add free locs to belief map
-        for loc in gt_free_locs:
+        for loc in obs_free_locs:
             if loc not in self.free_locs:
                 self.free_locs.add(loc)
             if loc in self.unknown_locs:
@@ -77,7 +77,6 @@ class BeliefMap:
         return False
 
     def get_action_loc(self, action, curr_bot_loc):
-
         if action == 'left':
             action_loc = [curr_bot_loc[0]-1, curr_bot_loc[1]]
 

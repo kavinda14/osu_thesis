@@ -13,10 +13,10 @@ def random_planner(bot, robot_curr_locs, actions):
         valid_move = bot_belief_map.is_valid_action(action, curr_bot_loc)
         potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc)
 
-        exec_paths = bot.get_exec_paths()
-        comm_exec_paths = bot.get_comm_exec_paths()
+        exec_path = bot.get_exec_path()
+        comm_exec_path = bot.get_comm_exec_path()
 
-        if backtrack_count(exec_paths, comm_exec_paths, potential_loc) <= 1 \
+        if backtrack_count(exec_path, comm_exec_path, potential_loc) <= 1 \
                 and (potential_loc not in robot_curr_locs):
             visited_before = False
         if ((valid_move == True) and (visited_before == False)) or (counter > 10):
@@ -32,8 +32,8 @@ def backtrack_count(exec_path, comm_exec_path, potential_loc):
 def cellcount_planner(actions, bot, sensor_model, neural_model, robot_curr_locs, neural_net=False, device=False):
     best_action_score = float('-inf')
     best_action = random.choice(actions)
-    exec_paths = bot.get_exec_paths()
-    comm_exec_paths = bot.get_comm_exec_paths()
+    exec_paths = bot.get_exec_path()
+    comm_exec_paths = bot.get_comm_exec_path()
     bot_belief_map = bot.get_belief_map()
     curr_bot_loc = bot.get_loc()
 

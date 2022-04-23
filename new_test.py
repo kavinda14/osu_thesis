@@ -26,21 +26,21 @@ def vis_map(robots, bounds, belief_map=None, ground_truth_map=None):
         for spot in belief_map.get_unknown_locs():
             hole = patches.Rectangle(spot, 1, 1, facecolor='black')
             ax.add_patch(hole)
+    else:
+        # color all occupied locs before putting specific bot colors on them (to identify which bot discovered what)
+        occupied_locs = ground_truth_map.get_occupied_locs()
+        for spot in occupied_locs:
+            hole = patches.Rectangle(spot, 1, 1, facecolor='red')
+            ax.add_patch(hole)
+
 
     # get all the observed locations from all robots
     free_locs = set()
-    occupied_locs = set()
     for bot in robots:
-        if ground_truth_map is None:
-            bot_map = bot.get_belief_map()
-        else:
-            bot_map = ground_truth_map
-
-        # obs_free = obs_free.union(bot_map.get_obs_free())
-        free_locs = free_locs.union(bot_map.get_free_locs())
-        # obs_occupied = obs_occupied.union(bot_map.get_obs_occupied())
-        occupied_locs = occupied_locs.union(bot_map.get_occupied_locs())
-
+        bot_belief_map = bot.get_belief_map()
+     
+        free_locs = free_locs.union(bot_belief_map.get_free_locs())
+        occupied_locs = bot_belief_map.get_occupied_locs()
         bot_color = bot.get_color()
 
         # plot robot
@@ -51,8 +51,7 @@ def vis_map(robots, bounds, belief_map=None, ground_truth_map=None):
         # plot robot path
         x_values = list()
         y_values = list()
-        # for path in bot.get_sensor_model().get_final_path():
-        for path in bot.get_exec_paths():
+        for path in bot.get_exec_path():
             x_values.append(path[0] + 0.5)
             y_values.append(path[1] + 0.5)
         plt.plot(x_values, y_values, color=bot_color)
@@ -82,10 +81,10 @@ def get_neural_model(CONF, bounds):
 def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
     robots = set()
     for _ in range(num_robots):
-        bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map)
+        belief_map_copy = deepcopy(belief_map) # to make sure that each robot has a diff belief map object
+        bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy)
         sensor_model = SensorModel(bot, belief_map)
-        simulator = Simulator(belief_map, ground_truth_map, bot, sensor_model, generate_data=False)
-        # start_loc = get_random_loc(belief_map)
+        simulator = Simulator(belief_map_copy, ground_truth_map, bot, sensor_model, generate_data=False)
         bot.set_sensor_model(sensor_model)
         bot.set_simulator(simulator)
         robots.add(bot)
@@ -121,11 +120,10 @@ if __name__ == "__main__":
         planner_options = [RandomPlanner(ACTIONS, FULLCOMM_STEP), CellCountPlanner(ACTIONS, neural_model[0], FULLCOMM_STEP)]
 
         for planner in planner_options:
-            robots = get_robots(NUM_ROBOTS, deepcopy(belief_map), ground_truth_map, robot_start_loc)
+            robots = get_robots(NUM_ROBOTS, belief_map, ground_truth_map, robot_start_loc)
             # initialize matrices for network
             for bot in robots:
                 bot_simulator = bot.get_simulator()
-                print("DEBUG: ", robot_start_loc)
                 bot_simulator.initialize_data(robot_start_loc)
             
             robot_occupied_locs = set() # so that we can calculate unique occupied cells observed for the score
@@ -147,6 +145,8 @@ if __name__ == "__main__":
                     bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs, robots, step, neural_model[0], device=neural_model[1])
                     robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
 
+                    # bot_simulator.visualize(robots, step)
+
                     step_score += bot_simulator.get_score()
                     bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
                 
@@ -162,7 +162,6 @@ if __name__ == "__main__":
             print("CUM_SCORE: ", cum_score)
 
             # curr_list.append(score)
-            # oracle_visualize(robots, BOUNDS, map, planner)
 
             # pickle progress
             # outfile = open(filename, 'wb')

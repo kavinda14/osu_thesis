@@ -86,10 +86,10 @@ class Robot:
     def get_loc(self):
         return (self.x_loc, self.y_loc)
 
-    def get_exec_paths(self):
+    def get_exec_path(self):
         return self.exec_path
 
-    def get_comm_exec_paths(self):
+    def get_comm_exec_path(self):
         return self.comm_exec_path
 
     def get_sense_range(self):
@@ -99,10 +99,7 @@ class Robot:
         self.exec_path.append(loc)
 
     def append_comm_exec_path(self, exec_path):
-        # doing += was too slow so i add only unique locs
-        for loc in exec_path:
-            if loc not in self.comm_exec_path:
-                self.comm_exec_path.append(loc)
+        self.comm_exec_path += exec_path
 
     def change_xloc(self, x):
         self.x_loc += x

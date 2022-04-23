@@ -78,12 +78,12 @@ class SensorModel:
         bounds = self.belief_map.get_bounds()
         path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
 
-        exec_paths = self.bot.get_exec_paths()
+        exec_paths = self.bot.get_exec_path()
         for path in exec_paths:
             path_matrix[path] = 1
         
         # this is for multi-robot when communication of other_paths is done
-        comm_exec_paths = self.bot.get_comm_exec_paths()
+        comm_exec_paths = self.bot.get_comm_exec_path()
         for path in comm_exec_paths:
             path_matrix[path] = 1
 
@@ -99,7 +99,7 @@ class SensorModel:
         bounds = self.belief_map.get_bounds()
         path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
 
-        exec_paths = self.bot.get_exec_paths()
+        exec_paths = self.bot.get_exec_path()
         for path in exec_paths:
             path_matrix[path] = 1
         
@@ -114,7 +114,7 @@ class SensorModel:
         bounds = self.belief_map.get_bounds()
         path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
 
-        comm_exec_paths = self.bot.get_comm_exec_paths()
+        comm_exec_paths = self.bot.get_comm_exec_path()
         for path in comm_exec_paths:
             path_matrix[path] = 1
 
@@ -132,7 +132,7 @@ class SensorModel:
             path_matrix[path] = 1
 
         # this is for multi-robot when communication of other_paths is done
-        comm_exec_paths = self.bot.get_comm_exec_paths()
+        comm_exec_paths = self.bot.get_comm_exec_path()
         for path in comm_exec_paths:
             path_matrix[path] = 1
 

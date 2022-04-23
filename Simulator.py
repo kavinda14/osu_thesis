@@ -63,8 +63,8 @@ class Simulator:
         self.sensor_model.create_action_matrix(action, self.bot.get_loc())
 
         self.bot.move(action)
-        self.bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
-        self.bot.communicate_path(robots, curr_step, planner.get_comm_step())
+        # self.bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
+        # self.bot.communicate_path(robots, curr_step, planner.get_comm_step())
 
         # sanity check the robot is in bounds after moving
         if not self.ground_truth_map.is_valid_loc(self.bot.get_loc()):
@@ -75,6 +75,7 @@ class Simulator:
         new_observations = self.ground_truth_map.get_observation(self.bot, self.bot.get_loc())
         occupied_locs = new_observations[0] # len of occupied cells in observation
         
+        # count score
         score = 0
         for loc in occupied_locs:
             if loc not in robot_occupied_locs:
@@ -93,52 +94,52 @@ class Simulator:
         else:
             self.sensor_model.create_path_matrix()
 
-    def visualize(self, robots, step):
+    def visualize(self, robots, curr_step):
         plt.xlim(0, self.belief_map.bounds[0])
         plt.ylim(0, self.belief_map.bounds[1])
-        plt.title("Planner: {}, Score: {} Step:{}".format(self.planner, sum(self.sensor_model.get_final_scores()), step))
+        # plt.title("Planner: {}, Score: {} Step:{}".format(self.planner, sum(self.sensor_model.get_final_scores()), curr_step))
 
         ax = plt.gca()
         ax.set_aspect('equal', 'box')
         
-        for spot in self.belief_map.unobs_occupied:
-            hole = patches.Rectangle(spot, 1, 1, facecolor='red')
-            ax.add_patch(hole)
-
-        for spot in self.belief_map.unobs_free:
+        unknown_locs = self.belief_map.get_unknown_locs()
+        for spot in unknown_locs:
             hole = patches.Rectangle(spot, 1, 1, facecolor='black')
             ax.add_patch(hole)
         
-        for spot in self.belief_map.obs_free:
+        free_locs = self.belief_map.get_free_locs()
+        for spot in free_locs:
             hole = patches.Rectangle(spot, 1, 1, facecolor='white')
             ax.add_patch(hole)
         
-        for spot in self.belief_map.obs_occupied:
+        occupied_locs = self.belief_map.get_occupied_locs()
+        for spot in occupied_locs:
             hole = patches.Rectangle(spot, 1, 1, facecolor='green')
             ax.add_patch(hole)
 
-        # Plot robot
-        robot_x = self.bot.get_loc()[0] + 0.5
-        robot_y = self.bot.get_loc()[1] + 0.5
-        plt.scatter(robot_x, robot_y, color='purple', zorder=5)
+        # plot robot
+        bot_xloc = self.bot.get_loc()[0] + 0.5
+        bot_yloc = self.bot.get_loc()[1] + 0.5
+        plt.scatter(bot_xloc, bot_yloc, color='purple', zorder=5)
 
-        # Plot robot path
+        # plot robot path
         x_values = list()
         y_values = list()
-        for path in self.sensor_model.get_final_path():
-            x_values.append(path[0] + 0.5)
-            y_values.append(path[1] + 0.5)
+        bot_exec_path = self.bot.get_exec_path()
+        for loc in bot_exec_path:
+            x_values.append(loc[0] + 0.5)
+            y_values.append(loc[1] + 0.5)
         plt.plot(x_values, y_values)
 
-        # Plot other robot paths
+        # plot other robot paths
+        bot_comm_exec_path = self.bot.get_comm_exec_path()
         for bot in robots:
-            sensor_model = bot.get_sensor_model()
             if bot is not self.bot:
                 x_values_other = list()
                 y_values_other = list()
-                bot_path = sensor_model.get_final_path()
-                for path in bot_path:
-                    if path in set(self.sensor_model.get_final_other_path()):
+                other_bot_exec_path = bot.get_exec_path()
+                for path in other_bot_exec_path:
+                    if path in set(bot_comm_exec_path):
                         x_values_other.append(path[0] + 0.5)
                         y_values_other.append(path[1] + 0.5)
                 plt.plot(x_values_other, y_values_other, zorder=1,  color='orange')
