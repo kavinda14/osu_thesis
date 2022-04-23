@@ -15,7 +15,6 @@ class Simulator:
 
         self.curr_score = 0
         self.final_scores = list()
-        self.iterations = 0
 
         # Simulator.py is used for eval and data generation
         self.generate_data = generate_data
@@ -57,9 +56,7 @@ class Simulator:
         
 
     # train is there because of the backtracking condition in each planner 
-    def run(self, planner, robot_curr_locs, neural_model, device=None, obs_occupied_oracle=set(), generate_data=False):
-        self.iterations += 1        
-
+    def run(self, planner, robot_curr_locs, robot_occupied_locs, neural_model, device=None, generate_data=False):       
         action = planner.get_action(self.bot, robot_curr_locs)
 
         self.sensor_model.create_action_matrix(action, self.bot.get_loc())
@@ -73,8 +70,14 @@ class Simulator:
 
         # update belief map
         new_observations = self.ground_truth_map.get_observation(self.bot, self.bot.get_loc())
-        score = len(new_observations[0]) # len of occupied cells in observation
+        occupied_locs = new_observations[0] # len of occupied cells in observation
+        
+        score = 0
+        for loc in occupied_locs:
+            if loc not in robot_occupied_locs:
+                score += 1
         self.set_score(score)
+        
         self.belief_map.update_map(new_observations[0], new_observations[1])
 
         # create matrices/lists for net
@@ -86,15 +89,6 @@ class Simulator:
             self.sensor_model.create_final_rollout_other_path_matrix()
         else:
             self.sensor_model.create_path_matrix()
-
-        self.reset_score()
-
-
-    def reset_game(self):
-        self.iterations = 0
-        self.curr_score = 0
-        self.obs_occupied = set()
-        self.obs_free = set()
 
     def visualize(self, robots, step):
         plt.xlim(0, self.belief_map.bounds[0])
@@ -156,9 +150,6 @@ class Simulator:
 
     def reset_score(self):
         self.curr_score = 0
-
-    def get_iteration(self):
-        return self.iterations
 
     def get_actions(self):
         return self.actions

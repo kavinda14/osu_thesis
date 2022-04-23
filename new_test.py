@@ -61,7 +61,6 @@ def vis_map(robots, bounds, belief_map=None, ground_truth_map=None):
         for spot in occupied_locs:
             hole = patches.Rectangle(spot, 1, 1, facecolor=bot_color)
             ax.add_patch(hole)
-        obs_occupied = set()
 
     for spot in free_locs:
         hole = patches.Rectangle(spot, 1, 1, facecolor='white')
@@ -129,6 +128,8 @@ if __name__ == "__main__":
                 bot_simulator = bot.get_simulator()
                 bot_simulator.initialize_data(robot_start_locs)
             
+            robot_occupied_locs = set() # so that we can calculate unique occupied cells observed for the score
+            
             cum_score = 0
             for step in range(TOTAL_STEPS):
                 robot_curr_locs = list()
@@ -143,19 +144,20 @@ if __name__ == "__main__":
                     bot_belief_map = bot.get_belief_map()
                     bot_sensor_model = bot.get_sensor_model()
 
-                    bot_simulator.run(planner, robot_curr_locs, neural_model[0], device=neural_model[1])
+                    bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs, neural_model[0], device=neural_model[1])
+                    robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
 
                     step_score += bot_simulator.get_score()
                     bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
                 
-                vis_map(robots, BOUNDS, belief_map=belief_map)
-                vis_map(robots, BOUNDS, ground_truth_map=ground_truth_map)
+                # vis_map(robots, BOUNDS, belief_map=belief_map)
+                # vis_map(robots, BOUNDS, ground_truth_map=ground_truth_map)
 
                 cum_score += step_score
             
             steps_end = time()
+            vis_map(robots, BOUNDS, belief_map=belief_map)
             print("CUM_SCORE: ", cum_score)
-
 
             # curr_list.append(score)
             # oracle_visualize(robots, BOUNDS, map, planner)
