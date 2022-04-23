@@ -23,7 +23,7 @@ class Simulator:
         self.debug_greedy_score = list()
 
     # creates the initially matrices needed
-    def initialize_data(self, robot_start_locs):
+    def initialize_data(self, robot_start_loc):
         self.sensor_model.create_partial_info()
         self.final_scores.append(self.curr_score)  # init score is 0
 
@@ -42,7 +42,7 @@ class Simulator:
             path_matrix[curr_bot_loc[0]][curr_bot_loc[1]] = 1
 
             path_matrix = self.sensor_model.get_comm_path_matrices()[0]
-            for loc in robot_start_locs:
+            for loc in robot_start_loc:
                 if loc != curr_bot_loc:
                     path_matrix[loc[0]][loc[1]] = 1
         else:
@@ -51,17 +51,20 @@ class Simulator:
 
             # this adds the starting location of the other robots into the initial path matrix
             path_matrix = self.sensor_model.get_path_matrices()[0]
-            for loc in robot_start_locs:
-                path_matrix[loc[0]][loc[1]] = 1
+            path_matrix[robot_start_loc[0]][robot_start_loc[1]] = 1
+            # for loc in robot_start_locs: # use this if robots start at diff locs
+            #     path_matrix[loc[0]][loc[1]] = 1
         
 
     # train is there because of the backtracking condition in each planner 
-    def run(self, planner, robot_curr_locs, robot_occupied_locs, neural_model, device=None, generate_data=False):       
+    def run(self, planner, robot_curr_locs, robot_occupied_locs, robots, curr_step, neural_model, device=None, generate_data=False):       
         action = planner.get_action(self.bot, robot_curr_locs)
 
         self.sensor_model.create_action_matrix(action, self.bot.get_loc())
 
         self.bot.move(action)
+        self.bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
+        self.bot.communicate_path(robots, curr_step, planner.get_comm_step())
 
         # sanity check the robot is in bounds after moving
         if not self.ground_truth_map.is_valid_loc(self.bot.get_loc()):
@@ -83,7 +86,7 @@ class Simulator:
         # create matrices/lists for net
         self.final_scores.append(score)
         self.sensor_model.create_partial_info()
-        self.bot.append_exec_paths(self.bot.get_loc())
+        self.bot.append_exec_loc(self.bot.get_loc())
         if generate_data:
             self.sensor_model.create_final_rollout_path_matrix()
             self.sensor_model.create_final_rollout_other_path_matrix()

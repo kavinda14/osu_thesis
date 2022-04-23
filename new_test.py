@@ -79,11 +79,10 @@ def get_neural_model(CONF, bounds):
     
     return neural_model, device
 
-def get_robots(num_robots, belief_map, ground_truth_map):
+def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
     robots = set()
-    start_loc = get_random_loc(ground_truth_map)
     for _ in range(num_robots):
-        bot = Robot(start_loc[0], start_loc[1], belief_map)
+        bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map)
         sensor_model = SensorModel(bot, belief_map)
         simulator = Simulator(belief_map, ground_truth_map, bot, sensor_model, generate_data=False)
         # start_loc = get_random_loc(belief_map)
@@ -100,6 +99,7 @@ if __name__ == "__main__":
     json_comp_conf = get_json_comp_conf()
 
     BOUNDS = [21, 21]
+    OCC_DENSITY = 18
     TRIALS = 1
     TOTAL_STEPS = 25
     NUM_ROBOTS = 3
@@ -114,19 +114,19 @@ if __name__ == "__main__":
         trial_start = time() 
         print("TRIAL: {}".format(i+1))
         
-        OCC_DENSITY = 18
         ground_truth_map = GroundTruthMap(BOUNDS, OCC_DENSITY)
         belief_map = BeliefMap(BOUNDS)
-        robot_start_locs = list()
+        robot_start_loc = get_random_loc(ground_truth_map)
         # deepcopy the map because we need the same map in the trial for each planner
         planner_options = [RandomPlanner(ACTIONS, FULLCOMM_STEP), CellCountPlanner(ACTIONS, neural_model[0], FULLCOMM_STEP)]
 
         for planner in planner_options:
-            robots = get_robots(NUM_ROBOTS, deepcopy(belief_map), ground_truth_map)
+            robots = get_robots(NUM_ROBOTS, deepcopy(belief_map), ground_truth_map, robot_start_loc)
             # initialize matrices for network
             for bot in robots:
                 bot_simulator = bot.get_simulator()
-                bot_simulator.initialize_data(robot_start_locs)
+                print("DEBUG: ", robot_start_loc)
+                bot_simulator.initialize_data(robot_start_loc)
             
             robot_occupied_locs = set() # so that we can calculate unique occupied cells observed for the score
             
@@ -144,7 +144,7 @@ if __name__ == "__main__":
                     bot_belief_map = bot.get_belief_map()
                     bot_sensor_model = bot.get_sensor_model()
 
-                    bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs, neural_model[0], device=neural_model[1])
+                    bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs, robots, step, neural_model[0], device=neural_model[1])
                     robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
 
                     step_score += bot_simulator.get_score()
@@ -157,6 +157,8 @@ if __name__ == "__main__":
             
             steps_end = time()
             vis_map(robots, BOUNDS, belief_map=belief_map)
+            vis_map(robots, BOUNDS, ground_truth_map=ground_truth_map)
+
             print("CUM_SCORE: ", cum_score)
 
             # curr_list.append(score)

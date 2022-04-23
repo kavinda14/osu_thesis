@@ -16,8 +16,8 @@ class Robot:
         self.sensor_model = None
         self.simulator = None
 
-        self.exec_paths = list()
-        self.comm_exec_paths = list()  # this is for communicate() with other robots
+        self.exec_path = list()
+        self.comm_exec_path = list()  # this is for communicate() with other robots
 
         # for oracle visualization
         r = random.random()
@@ -28,7 +28,7 @@ class Robot:
     def reset_robot(self):
         self.x_loc = self.start_loc[0]
         self.y_loc = self.start_loc[1]
-        self.exec_paths = list()
+        self.exec_path = list()
     
     def move(self, direction):
         # move the robot while respecting bounds
@@ -46,23 +46,24 @@ class Robot:
 
         return None
 
-    def communicate_path(self, curr_bot, robots, planner, step_count):
-        if (step_count % self.poorcomm_step) == 0:
+    def communicate_path(self, robots, curr_step, comm_step):
+        if (curr_step % comm_step) == 0:
             for bot in robots:
-                if bot == curr_bot:
+                if bot == self:
                     continue
-                bot.append_exec_paths(self.exec_paths)
+                bot.append_comm_exec_path(self.exec_path)
 
     # we just comm the occ and free locs
-    def communicate_belief_map(self, curr_bot, robots):
-        occupied_locs = self.belief_map.get_occupied_locs()
-        free_locs = self.belief_map.get_free_locs()
-        for bot in robots:
-            if bot == curr_bot:
-                continue
-            bot_belief_map = bot.get_belief_map()
-            bot_belief_map.append_occupied_locs(occupied_locs)
-            bot_belief_map.append_free_locs(free_locs)
+    def communicate_belief_map(self, robots, curr_step, comm_step):
+        if (curr_step % comm_step) == 0:
+            occupied_locs = self.belief_map.get_occupied_locs()
+            free_locs = self.belief_map.get_free_locs()
+            for bot in robots:
+                if bot == self:
+                    continue
+                bot_belief_map = bot.get_belief_map()
+                bot_belief_map.add_occupied_locs(occupied_locs)
+                bot_belief_map.add_free_locs(free_locs)
 
     def get_bounds(self):
         return self.bounds
@@ -86,16 +87,22 @@ class Robot:
         return (self.x_loc, self.y_loc)
 
     def get_exec_paths(self):
-        return self.exec_paths
+        return self.exec_path
 
     def get_comm_exec_paths(self):
-        return self.comm_exec_paths
+        return self.comm_exec_path
 
     def get_sense_range(self):
         return self.SENSE_RANGE
 
-    def append_exec_paths(self, loc):
-        self.exec_paths.append(loc)
+    def append_exec_loc(self, loc):
+        self.exec_path.append(loc)
+
+    def append_comm_exec_path(self, exec_path):
+        # doing += was too slow so i add only unique locs
+        for loc in exec_path:
+            if loc not in self.comm_exec_path:
+                self.comm_exec_path.append(loc)
 
     def change_xloc(self, x):
         self.x_loc += x
