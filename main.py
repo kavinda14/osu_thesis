@@ -16,7 +16,7 @@ import numpy as np
 from random import random
 import pickle
 
-def vis_map(robots, bounds, belief_map=None, ground_truth_map=None):
+def vis_map(robots, bounds, map):
     plt.xlim(0, bounds[0])
     plt.ylim(0, bounds[1])
 
@@ -25,17 +25,16 @@ def vis_map(robots, bounds, belief_map=None, ground_truth_map=None):
 
     # this has to be done before the bot for loop to avoid red patches
     # ..going over the other obs_occupied patches
-    if ground_truth_map is None:
-        for spot in belief_map.get_unknown_locs():
+    try: # since only BeliefMap has unknown_locs, we can use try except
+        for spot in map.get_unknown_locs():
             hole = patches.Rectangle(spot, 1, 1, facecolor='black')
             ax.add_patch(hole)
-    else:
+    except:
         # color all occupied locs before putting specific bot colors on them (to identify which bot discovered what)
-        occupied_locs = ground_truth_map.get_occupied_locs()
+        occupied_locs = map.get_occupied_locs()
         for spot in occupied_locs:
             hole = patches.Rectangle(spot, 1, 1, facecolor='red')
             ax.add_patch(hole)
-
 
     # get all the observed locations from all robots
     free_locs = set()
@@ -44,6 +43,7 @@ def vis_map(robots, bounds, belief_map=None, ground_truth_map=None):
      
         free_locs = free_locs.union(bot_belief_map.get_free_locs())
         occupied_locs = bot_belief_map.get_occupied_locs()
+
         bot_color = bot.get_color()
 
         # plot robot
@@ -59,11 +59,13 @@ def vis_map(robots, bounds, belief_map=None, ground_truth_map=None):
             y_values.append(path[1] + 0.5)
         plt.plot(x_values, y_values, color=bot_color)
 
+        # plot occupied_locs
         # this is in the loop so that we can use diff colors for each robot's occ cells 
         for spot in occupied_locs:
             hole = patches.Rectangle(spot, 1, 1, facecolor=bot_color)
             ax.add_patch(hole)
 
+    # plot free_locs
     for spot in free_locs:
         hole = patches.Rectangle(spot, 1, 1, facecolor='white')
         ax.add_patch(hole)
@@ -297,12 +299,12 @@ def main(BOUNDS, OCC_DENSITY, TRIALS, TOTAL_STEPS, NUM_ROBOTS, ACTIONS, FULLCOMM
         # robot_start_loc = get_random_loc(ground_truth_map)
         robot_start_loc = [get_random_loc(
             ground_truth_map) for _ in range(NUM_ROBOTS)]
-        # deepcopy the map because we need the same map in the trial for each planner
 
         for planner in planner_options:
             robots = get_robots(NUM_ROBOTS, belief_map,
                                 ground_truth_map, robot_start_loc)
 
+            # initialize data
             if generate_data: 
                 for bot in robots:
                     bot_simulator = bot.get_simulator()
@@ -326,15 +328,15 @@ def main(BOUNDS, OCC_DENSITY, TRIALS, TOTAL_STEPS, NUM_ROBOTS, ACTIONS, FULLCOMM
                             bot_belief_map.get_occupied_locs())
                         step_score += bot_simulator.get_score()
 
-                    bot_simulator.visualize(robots, step)
+                    # bot_simulator.visualize(robots, step)
 
                 # vis_map(robots, BOUNDS, belief_map=belief_map)
                 # vis_map(robots, BOUNDS, ground_truth_map=ground_truth_map)
 
                 cum_score += step_score
 
-            vis_map(robots, BOUNDS, belief_map=belief_map)
-            vis_map(robots, BOUNDS, ground_truth_map=ground_truth_map)
+            vis_map(robots, BOUNDS, belief_map)
+            vis_map(robots, BOUNDS, ground_truth_map)
 
             print("CUM_SCORE: ", cum_score)
 
@@ -370,10 +372,11 @@ if __name__ == "__main__":
     actions_binary_matrices = list()
     scores = list()
 
-    # for pickling
+    # for pickling data
     datafile = "data_21x21_circles_random_greedyno_r4_t2000_s25_rolloutotherpath_samestartloc_commscorrected"
     outfile_tensor_images = CONF[json_comp_conf]["pickle_path"] + datafile
 
     main(BOUNDS, OCC_DENSITY, TRIALS, TOTAL_STEPS,
-         NUM_ROBOTS, ACTIONS, FULLCOMM_STEP, PARTIALCOMM_STEP, PARTIALCOMM_STEP, POORCOMM_STEP, planner_options, neural_model,
-         partial_info_binary_matrices, path_matrices, comm_path_matrices, actions_binary_matrices, scores, generate_data=False)
+         NUM_ROBOTS, ACTIONS, FULLCOMM_STEP, PARTIALCOMM_STEP, POORCOMM_STEP, planner_options, neural_model,
+         partial_info_binary_matrices, path_matrices, comm_path_matrices, actions_binary_matrices, scores, 
+         outfile_tensor_images, generate_data=False)

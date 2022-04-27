@@ -3,7 +3,6 @@ from utils import euclidean_distance
 
 class GroundTruthMap:
     def __init__(self, bounds, OCC_DENSITY):
-
         #NOTE: These values scale the difficulty of the problem
         self.OCC_DENSITY = OCC_DENSITY
         self.bounds = bounds
@@ -126,3 +125,6 @@ class GroundTruthMap:
 
     def get_bounds(self):
         return self.bounds
+
+    def get_name(self):
+        return self.name

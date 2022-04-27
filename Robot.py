@@ -96,9 +96,7 @@ class Robot:
         return self.SENSE_RANGE
 
     def append_exec_loc(self, loc):
-        print("exec_path() BEFORE: ", self.get_exec_path())
         self.exec_path.append(loc)
-        print("exec_path() after: ", self.get_exec_path())
 
     def append_comm_exec_path(self, exec_path):
         self.comm_exec_path += exec_path
