@@ -14,7 +14,7 @@ class Simulator:
         self.sensor_model = sensor_model
 
         self.curr_score = 0
-        self.final_scores = list()
+        self.scores = list()
 
         # Simulator.py is used for eval and data generation
         self.generate_data = generate_data
@@ -23,41 +23,42 @@ class Simulator:
         self.debug_greedy_score = list()
 
     # creates the initially matrices needed
-    def initialize_data(self, robot_start_loc):
+    def _initialize_data_matrices(self, robot_start_locs):
         self.sensor_model.create_partial_info()
-        self.final_scores.append(self.curr_score)  # init score is 0
+        self.scores.append(self.curr_score)  # init score is 0
 
         # at the start, there is no action, so we just add the initial partial info into the action matrix list
         partial_info_matrix = self.sensor_model.get_partial_info_matrices()[0]
         self.sensor_model.append_action_matrix(partial_info_matrix)
 
         # to initialize a matrix in comm_path_matrices for data generation ONLY
-        if self.generate_data:
-            curr_bot_loc = self.bot.get_loc()
-            # keep in mind that for rollout in data generation, we create the path matrices separately and then combine them
-            self.sensor_model.create_rollout_path_matrix()
-            self.sensor_model.create_rollout_comm_path_matrix()
+        curr_bot_loc = self.bot.get_loc()
+        # keep in mind that for rollout in data generation, we create the path matrices separately and then combine them
+        self.sensor_model.create_rollout_path_matrix()
+        self.sensor_model.create_rollout_comm_path_matrix()
 
-            path_matrix = self.sensor_model.get_path_matrices()[0]
-            path_matrix[curr_bot_loc[0]][curr_bot_loc[1]] = 1
+        path_matrix = self.sensor_model.get_path_matrices()[0]
+        path_matrix[curr_bot_loc[0]][curr_bot_loc[1]] = 1
 
-            path_matrix = self.sensor_model.get_comm_path_matrices()[0]
-            for loc in robot_start_loc:
-                if loc != curr_bot_loc:
-                    path_matrix[loc[0]][loc[1]] = 1
-        else:
-            # this contains paths and other paths
-            self.sensor_model.create_path_matrix()
-
-            # this adds the starting location of the other robots into the initial path matrix
-            path_matrix = self.sensor_model.get_path_matrices()[0]
-            # path_matrix[robot_start_loc[0]][robot_start_loc[1]] = 1
-            for loc in robot_start_loc: # use this if robots start at diff locs (testing if robots are communicating path properly)
+        path_matrix = self.sensor_model.get_comm_path_matrices()[0]
+        for loc in robot_start_locs:
+            if loc != curr_bot_loc:
                 path_matrix[loc[0]][loc[1]] = 1
-        
+    
+    def _generate_data_matrices(self, action):
+        self.sensor_model.create_partial_info()
+        self.sensor_model.create_rollout_path_matrix()
+        self.sensor_model.create_rollout_comm_path_matrix()
+        self.sensor_model.create_action_matrix(action, self.bot.get_loc())
 
     # train is there because of the backtracking condition in each planner 
-    def run(self, planner, robot_curr_locs, robot_occupied_locs, robots, curr_step, neural_model, device=None, generate_data=False):       
+    def run(self, planner, robot_curr_locs, robot_occupied_locs, robots, curr_step, neural_model, device=None):       
+        # on step=0, we just initialize map and matrices
+        if curr_step == 0:
+            self._initialize_data_matrices(robot_curr_locs)
+            return
+
+        # get action from planner 
         action = planner.get_action(self.bot, robot_curr_locs)
         
         # remember that if we call move() at curr_step=0, all actions will return False because the BeliefMap has no free_locs for is_valid_loc()
@@ -81,13 +82,15 @@ class Simulator:
             if loc not in robot_occupied_locs:
                 score += 1
         self.set_score(score)
-        self.final_scores.append(score)
+        self.scores.append(score)
         self.reset_score()  # needs to be reset otherwise the score will carry on to the next iteration
         
         # communicate
-        # self.bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
+        self.bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
         # if we visualize path at step=1, there is only a single coordinate so it won't visually show a path (2 coords needed for line to be drawn)
         self.bot.communicate_path(robots, curr_step, planner.get_comm_step())
+
+        self._generate_data_matrices(action)
 
     def visualize(self, robots, curr_step):
         plt.xlim(0, self.belief_map.bounds[0])
@@ -142,9 +145,6 @@ class Simulator:
 
         plt.show()
 
-    def get_score(self):
-        return self.curr_score
-
     def set_score(self, score):
         self.curr_score = score
 
@@ -153,6 +153,12 @@ class Simulator:
 
     def get_actions(self):
         return self.actions
+
+    def get_curr_score(self):
+        return self.curr_score
+
+    def get_scores(self):
+        return self.scores
 
     def debug_get_net_score(self):
         return self.debug_network_score

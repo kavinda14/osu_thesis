@@ -98,34 +98,34 @@ def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
 
     return robots
 
-def generate_data_matricies(robots, path_matrices, comm_path_matrices, partial_info_binary_matrices, 
-                            actions_binary_matrices, scores, total_steps, num_robots, rollout=False):
+def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_info_binary_matrices, 
+                            action_binary_matrices, scores, total_steps, num_robots, rollout=False):
     for bot in robots:
         sensor_model = bot.get_sensor_model()
 
         # path matricies
-        bot_path_matricies = sensor_model.get_final_path_matrices()
-        bot_comm_path_matricies = sensor_model.get_final_other_path_matrices()
+        bot_path_matrices = sensor_model.get_path_matrices()
+        bot_comm_path_matrices = sensor_model.get_comm_path_matrices()
 
         # partial info matricies
-        bot_partial_info_matricies = sensor_model.get_final_partial_info()
+        bot_partial_info_matricies = sensor_model.get_partial_info_matrices()
         bot_partial_info_binary_matrices = sensor_model.create_binary_matrices(
             bot_partial_info_matricies)
 
         # action matrices
-        bot_actions_matrices = sensor_model.get_final_actions()
-        bot_actions_binary_matrices = sensor_model.create_binary_matrices(
+        bot_actions_matrices = sensor_model.get_action_matrices()
+        bot_action_binary_matrices = sensor_model.create_binary_matrices(
             bot_actions_matrices)
 
         # scores
-        bot_scores = sensor_model.get_final_scores()
+        bot_scores = bot.get_simulator().get_scores()
 
-        path_matrices += bot_path_matricies
+        path_matrices += bot_path_matrices
         # print(path_matricies[0])
         # print(other_path_matricies[0])
 
         # input_other_path_matrices.append(path_matricies[0])s
-        comm_path_matrices += bot_comm_path_matricies
+        comm_path_matrices += bot_comm_path_matrices
         # print("debug_input_path_matrices: ", input_path_matrices)
         # just for debugging
         # count = 0
@@ -164,7 +164,7 @@ def generate_data_matricies(robots, path_matrices, comm_path_matrices, partial_i
             #             count += 1
             # print("count: ", count)
 
-        actions_binary_matrices += bot_actions_binary_matrices
+        action_binary_matrices += bot_action_binary_matrices
         scores += bot_scores
 
         # rollout data is generated after the normal data of each map..
@@ -180,7 +180,7 @@ def generate_data_matricies(robots, path_matrices, comm_path_matrices, partial_i
         if rollout:
             # print("Generating rollout data...")
             generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary_matrices,
-                                  actions_binary_matrices, scores, total_steps, num_robots)
+                                  action_binary_matrices, scores, total_steps, num_robots)
 
         # print("final_path_matrices: ", len(input_path_matrices))
         # print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
@@ -193,7 +193,7 @@ def generate_data_matricies(robots, path_matrices, comm_path_matrices, partial_i
 
     print("path_matrices: ", len(path_matrices))
     print("partial_info_binary_matrices: ", len(partial_info_binary_matrices))
-    print("actions_binary_matrices", len(actions_binary_matrices))
+    print("actions_binary_matrices", len(action_binary_matrices))
     print("scores: ", len(scores))
 
 def generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary_matrices, actions_binary_matrices, scores, steps, num_robots):
@@ -287,66 +287,9 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, actions
     outfile_tensor_images.close()
     print("Pickling done!")
  
-def main(BOUNDS, OCC_DENSITY, TRIALS, TOTAL_STEPS, NUM_ROBOTS, ACTIONS, FULLCOMM_STEP, 
-            PARTIALCOMM_STEP, POORCOMM_STEP, planner_options, neural_model, 
-         partial_info_binary_matrices, path_matrices, comm_path_matrices, actions_binary_matrices, scores, generate_data):
+def main():
 
-    for i in tqdm(range(TRIALS)):
-        print("TRIAL: {}".format(i+1))
-
-        ground_truth_map = GroundTruthMap(BOUNDS, OCC_DENSITY)
-        belief_map = BeliefMap(BOUNDS)
-        # robot_start_loc = get_random_loc(ground_truth_map)
-        robot_start_loc = [get_random_loc(
-            ground_truth_map) for _ in range(NUM_ROBOTS)]
-
-        for planner in planner_options:
-            robots = get_robots(NUM_ROBOTS, belief_map,
-                                ground_truth_map, robot_start_loc)
-
-            # initialize data
-            if generate_data: 
-                for bot in robots:
-                    bot_simulator = bot.get_simulator()
-                    bot_simulator.initialize_data(robot_start_loc)
-
-            robot_occupied_locs = set()  # so that we can calculate unique occupied cells observed for the score
-            cum_score = 0
-            for step in range(TOTAL_STEPS):
-                robot_curr_locs = [bot.get_loc() for bot in robots]
-                step_score = 0
-
-                # run multiple robots in same map
-                for bot in robots:
-                    bot_simulator = bot.get_simulator()
-                    bot_belief_map = bot.get_belief_map()
-
-                    if step > 0:  # we use step=0 to just initialize robots and map
-                        bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs,
-                                          robots, step, neural_model[0], device=neural_model[1])
-                        robot_occupied_locs = robot_occupied_locs.union(
-                            bot_belief_map.get_occupied_locs())
-                        step_score += bot_simulator.get_score()
-
-                    # bot_simulator.visualize(robots, step)
-
-                # vis_map(robots, BOUNDS, belief_map=belief_map)
-                # vis_map(robots, BOUNDS, ground_truth_map=ground_truth_map)
-
-                cum_score += step_score
-
-            vis_map(robots, BOUNDS, belief_map)
-            vis_map(robots, BOUNDS, ground_truth_map)
-
-            print("CUM_SCORE: ", cum_score)
-
-            if generate_data:
-                print("Generating data matrices..")
-                generate_data_matricies(robots, path_matrices, comm_path_matrices,
-                                        partial_info_binary_matrices, actions_binary_matrices, scores, TOTAL_STEPS, NUM_ROBOTS, rollout=False)
-                generate_tensor_images(path_matrices, partial_info_binary_matrices, actions_binary_matrices, scores, data_outfile)
-
-if __name__ == "__main__":
+    #### SETUP ####
 
     BOUNDS = [21, 21]
     OCC_DENSITY = 18
@@ -366,6 +309,7 @@ if __name__ == "__main__":
         ACTIONS, neural_model[0], FULLCOMM_STEP)]
 
     # for data generation
+    generate_data = True
     partial_info_binary_matrices = list()
     path_matrices = list()
     comm_path_matrices = list()
@@ -373,10 +317,57 @@ if __name__ == "__main__":
     scores = list()
 
     # for pickling data
-    datafile = "data_21x21_circles_random_greedyno_r4_t2000_s25_rolloutotherpath_samestartloc_commscorrected"
+    datafile = "test"
     outfile_tensor_images = CONF[json_comp_conf]["pickle_path"] + datafile
 
-    main(BOUNDS, OCC_DENSITY, TRIALS, TOTAL_STEPS,
-         NUM_ROBOTS, ACTIONS, FULLCOMM_STEP, PARTIALCOMM_STEP, POORCOMM_STEP, planner_options, neural_model,
-         partial_info_binary_matrices, path_matrices, comm_path_matrices, actions_binary_matrices, scores, 
-         outfile_tensor_images, generate_data=False)
+    #### RUN ROBOTS ####
+
+    for i in tqdm(range(TRIALS)):
+        print("TRIAL: {}".format(i+1))
+
+        ground_truth_map = GroundTruthMap(BOUNDS, OCC_DENSITY)
+        belief_map = BeliefMap(BOUNDS)
+        # robot_start_loc = get_random_loc(ground_truth_map)
+        robot_start_loc = [get_random_loc(
+            ground_truth_map) for _ in range(NUM_ROBOTS)]
+
+        for planner in planner_options:
+            robots = get_robots(NUM_ROBOTS, belief_map,
+                                ground_truth_map, robot_start_loc)
+
+            robot_occupied_locs = set()  # so that we can calculate unique occupied cells observed for the score
+            cum_score = 0
+            for step in range(TOTAL_STEPS):
+                robot_curr_locs = [bot.get_loc() for bot in robots]
+                step_score = 0
+
+                # run multiple robots in same map
+                for bot in robots:
+                    bot_simulator = bot.get_simulator()
+                    bot_belief_map = bot.get_belief_map()
+
+                    bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs,
+                                        robots, step, neural_model[0], device=neural_model[1])
+                    robot_occupied_locs = robot_occupied_locs.union(
+                        bot_belief_map.get_occupied_locs())
+                    step_score += bot_simulator.get_curr_score()
+
+                    bot_simulator.visualize(robots, step)
+
+                cum_score += step_score
+
+            vis_map(robots, BOUNDS, belief_map)
+            vis_map(robots, BOUNDS, ground_truth_map)
+
+            print("CUM_SCORE: ", cum_score)
+
+            if generate_data:
+                print("Generating data matrices..")
+                generate_binary_matrices(robots, path_matrices, comm_path_matrices,
+                                        partial_info_binary_matrices, actions_binary_matrices, scores, TOTAL_STEPS, NUM_ROBOTS, rollout=False)
+                generate_tensor_images(path_matrices, partial_info_binary_matrices, actions_binary_matrices, scores, outfile_tensor_images)
+
+
+if __name__ == "__main__":
+
+    main()
