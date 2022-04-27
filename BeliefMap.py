@@ -108,8 +108,8 @@ class BeliefMap:
         return self.free_locs
 
     def add_occupied_locs(self, occupied_locs):
-        self.occupied_locs.union(occupied_locs)
+        self.occupied_locs = self.occupied_locs.union(occupied_locs)
 
     def add_free_locs(self, free_locs):
-        self.free_locs.union(free_locs)
+        self.free_locs = self.free_locs.union(free_locs)
 

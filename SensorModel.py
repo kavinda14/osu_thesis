@@ -89,7 +89,6 @@ class SensorModel:
 
         if update:
             self.path_matrices.append(path_matrix)
-
         else:
             return path_matrix
     

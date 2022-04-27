@@ -4,8 +4,10 @@ import NeuralNet
 def random_planner(bot, robot_curr_locs, actions):
     bot_belief_map = bot.get_belief_map()
     curr_bot_loc = bot.get_loc()
+    bot_exec_path = bot.get_exec_path()
+    bot_comm_exec_path = bot.get_comm_exec_path()
 
-    counter = 0  # incase it gets infinitely stuck in while loop
+    counter = 0  # incase it gets stuck in while loop
     while True:
         counter += 1
         action = random.choice(actions)
@@ -13,13 +15,11 @@ def random_planner(bot, robot_curr_locs, actions):
         valid_move = bot_belief_map.is_valid_action(action, curr_bot_loc)
         potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc)
 
-        exec_path = bot.get_exec_path()
-        comm_exec_path = bot.get_comm_exec_path()
-
-        if backtrack_count(exec_path, comm_exec_path, potential_loc) <= 1 \
+        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 1 \
                 and (potential_loc not in robot_curr_locs):
             visited_before = False
-        if ((valid_move == True) and (visited_before == False)) or (counter > 10):
+
+        if (valid_move and not visited_before) or (counter > 10):
             break
 
     return action
@@ -50,10 +50,10 @@ def cellcount_planner(actions, bot, sensor_model, neural_model, robot_curr_locs,
                 and (potential_loc not in robot_curr_locs):
                 if neural_net:
                     # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
-                    final_actions = [sensor_model.create_action_matrix(action, True)]
-                    final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
+                    action_matrix = [sensor_model.create_action_matrix(action, True)]
+                    action_binary_matrices = sensor_model.create_binary_matrices(action_matrix)
                 
-                    input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices)
+                    input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, action_binary_matrices)
 
                     # The unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
                     # By unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 

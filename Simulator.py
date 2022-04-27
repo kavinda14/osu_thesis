@@ -51,20 +51,17 @@ class Simulator:
 
             # this adds the starting location of the other robots into the initial path matrix
             path_matrix = self.sensor_model.get_path_matrices()[0]
-            path_matrix[robot_start_loc[0]][robot_start_loc[1]] = 1
-            # for loc in robot_start_locs: # use this if robots start at diff locs
-            #     path_matrix[loc[0]][loc[1]] = 1
+            # path_matrix[robot_start_loc[0]][robot_start_loc[1]] = 1
+            for loc in robot_start_loc: # use this if robots start at diff locs (testing if robots are communicating path properly)
+                path_matrix[loc[0]][loc[1]] = 1
         
 
     # train is there because of the backtracking condition in each planner 
     def run(self, planner, robot_curr_locs, robot_occupied_locs, robots, curr_step, neural_model, device=None, generate_data=False):       
         action = planner.get_action(self.bot, robot_curr_locs)
-
-        self.sensor_model.create_action_matrix(action, self.bot.get_loc())
-
+        
+        # remember that if we call move() at curr_step=0, all actions will return False because the BeliefMap has no free_locs for is_valid_loc()
         self.bot.move(action)
-        # self.bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
-        # self.bot.communicate_path(robots, curr_step, planner.get_comm_step())
 
         # sanity check the robot is in bounds after moving
         if not self.ground_truth_map.is_valid_loc(self.bot.get_loc()):
@@ -74,30 +71,28 @@ class Simulator:
         # update belief map
         new_observations = self.ground_truth_map.get_observation(self.bot, self.bot.get_loc())
         occupied_locs = new_observations[0] # len of occupied cells in observation
-        
+        self.belief_map.update_map(new_observations[0], new_observations[1])
+        # update exec_path
+        self.bot.append_exec_loc(self.bot.get_loc())
+
         # count score
         score = 0
         for loc in occupied_locs:
             if loc not in robot_occupied_locs:
                 score += 1
         self.set_score(score)
-        
-        self.belief_map.update_map(new_observations[0], new_observations[1])
-
-        # create matrices/lists for net
         self.final_scores.append(score)
-        self.sensor_model.create_partial_info()
-        self.bot.append_exec_loc(self.bot.get_loc())
-        if generate_data:
-            self.sensor_model.create_final_rollout_path_matrix()
-            self.sensor_model.create_final_rollout_other_path_matrix()
-        else:
-            self.sensor_model.create_path_matrix()
+        self.reset_score()  # needs to be reset otherwise the score will carry on to the next iteration
+        
+        # communicate
+        # self.bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
+        # if we visualize path at step=1, there is only a single coordinate so it won't visually show a path (2 coords needed for line to be drawn)
+        self.bot.communicate_path(robots, curr_step, planner.get_comm_step())
 
     def visualize(self, robots, curr_step):
         plt.xlim(0, self.belief_map.bounds[0])
         plt.ylim(0, self.belief_map.bounds[1])
-        # plt.title("Planner: {}, Score: {} Step:{}".format(self.planner, sum(self.sensor_model.get_final_scores()), curr_step))
+        plt.title("Step:{}".format(curr_step))
 
         ax = plt.gca()
         ax.set_aspect('equal', 'box')
@@ -120,7 +115,7 @@ class Simulator:
         # plot robot
         bot_xloc = self.bot.get_loc()[0] + 0.5
         bot_yloc = self.bot.get_loc()[1] + 0.5
-        plt.scatter(bot_xloc, bot_yloc, color='purple', zorder=5)
+        plt.scatter(bot_xloc, bot_yloc, color='green', zorder=5)
 
         # plot robot path
         x_values = list()
@@ -132,17 +127,18 @@ class Simulator:
         plt.plot(x_values, y_values)
 
         # plot other robot paths
-        bot_comm_exec_path = self.bot.get_comm_exec_path()
+        bot_comm_exec_path = set(self.bot.get_comm_exec_path())
         for bot in robots:
             if bot is not self.bot:
-                x_values_other = list()
-                y_values_other = list()
+                other_x_values = list()
+                other_y_values = list()
                 other_bot_exec_path = bot.get_exec_path()
-                for path in other_bot_exec_path:
-                    if path in set(bot_comm_exec_path):
-                        x_values_other.append(path[0] + 0.5)
-                        y_values_other.append(path[1] + 0.5)
-                plt.plot(x_values_other, y_values_other, zorder=1,  color='orange')
+                for loc in other_bot_exec_path:
+                    # plot only if path of other bot in comm_exec_path of curr bot
+                    if loc in bot_comm_exec_path:
+                        other_x_values.append(loc[0] + 0.5)
+                        other_y_values.append(loc[1] + 0.5)
+                plt.plot(other_x_values, other_y_values, zorder=1,  color='orange')
 
         plt.show()
 
