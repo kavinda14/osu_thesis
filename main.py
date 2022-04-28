@@ -13,7 +13,7 @@ from Simulator import Simulator
 from Planners import RandomPlanner, CellCountPlanner
 from copy import deepcopy
 import numpy as np
-from random import random
+from random import random, randint
 import pickle
 
 def vis_map(robots, bounds, map):
@@ -177,15 +177,15 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
         # print(input_path_matrices[5])
         # print(input_other_path_matrices[5])
 
-        if rollout:
-            # print("Generating rollout data...")
-            generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary_matrices,
-                                  action_binary_matrices, scores, total_steps, num_robots)
+    if rollout:
+        # print("Generating rollout data...")
+        generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary_matrices,
+                                action_binary_matrices, scores, total_steps, num_robots)
 
-        # print("final_path_matrices: ", len(input_path_matrices))
-        # print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
-        # print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
-        # print("final_final_scores: ", len(input_scores))
+    # print("final_path_matrices: ", len(input_path_matrices))
+    # print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
+    # print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
+    # print("final_final_scores: ", len(input_scores))
 
     # end = time.time()
     # time_taken = (end - start)/60
@@ -196,7 +196,7 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
     print("actions_binary_matrices", len(action_binary_matrices))
     print("scores: ", len(scores))
 
-def generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary_matrices, actions_binary_matrices, scores, steps, num_robots):
+def generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary_matrices, actions_binary_matrices, scores, total_steps, num_robots):
     temp_partial_info_binary_matrices = list()
     temp_path_matrices = list()
     temp_comm_path_matrices = list()
@@ -205,49 +205,51 @@ def generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary
 
     # "- ((steps*num_robots)+num_robots)" this is added because remember that rollout data is added..
     # to "input_partial_info_binary_matrices" so we need to start after the rollout data from the previous iteration
-    index1 = len(partial_info_binary_matrices) - ((steps*num_robots)+num_robots)
+    index1 = len(partial_info_binary_matrices) - (total_steps*num_robots)
+
     curr_robot =  1
     # the +1 in "boundary_increment" is because there is initial position matrix added to the arrays
-    boundary_increment = (steps * curr_robot) + 1
-    boundary = index1 + boundary_increment
+    boundary_increment = (total_steps * curr_robot)
+    boundary = index1 + boundary_increment - 1
     
     # the while loop is to make sure we don't iterate through the entire dataset to create..
     # ..rollout data because we are matching current data with future data
-    while index1 <= (len(partial_info_binary_matrices) - steps//2):
-        if curr_robot <= num_robots and index1 == boundary-(steps/5):
+    while index1 <= (len(partial_info_binary_matrices) - total_steps//2):
+        if (curr_robot <= num_robots) and (index1 == boundary-(total_steps/5)):
             curr_robot += 1
             # index1 becomes the previous boundary
-            index1 = boundary
+            index1 = boundary + 1
             # we move boundary forward by boundary increment
             boundary += boundary_increment
-            
+        
         temp_partial_info_binary_matrices.append(partial_info_binary_matrices[index1])
-        # +1 because we don't want the same idx as index and -1 because it goes outside array otherwise
-        index2 = random.randint(index1, boundary-2)
+
+        index2 = randint(index1, boundary-2)
         # print("index2: ", index2)
-        other_path_index = random.randint(index1, index2)
+        comm_path_index = randint(index1, index2)
         # print("other_path_index: ", other_path_index)
         # print("len other path: ", len(input_other_path_matrices))
         # print("len path: ", len(input_path_matrices))
         # print()
         # debug
-        # print()
-        # print("index1: ", index1)
-        # print("index2: ", index2)
-        # print("boundary: ", boundary)
-        # print()
+        print()
+        print("index1: ", index1)
+        print("index2: ", index2)
+        print("boundary: ", boundary)
+        print()
         
-        curr_input_path_matrix = path_matrices[index2]
-        curr_other_path_matrix = comm_path_matrices[other_path_index]
+        curr_path_matrix = path_matrices[index2]
+        curr_comm_path_matrix = comm_path_matrices[comm_path_index]
 
         # iterate over each row, col idx of the np array and modify path_matrix
-        for irow, icol, in np.ndindex(curr_other_path_matrix.shape):
-            if curr_other_path_matrix[irow, icol] == 1:
-                curr_input_path_matrix[irow, icol]=1
+        for irow, icol, in np.ndindex(curr_comm_path_matrix.shape):
+            if curr_comm_path_matrix[irow, icol] == 1:
+                curr_path_matrix[irow, icol]=1
 
-        temp_path_matrices.append(curr_input_path_matrix)
+        temp_path_matrices.append(curr_path_matrix)
         # these are just fillers so we get the correct idx in the next iteration
-        temp_comm_path_matrices.append(curr_other_path_matrix)
+        # temp_comm_path_matrices.append(curr_comm_path_matrix)
+        temp_comm_path_matrices.append(1)
 
         temp_actions_binary_matrices.append(actions_binary_matrices[index2])
         temp_scores.append(scores[index2])
@@ -352,20 +354,21 @@ def main():
                         bot_belief_map.get_occupied_locs())
                     step_score += bot_simulator.get_curr_score()
 
-                    bot_simulator.visualize(robots, step)
+                    # bot_simulator.visualize(robots, step)
 
                 cum_score += step_score
 
-            vis_map(robots, BOUNDS, belief_map)
-            vis_map(robots, BOUNDS, ground_truth_map)
+            # vis_map(robots, BOUNDS, belief_map)
+            # vis_map(robots, BOUNDS, ground_truth_map)
 
             print("CUM_SCORE: ", cum_score)
 
             if generate_data:
                 print("Generating data matrices..")
                 generate_binary_matrices(robots, path_matrices, comm_path_matrices,
-                                        partial_info_binary_matrices, actions_binary_matrices, scores, TOTAL_STEPS, NUM_ROBOTS, rollout=False)
-                generate_tensor_images(path_matrices, partial_info_binary_matrices, actions_binary_matrices, scores, outfile_tensor_images)
+                                         partial_info_binary_matrices, actions_binary_matrices, scores, TOTAL_STEPS, NUM_ROBOTS, rollout=True)
+                generate_tensor_images(path_matrices, partial_info_binary_matrices, actions_binary_matrices, 
+                                       scores, outfile_tensor_images)
 
 
 if __name__ == "__main__":
