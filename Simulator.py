@@ -83,7 +83,6 @@ class Simulator:
                 score += 1
         self.set_score(score)
         self.scores.append(score)
-        self.reset_score()  # needs to be reset otherwise the score will carry on to the next iteration
         
         # communicate
         self.bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())

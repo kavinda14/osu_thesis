@@ -72,6 +72,15 @@ def vis_map(robots, bounds, map):
 
     plt.show()
 
+def plot_scores(saved_scores):
+    x_pos = np.arange(1, len(saved_scores)+1) # aligns xaxis labels properly
+    plt.figure(figsize=(10, 7))
+    plt.boxplot([scores for scores in saved_scores.values()])
+    plt.xticks(x_pos, [planner for planner in saved_scores.keys()], rotation=25)
+    # plt.title(weight_file+"_trials:"+str(trials)+"_steps:"+str(steps))
+    plt.tight_layout()
+    plt.show()
+
 def get_neural_model(CONF, json_comp_conf, bounds):
     weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s35_rolloutotherpath_samestartloc_obsdensity18"
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -99,7 +108,7 @@ def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
     return robots
 
 def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_info_binary_matrices, 
-                            action_binary_matrices, scores, total_steps, num_robots, rollout=False):
+                            action_binary_matrices, scores, total_steps, num_robots, rollout):
     for bot in robots:
         sensor_model = bot.get_sensor_model()
 
@@ -121,25 +130,23 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
         bot_scores = bot.get_simulator().get_scores()
 
         path_matrices += bot_path_matrices
-        # print(path_matricies[0])
-        # print(other_path_matricies[0])
 
-        # input_other_path_matrices.append(path_matricies[0])s
         comm_path_matrices += bot_comm_path_matrices
-        # print("debug_input_path_matrices: ", input_path_matrices)
-        # just for debugging
+        # print("debug_path_matrices:")
+        # print(path_matrices)
+        # # just for debugging
         # count = 0
-        # for matrix in input_path_matrices:
+        # for matrix in path_matrices:
         #     for row in matrix:
         #         for col in row:
         #             if col==1:
         #                 count+=1
-        #     print("debug_input_path_matrices COUNT: ", count)
+        #     print("debug_path_matrices COUNT: ", count)
         #     count = 0
         #     print(matrix)
 
         partial_info_binary_matrices += bot_partial_info_binary_matrices
-        # print("debug_input_partial_info_binary_matrices: ", input_partial_info_binary_matrices)
+        # print("debug_partial_info_binary_matrices: ", partial_info_binary_matrices)
         # count = 0
         # for matrix in input_partial_info_binary_matrices:
         #     # print("MATRIX: ", matrix)
@@ -149,12 +156,12 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
         #             for col in row:
         #                 if col==1:
         #                     count+=1
-        #         print("debug_input_partial_info_binary_matrices COUNT: ", count)
+        #         print("debug_partial_info_binary_matrices COUNT: ", count)
         #         count = 0
         #         print(matrix2)
 
-        # print("images count: ", len(input_partial_info_binary_matrices))
-        # for image in input_partial_info_binary_matrices:
+        # print("images count: ", len(partial_info_binary_matrices))
+        # for image in partial_info_binary_matrices:
         #     print("image: ", image)
             # print("image: ", image[0])
             # count = 0
@@ -167,25 +174,14 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
         action_binary_matrices += bot_action_binary_matrices
         scores += bot_scores
 
-        # rollout data is generated after the normal data of each map..
-        # ..because when splitting the data at training, if the the normal data is created and the then the rollout..
-        # .., the training and validation sets will have the same maps
-
-        # print("data length: ", len(input_path_matrices))
-        # print("data final_path_matrices: ", len(input_path_matrices))
-        # print("final_other_path_matrices: ", len(input_other_path_matrices))
-        # print(input_path_matrices[5])
-        # print(input_other_path_matrices[5])
+    # rollout data is generated after the normal data of each map..
+    # ..because when splitting the data at training, if the the normal data is created and the then the rollout..
+    # .., the training and validation sets will have the same maps
 
     if rollout:
         # print("Generating rollout data...")
         generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary_matrices,
                                 action_binary_matrices, scores, total_steps, num_robots)
-
-    # print("final_path_matrices: ", len(input_path_matrices))
-    # print("final_partial_info_binary_matrices: ", len(input_partial_info_binary_matrices))
-    # print("final_final_actions_binary_matrices", len(input_actions_binary_matrices))
-    # print("final_final_scores: ", len(input_scores))
 
     # end = time.time()
     # time_taken = (end - start)/60
@@ -232,11 +228,11 @@ def generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary
         # print("len path: ", len(input_path_matrices))
         # print()
         # debug
-        print()
-        print("index1: ", index1)
-        print("index2: ", index2)
-        print("boundary: ", boundary)
-        print()
+        # print()
+        # print("index1: ", index1)
+        # print("index2: ", index2)
+        # print("boundary: ", boundary)
+        # print()
         
         curr_path_matrix = path_matrices[index2]
         curr_comm_path_matrix = comm_path_matrices[comm_path_index]
@@ -288,7 +284,8 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, actions
     pickle.dump(data, outfile_tensor_images)
     outfile_tensor_images.close()
     print("Pickling done!")
- 
+
+
 def main():
 
     #### SETUP ####
@@ -298,7 +295,6 @@ def main():
     TRIALS = 1
     TOTAL_STEPS = 25
     NUM_ROBOTS = 3
-    ACTIONS = ['left', 'right', 'backward', 'forward']
     FULLCOMM_STEP = 1
     PARTIALCOMM_STEP = 5
     POORCOMM_STEP = 10
@@ -307,11 +303,12 @@ def main():
     json_comp_conf = get_json_comp_conf()
     neural_model = get_neural_model(CONF, json_comp_conf, BOUNDS)
 
-    planner_options = [RandomPlanner(ACTIONS, FULLCOMM_STEP), CellCountPlanner(
-        ACTIONS, neural_model[0], FULLCOMM_STEP)]
+    planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
+                       CellCountPlanner(neural_model[0], FULLCOMM_STEP, "full")]
 
     # for data generation
     generate_data = True
+    rollout = True
     partial_info_binary_matrices = list()
     path_matrices = list()
     comm_path_matrices = list()
@@ -319,6 +316,8 @@ def main():
     scores = list()
 
     # for pickling data
+    saved_scores = dict()
+
     datafile = "test"
     outfile_tensor_images = CONF[json_comp_conf]["pickle_path"] + datafile
 
@@ -334,6 +333,7 @@ def main():
             ground_truth_map) for _ in range(NUM_ROBOTS)]
 
         for planner in planner_options:
+            saved_scores[planner.get_name()] = list()
             robots = get_robots(NUM_ROBOTS, belief_map,
                                 ground_truth_map, robot_start_loc)
 
@@ -350,9 +350,9 @@ def main():
 
                     bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs,
                                         robots, step, neural_model[0], device=neural_model[1])
-                    robot_occupied_locs = robot_occupied_locs.union(
-                        bot_belief_map.get_occupied_locs())
+                    robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
                     step_score += bot_simulator.get_curr_score()
+                    bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
 
                     # bot_simulator.visualize(robots, step)
 
@@ -362,14 +362,17 @@ def main():
             # vis_map(robots, BOUNDS, ground_truth_map)
 
             print("CUM_SCORE: ", cum_score)
+            saved_scores[planner.get_name()].append(cum_score)
 
             if generate_data:
-                print("Generating data matrices..")
+                print("Generating data matrices and rollout is {}..".format(rollout))
                 generate_binary_matrices(robots, path_matrices, comm_path_matrices,
-                                         partial_info_binary_matrices, actions_binary_matrices, scores, TOTAL_STEPS, NUM_ROBOTS, rollout=True)
+                                         partial_info_binary_matrices, actions_binary_matrices, scores, TOTAL_STEPS, NUM_ROBOTS, rollout)
                 generate_tensor_images(path_matrices, partial_info_binary_matrices, actions_binary_matrices, 
                                        scores, outfile_tensor_images)
-
+    
+    plot_scores(saved_scores)
+    
 
 if __name__ == "__main__":
 
