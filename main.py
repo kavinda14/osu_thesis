@@ -13,12 +13,13 @@ from Simulator import Simulator
 from Planners import RandomPlanner, CellCountPlanner
 from copy import deepcopy
 import numpy as np
-from random import random, randint
+from random import randint
 import pickle
 
-def vis_map(robots, bounds, map):
+def vis_map(planner_name, robots, bounds, map):
     plt.xlim(0, bounds[0])
     plt.ylim(0, bounds[1])
+    plt.title(planner_name)
 
     ax = plt.gca()
     ax.set_aspect('equal', 'box')
@@ -31,19 +32,15 @@ def vis_map(robots, bounds, map):
             ax.add_patch(hole)
     except:
         # color all occupied locs before putting specific bot colors on them (to identify which bot discovered what)
-        occupied_locs = map.get_occupied_locs()
-        for spot in occupied_locs:
+        bot_occupied_locs = map.get_occupied_locs()
+        for spot in bot_occupied_locs:
             hole = patches.Rectangle(spot, 1, 1, facecolor='red')
             ax.add_patch(hole)
 
-    # get all the observed locations from all robots
-    free_locs = set()
     for bot in robots:
         bot_belief_map = bot.get_belief_map()
-     
-        free_locs = free_locs.union(bot_belief_map.get_free_locs())
-        occupied_locs = bot_belief_map.get_occupied_locs()
-
+        bot_free_locs = bot_belief_map.get_free_locs()
+        bot_occupied_locs = bot_belief_map.get_occupied_locs()
         bot_color = bot.get_color()
 
         # plot robot
@@ -54,21 +51,22 @@ def vis_map(robots, bounds, map):
         # plot robot path
         x_values = list()
         y_values = list()
-        for path in bot.get_exec_path():
+        bot_exec_path = bot.get_exec_path()
+        for path in bot_exec_path:
             x_values.append(path[0] + 0.5)
             y_values.append(path[1] + 0.5)
         plt.plot(x_values, y_values, color=bot_color)
 
         # plot occupied_locs
         # this is in the loop so that we can use diff colors for each robot's occ cells 
-        for spot in occupied_locs:
+        for spot in bot_occupied_locs:
             hole = patches.Rectangle(spot, 1, 1, facecolor=bot_color)
             ax.add_patch(hole)
 
-    # plot free_locs
-    for spot in free_locs:
-        hole = patches.Rectangle(spot, 1, 1, facecolor='white')
-        ax.add_patch(hole)
+        # plot free_locs
+        for spot in bot_free_locs:
+            hole = patches.Rectangle(spot, 1, 1, facecolor='white')
+            ax.add_patch(hole)
 
     plt.show()
 
@@ -95,10 +93,10 @@ def get_neural_model(CONF, json_comp_conf, bounds):
 def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
     robots = set()
     for i in range(num_robots):
-        start_loc = robot_start_loc[i] # use this when testing if paths being communicated properly
+        # start_loc = robot_start_loc[i] # start at diff locs: use this when testing if paths being communicated properly
         belief_map_copy = deepcopy(belief_map) # to make sure that each robot has a diff belief map object
-        # bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy)
-        bot = Robot(start_loc[0], start_loc[1], belief_map_copy)
+        # bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy) # start at same loc
+        bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy) # start at diff locs
         sensor_model = SensorModel(bot, belief_map)
         simulator = Simulator(belief_map_copy, ground_truth_map, bot, sensor_model, generate_data=False)
         bot.set_sensor_model(sensor_model)
@@ -106,6 +104,14 @@ def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
         robots.add(bot)
 
     return robots
+
+def communicate(curr_step, robots, planner):
+    comm_step = planner.get_comm_step()
+    for bot in robots:
+        if (curr_step % comm_step) == 0:
+            bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
+            # if we visualize path at step=1, there is only a single coordinate so it won't visually show a path (2 coords needed for line to be drawn)
+            bot.communicate_path(robots, curr_step, planner.get_comm_step())
 
 def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_info_binary_matrices, 
                             action_binary_matrices, scores, total_steps, num_robots, rollout):
@@ -292,8 +298,8 @@ def main():
 
     BOUNDS = [21, 21]
     OCC_DENSITY = 18
-    TRIALS = 1
-    TOTAL_STEPS = 25
+    TRIALS = 100
+    TOTAL_STEPS = 20
     NUM_ROBOTS = 3
     FULLCOMM_STEP = 1
     PARTIALCOMM_STEP = 5
@@ -304,10 +310,11 @@ def main():
     neural_model = get_neural_model(CONF, json_comp_conf, BOUNDS)
 
     planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
-                       CellCountPlanner(neural_model[0], FULLCOMM_STEP, "full")]
+                       CellCountPlanner(neural_model[0], False, FULLCOMM_STEP, "full")]
+    # planner_options = [CellCountPlanner(neural_model[0], False, FULLCOMM_STEP, "full")]
 
     # for data generation
-    generate_data = True
+    generate_data = False
     rollout = True
     partial_info_binary_matrices = list()
     path_matrices = list()
@@ -316,7 +323,7 @@ def main():
     scores = list()
 
     # for pickling data
-    saved_scores = dict()
+    saved_scores = {planner.get_name() : list() for planner in planner_options}
 
     datafile = "test"
     outfile_tensor_images = CONF[json_comp_conf]["pickle_path"] + datafile
@@ -328,38 +335,38 @@ def main():
 
         ground_truth_map = GroundTruthMap(BOUNDS, OCC_DENSITY)
         belief_map = BeliefMap(BOUNDS)
-        # robot_start_loc = get_random_loc(ground_truth_map)
-        robot_start_loc = [get_random_loc(
-            ground_truth_map) for _ in range(NUM_ROBOTS)]
+        robot_start_loc = get_random_loc(ground_truth_map) # start in same loc
+        # robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(NUM_ROBOTS)] # start in diff locs
 
         for planner in planner_options:
-            saved_scores[planner.get_name()] = list()
-            robots = get_robots(NUM_ROBOTS, belief_map,
-                                ground_truth_map, robot_start_loc)
+            print("Planner: ", planner.get_name())
+            robots = get_robots(NUM_ROBOTS, belief_map, ground_truth_map, robot_start_loc)
 
             robot_occupied_locs = set()  # so that we can calculate unique occupied cells observed for the score
             cum_score = 0
-            for step in range(TOTAL_STEPS):
-                robot_curr_locs = [bot.get_loc() for bot in robots]
+            for curr_step in range(TOTAL_STEPS):
                 step_score = 0
 
                 # run multiple robots in same map
                 for bot in robots:
+                    robot_curr_locs = [bot.get_loc() for bot in robots] # to make sure no two robots are in the same loc
                     bot_simulator = bot.get_simulator()
                     bot_belief_map = bot.get_belief_map()
 
                     bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs,
-                                        robots, step, neural_model[0], device=neural_model[1])
+                                        robots, curr_step, neural_model[0], device=neural_model[1])
                     robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
                     step_score += bot_simulator.get_curr_score()
                     bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
 
-                    # bot_simulator.visualize(robots, step)
-
+                    # bot_simulator.visualize(robots, curr_step)
+                
+                communicate(curr_step, robots, planner)
+                
                 cum_score += step_score
 
-            # vis_map(robots, BOUNDS, belief_map)
-            # vis_map(robots, BOUNDS, ground_truth_map)
+            # vis_map(planner.get_name(), robots, BOUNDS, belief_map)
+            # vis_map(planner.get_name(), robots, BOUNDS, ground_truth_map)
 
             print("CUM_SCORE: ", cum_score)
             saved_scores[planner.get_name()].append(cum_score)

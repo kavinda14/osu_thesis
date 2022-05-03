@@ -52,7 +52,7 @@ class Simulator:
         self.sensor_model.create_action_matrix(action, self.bot.get_loc())
 
     # train is there because of the backtracking condition in each planner 
-    def run(self, planner, robot_curr_locs, robot_occupied_locs, robots, curr_step, neural_model, device=None):       
+    def run(self, planner, robot_curr_locs, robot_occupied_locs, robots, curr_step, neural_model, device):       
         # on step=0, we just initialize map and matrices
         if curr_step == 0:
             self._initialize_data_matrices(robot_curr_locs)
@@ -85,6 +85,7 @@ class Simulator:
         self.scores.append(score)
         
         # communicate
+        # comm is here and not after all robots make a single step because no two robots can be in the same loc
         self.bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
         # if we visualize path at step=1, there is only a single coordinate so it won't visually show a path (2 coords needed for line to be drawn)
         self.bot.communicate_path(robots, curr_step, planner.get_comm_step())

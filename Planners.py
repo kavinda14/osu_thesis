@@ -15,8 +15,9 @@ def random_planner(bot, robot_curr_locs, sys_actions):
         valid_move = bot_belief_map.is_valid_action(action, curr_bot_loc)
         potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc)
 
-        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 1 \
-                and (potential_loc not in robot_curr_locs):
+        # if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 1 \
+        #         and (potential_loc not in robot_curr_locs):
+        if potential_loc not in robot_curr_locs:
             visited_before = False
 
         if (valid_move and not visited_before) or (counter > 10):
@@ -29,14 +30,15 @@ def backtrack_count(exec_path, comm_exec_path, potential_loc):
 
 
 # model here is the neural net
-def cellcount_planner(sys_actions, bot, sensor_model, neural_model, robot_curr_locs, neural_net=False, device=False):
-    best_action_score = float('-inf')
+def cellcount_planner(sys_actions, bot, sensor_model, neural_model, robot_curr_locs, use_net=False, device=False):
     best_action = random.choice(sys_actions)
-    exec_paths = bot.get_exec_path()
-    comm_exec_paths = bot.get_comm_exec_path()
+    best_action_score = float('-inf')
+    bot_exec_paths = bot.get_exec_path()
+    bot_comm_exec_paths = bot.get_comm_exec_path()
     bot_belief_map = bot.get_belief_map()
     curr_bot_loc = bot.get_loc()
 
+    # create map and path matrices for network 
     partial_info = [sensor_model.create_partial_info(False)]
     partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
     path_matrix = sensor_model.create_path_matrix(False)
@@ -46,28 +48,29 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, robot_curr_l
             potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc) # tuple is needed here for count()
             
             # backtrack possibility
-            if backtrack_count(exec_paths, comm_exec_paths, potential_loc) <= 1 \
-                and (potential_loc not in robot_curr_locs):
-                if neural_net:
-                    # We put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
+            # if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) <= 1 \
+            #     and (potential_loc not in robot_curr_locs):
+            if potential_loc not in robot_curr_locs:
+                if use_net:
+                    # we put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
                     action_matrix = [sensor_model.create_action_matrix(action, True)]
                     action_binary_matrices = sensor_model.create_binary_matrices(action_matrix)
                 
                     input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, action_binary_matrices)
 
-                    # The unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
-                    # By unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 
+                    # the unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
+                    # by unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 
                     input = input.unsqueeze(0).float().to(device)
 
                     action_score = neural_model(input).item()
                     
                 else:
-                    action_score = len(bot_belief_map.count_unknown_cells(bot.get_sense_range(), curr_bot_loc))
+                    action_score = len(bot_belief_map.count_unknown_cells(bot.get_sense_range(), potential_loc))
 
                 if action_score > best_action_score:
                     best_action_score = action_score
                     best_action = action
-
+    
     return best_action
 
 
@@ -90,13 +93,12 @@ class RandomPlanner(Planner):
     def __init__(self, comm_step, comm_type):
         super().__init__(comm_step, comm_type)
         self.comm_step = comm_step
-    
 
     def get_action(self, bot, robot_curr_locs):
         return random_planner(bot, robot_curr_locs, self.get_sys_actions())
 
 class CellCountPlanner(Planner):
-    def __init__(self, neural_model, comm_step, comm_type):
+    def __init__(self, neural_model, use_net, comm_step, comm_type):
         super().__init__(comm_step, comm_type)
         self.comm_step = comm_step
         self.neural_model = neural_model
