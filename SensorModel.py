@@ -152,21 +152,21 @@ class SensorModel:
                 sub_matrix = np.empty((np.shape(main_matrix)), dtype=int)
                 for x in range(np.shape(main_matrix)[0]):
                     for y in range(np.shape(main_matrix)[1]):
-                        # obs_free
+                        # free
                         if n == 1:
                             if main_matrix[x, y] == 0:
                                 sub_matrix[x, y] = 1
                             else:
                                 sub_matrix[x, y] = 0
 
-                        # obs_occupied
+                        # occupied
                         if n == 2:
                             if main_matrix[x, y] == 1:
                                 sub_matrix[x, y] = 1
                             else:
                                 sub_matrix[x, y] = 0
 
-                        # unobs
+                        # unknown
                         if n == 3:
                             if main_matrix[x, y] == 2:
                                 sub_matrix[x, y] = 1
@@ -182,7 +182,7 @@ class SensorModel:
 
     # greedy_planner flag is added because we need to return action matrix
     # *args was added because in mcts network_reward, we need some way of passing the the robot location
-    def create_action_matrix(self, action, curr_bot_loc, greedy_planner=False):
+    def create_action_matrix(self, action, curr_bot_loc, cellcount_planner=False):
         # Think of this as an action but a diff way of representing it
         # This function needs to be called before we move the robot in the Simulator
 
@@ -230,7 +230,7 @@ class SensorModel:
         Y axis is going to the right.
         So an action of forward where (y-1) means that the action will be to the left of robot mid-point from my frame.
         """
-        if greedy_planner:
+        if cellcount_planner:
             return action_matrix
             
         # refractor: this should not be appending to a final list. 

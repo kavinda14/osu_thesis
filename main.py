@@ -80,7 +80,8 @@ def plot_scores(saved_scores):
     plt.show()
 
 def get_neural_model(CONF, json_comp_conf, bounds):
-    weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s35_rolloutotherpath_samestartloc_obsdensity18"
+    weight_file = "circles_21x21_epoch1_random_cellcount_r3_t2000_s25_rollout:False_samestartloc"
+    # weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s35_rolloutotherpath_samestartloc_obsdensity18"
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
     neural_model = Net(bounds).to(device)
@@ -95,9 +96,9 @@ def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
     for i in range(num_robots):
         # start_loc = robot_start_loc[i] # start at diff locs: use this when testing if paths being communicated properly
         belief_map_copy = deepcopy(belief_map) # to make sure that each robot has a diff belief map object
-        # bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy) # start at same loc
-        bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy) # start at diff locs
-        sensor_model = SensorModel(bot, belief_map)
+        bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy) # start at same loc
+        # bot = Robot(start_loc[0], start_loc[1], belief_map_copy) # start at diff locs
+        sensor_model = SensorModel(bot, belief_map_copy)
         simulator = Simulator(belief_map_copy, ground_truth_map, bot, sensor_model, generate_data=False)
         bot.set_sensor_model(sensor_model)
         bot.set_simulator(simulator)
@@ -109,33 +110,46 @@ def communicate(curr_step, robots, planner):
     comm_step = planner.get_comm_step()
     for bot in robots:
         if (curr_step % comm_step) == 0:
-            bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
+            bot.communicate_belief_map(robots, curr_step, comm_step)
             # if we visualize path at step=1, there is only a single coordinate so it won't visually show a path (2 coords needed for line to be drawn)
-            bot.communicate_path(robots, curr_step, planner.get_comm_step())
+            bot.communicate_path(robots, curr_step, comm_step)
 
 def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_info_binary_matrices, 
                             action_binary_matrices, scores, total_steps, num_robots, rollout):
     for bot in robots:
-        sensor_model = bot.get_sensor_model()
+        bot_sensor_model = bot.get_sensor_model()
 
         # path matricies
-        bot_path_matrices = sensor_model.get_path_matrices()
-        bot_comm_path_matrices = sensor_model.get_comm_path_matrices()
+        bot_path_matrices = bot_sensor_model.get_path_matrices()
+        bot_comm_path_matrices = bot_sensor_model.get_comm_path_matrices()
+        bot_path_matrices = bot_sensor_model.get_path_matrices()
 
         # partial info matricies
-        bot_partial_info_matricies = sensor_model.get_partial_info_matrices()
-        bot_partial_info_binary_matrices = sensor_model.create_binary_matrices(
-            bot_partial_info_matricies)
+        bot_partial_info_matricies = bot_sensor_model.get_partial_info_matrices()
+        bot_partial_info_binary_matrices = bot_sensor_model.create_binary_matrices(bot_partial_info_matricies)
 
         # action matrices
-        bot_actions_matrices = sensor_model.get_action_matrices()
-        bot_action_binary_matrices = sensor_model.create_binary_matrices(
-            bot_actions_matrices)
+        bot_actions_matrices = bot_sensor_model.get_action_matrices()
+        bot_action_binary_matrices = bot_sensor_model.create_binary_matrices(bot_actions_matrices)
 
         # scores
         bot_scores = bot.get_simulator().get_scores()
 
         path_matrices += bot_path_matrices
+        # print("debug_path_matrices:")
+        # print(len(path_matrices))
+        # # just for debugging
+        # count = 0
+        # for i, matrix in enumerate(path_matrices):
+        #     if i == 24:
+        #         print(path_matrices[24])
+        #         for row in matrix:
+        #             for col in row:
+        #                 if col==1:
+        #                     count+=1
+        #         print("debug_path_matrices COUNT: ", count)
+        #         count = 0
+        #         print(matrix)
 
         comm_path_matrices += bot_comm_path_matrices
         # print("debug_path_matrices:")
@@ -152,19 +166,25 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
         #     print(matrix)
 
         partial_info_binary_matrices += bot_partial_info_binary_matrices
-        # print("debug_partial_info_binary_matrices: ", partial_info_binary_matrices)
+        # print("partial_info_binary_matrices len", len(partial_info_binary_matrices))
+        # # print("debug_partial_info_binary_matrices: ", partial_info_binary_matrices)
         # count = 0
-        # for matrix in input_partial_info_binary_matrices:
-        #     # print("MATRIX: ", matrix)
-        #     for matrix2 in matrix:
-        #         # print("MATRIX2: ", matrix2)
-        #         for row in matrix2:
-        #             for col in row:
-        #                 if col==1:
-        #                     count+=1
-        #         print("debug_partial_info_binary_matrices COUNT: ", count)
-        #         count = 0
-        #         print(matrix2)
+        # for i, matrix in enumerate(partial_info_binary_matrices):
+        #     # print(len(matrix))
+        #     # print("MATRIX: ", matrix)          
+        #     # print()
+        #     if i==48:
+        #         print(bot_partial_info_matricies[24])
+        #         print()
+        #         for matrix2 in matrix:
+        #             # print("MATRIX2: ", matrix2)
+        #             for row in matrix2:
+        #                 for col in row:
+        #                     if col==1:
+        #                         count+=1
+        #             print("debug_partial_info_binary_matrices COUNT: ", count)
+        #             count = 0
+        #             print(matrix2)
 
         # print("images count: ", len(partial_info_binary_matrices))
         # for image in partial_info_binary_matrices:
@@ -298,8 +318,8 @@ def main():
 
     BOUNDS = [21, 21]
     OCC_DENSITY = 18
-    TRIALS = 100
-    TOTAL_STEPS = 20
+    TRIALS = 2500
+    TOTAL_STEPS = 25
     NUM_ROBOTS = 3
     FULLCOMM_STEP = 1
     PARTIALCOMM_STEP = 5
@@ -308,14 +328,27 @@ def main():
     CONF = get_CONF()
     json_comp_conf = get_json_comp_conf()
     neural_model = get_neural_model(CONF, json_comp_conf, BOUNDS)
+    device = neural_model[1]
 
-    planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
-                       CellCountPlanner(neural_model[0], False, FULLCOMM_STEP, "full")]
-    # planner_options = [CellCountPlanner(neural_model[0], False, FULLCOMM_STEP, "full")]
+    # planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
+    #                    CellCountPlanner(None, False, device, FULLCOMM_STEP, "full"),
+    #                    CellCountPlanner(neural_model[0], True, device, FULLCOMM_STEP, "fullnet")]
+
+    planner_options = [RandomPlanner(FULLCOMM_STEP, "full"),
+                       CellCountPlanner(None, False, device, FULLCOMM_STEP, "full")]                     
 
     # for data generation
-    generate_data = False
-    rollout = True
+    '''
+    checklist: 
+        1) generate_data
+        2) rollout
+        3) datafile
+        4) planner_options (only random and cellcount WITHOUT network - FULLCOMM_STEP)
+        5) TRIALS, NUM_ROBOTS, TOTAL_STEPS
+        6) same start loc
+    '''
+    generate_data = True
+    rollout = False
     partial_info_binary_matrices = list()
     path_matrices = list()
     comm_path_matrices = list()
@@ -323,10 +356,11 @@ def main():
     scores = list()
 
     # for pickling data
-    saved_scores = {planner.get_name() : list() for planner in planner_options}
+    saved_scores = {planner.get_name(): list() for planner in planner_options}
 
-    datafile = "test"
-    outfile_tensor_images = CONF[json_comp_conf]["pickle_path"] + datafile
+    datafile = "data_21x21_circles_random_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+    # datafile = "test"
+    outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
 
     #### RUN ROBOTS ####
 
@@ -354,12 +388,18 @@ def main():
                     bot_belief_map = bot.get_belief_map()
 
                     bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs,
-                                        robots, curr_step, neural_model[0], device=neural_model[1])
+                                        robots, curr_step, neural_model[0], device)
                     robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
                     step_score += bot_simulator.get_curr_score()
                     bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
 
+                    # print(bot.get_sensor_model().get_path_matrices()[-1])
+                    # print("curr step: ", curr_step)
+                    # print("scores: ", bot_simulator.get_scores())
+                    # print()
                     # bot_simulator.visualize(robots, curr_step)
+                    # vis_map(planner.get_name(), robots, BOUNDS, belief_map)
+    
                 
                 communicate(curr_step, robots, planner)
                 
@@ -369,16 +409,20 @@ def main():
             # vis_map(planner.get_name(), robots, BOUNDS, ground_truth_map)
 
             print("CUM_SCORE: ", cum_score)
-            saved_scores[planner.get_name()].append(cum_score)
-
+        
             if generate_data:
                 print("Generating data matrices and rollout is {}..".format(rollout))
                 generate_binary_matrices(robots, path_matrices, comm_path_matrices,
                                          partial_info_binary_matrices, actions_binary_matrices, scores, TOTAL_STEPS, NUM_ROBOTS, rollout)
-                generate_tensor_images(path_matrices, partial_info_binary_matrices, actions_binary_matrices, 
-                                       scores, outfile_tensor_images)
-    
-    plot_scores(saved_scores)
+            else: # just to be a bit more memory efficient when generating data
+                saved_scores[planner.get_name()].append(cum_score)
+
+    if generate_data:
+        print("Generating tensor images...")
+        generate_tensor_images(path_matrices, partial_info_binary_matrices, actions_binary_matrices, 
+                                scores, outfile_tensor_images)
+    else:
+        plot_scores(saved_scores)
     
 
 if __name__ == "__main__":

@@ -47,8 +47,9 @@ class Simulator:
     
     def _generate_data_matrices(self, action):
         self.sensor_model.create_partial_info()
-        self.sensor_model.create_rollout_path_matrix()
-        self.sensor_model.create_rollout_comm_path_matrix()
+        # self.sensor_model.create_rollout_path_matrix()
+        self.sensor_model.create_path_matrix()
+        # self.sensor_model.create_rollout_comm_path_matrix()
         self.sensor_model.create_action_matrix(action, self.bot.get_loc())
 
     # train is there because of the backtracking condition in each planner 
@@ -71,24 +72,18 @@ class Simulator:
 
         # update belief map
         new_observations = self.ground_truth_map.get_observation(self.bot, self.bot.get_loc())
-        occupied_locs = new_observations[0] # len of occupied cells in observation
         self.belief_map.update_map(new_observations[0], new_observations[1])
         # update exec_path
         self.bot.append_exec_loc(self.bot.get_loc())
 
         # count score
+        occupied_locs = new_observations[0] # len of occupied cells in observation
         score = 0
         for loc in occupied_locs:
             if loc not in robot_occupied_locs:
                 score += 1
         self.set_score(score)
         self.scores.append(score)
-        
-        # communicate
-        # comm is here and not after all robots make a single step because no two robots can be in the same loc
-        self.bot.communicate_belief_map(robots, curr_step, planner.get_comm_step())
-        # if we visualize path at step=1, there is only a single coordinate so it won't visually show a path (2 coords needed for line to be drawn)
-        self.bot.communicate_path(robots, curr_step, planner.get_comm_step())
 
         self._generate_data_matrices(action)
 

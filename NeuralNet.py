@@ -48,7 +48,8 @@ def create_data_loaders(data):
     
     dataset = PlanningDataset(data)
     validation_split = 0.2
-    batch_size = 128
+    # batch_size = 128
+    batch_size = 64
     random_seed= 42
     shuffle_dataset = False
 
