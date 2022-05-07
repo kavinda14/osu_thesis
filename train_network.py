@@ -10,18 +10,18 @@ if __name__ == "__main__":
 
     # unpickle all the data
     print("Unpickling started!")
-    filename = CONF[json_comp_conf]["pickle_path"] + "data_21x21_circles_random_cellcount_r3_t2500_s25_rollout:False_samestartloc"
+    filename = CONF[json_comp_conf]["pickle_path"] + "data_21x21_circles_random_cellcount_r3_t2000_s25_rollout:False_samestartloc"
     infile = open(filename,'rb')
     data = pickle.load(infile)
     infile.close()
     print("Unpickling done!")
 
-    # this is the path where the NN weights will be saved
-    weights_path = CONF[json_comp_conf]["neural_net_weights_path"] + "circles_21x21_epoch2_random_cellcount_r3_t2500_s25_rollout:False_samestartloc"
 
     # train network - initial 
     bounds = [21, 21]
-    epochs = 1
+    epochs = 2
+    # this is the path where the NN weights will be saved
+    weights_path = CONF[json_comp_conf]["neural_net_weights_path"] + "circles_21x21_epoch{}_random_cellcount_r3_t2000_s25_rollout:False_samestartloc".format(epochs)
     print("Training network")
     NeuralNet.run_network(data, bounds, epochs, weights_path)
     

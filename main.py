@@ -10,7 +10,7 @@ from BeliefMap import BeliefMap
 from Robot import Robot
 from SensorModel import SensorModel
 from Simulator import Simulator
-from Planners import RandomPlanner, CellCountPlanner
+from Planners import RandomPlanner, CellCountPlanner, OracleCellCountPlanner
 from copy import deepcopy
 import numpy as np
 from random import randint
@@ -80,8 +80,8 @@ def plot_scores(saved_scores):
     plt.show()
 
 def get_neural_model(CONF, json_comp_conf, bounds):
-    weight_file = "circles_21x21_epoch1_random_cellcount_r3_t2000_s25_rollout:False_samestartloc"
-    # weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s35_rolloutotherpath_samestartloc_obsdensity18"
+    # weight_file = "circles_21x21_epoch2_random_cellcount_r3_t2000_s25_rollout:False_samestartloc"
+    weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s35_rolloutotherpath_samestartloc_obsdensity18"
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
     neural_model = Net(bounds).to(device)
@@ -318,9 +318,9 @@ def main():
 
     BOUNDS = [21, 21]
     OCC_DENSITY = 18
-    TRIALS = 2500
+    TRIALS = 100
     TOTAL_STEPS = 25
-    NUM_ROBOTS = 3
+    NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
     PARTIALCOMM_STEP = 5
     POORCOMM_STEP = 10
@@ -334,8 +334,12 @@ def main():
     #                    CellCountPlanner(None, False, device, FULLCOMM_STEP, "full"),
     #                    CellCountPlanner(neural_model[0], True, device, FULLCOMM_STEP, "fullnet")]
 
+    # planner_options = [CellCountPlanner(None, False, device, FULLCOMM_STEP, "full")]
+
+    oracle_cellcount_planner = OracleCellCountPlanner(None, False, device, FULLCOMM_STEP, "fulloracle")
     planner_options = [RandomPlanner(FULLCOMM_STEP, "full"),
-                       CellCountPlanner(None, False, device, FULLCOMM_STEP, "full")]                     
+                       oracle_cellcount_planner, CellCountPlanner(None, False, device, FULLCOMM_STEP, "full"),
+                       CellCountPlanner(neural_model[0], True, device, FULLCOMM_STEP, "fullnet")]
 
     # for data generation
     '''
@@ -347,7 +351,7 @@ def main():
         5) TRIALS, NUM_ROBOTS, TOTAL_STEPS
         6) same start loc
     '''
-    generate_data = True
+    generate_data = False
     rollout = False
     partial_info_binary_matrices = list()
     path_matrices = list()
@@ -368,7 +372,10 @@ def main():
         print("TRIAL: {}".format(i+1))
 
         ground_truth_map = GroundTruthMap(BOUNDS, OCC_DENSITY)
+        oracle_cellcount_planner.set_ground_truth_map(ground_truth_map)
         belief_map = BeliefMap(BOUNDS)
+
+        # start locs should be the same for every planner therefore it is placed here and not in get_robots()
         robot_start_loc = get_random_loc(ground_truth_map) # start in same loc
         # robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(NUM_ROBOTS)] # start in diff locs
 
@@ -389,16 +396,22 @@ def main():
 
                     bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs,
                                         robots, curr_step, neural_model[0], device)
+                    # communicate(curr_step, robots, planner)
+
                     robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
+                    oracle_cellcount_planner.set_robot_occupied_locs(robot_occupied_locs)
                     step_score += bot_simulator.get_curr_score()
                     bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
-
-                    # print(bot.get_sensor_model().get_path_matrices()[-1])
-                    # print("curr step: ", curr_step)
-                    # print("scores: ", bot_simulator.get_scores())
-                    # print()
+                    
+                #     print("path matrix: ")
+                #     print(bot.get_sensor_model().get_path_matrices()[-1])
+                #     print("comm path matrix: ")
+                #     print(bot.get_sensor_model().get_comm_path_matrices()[-1])
+                #     print("curr step: ", curr_step)
+                #     print("scores: ", bot_simulator.get_scores())
+                #     print()
                     # bot_simulator.visualize(robots, curr_step)
-                    # vis_map(planner.get_name(), robots, BOUNDS, belief_map)
+                #     vis_map(planner.get_name(), robots, BOUNDS, belief_map)
     
                 
                 communicate(curr_step, robots, planner)

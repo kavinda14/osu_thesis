@@ -32,7 +32,7 @@ def backtrack_count(exec_path, comm_exec_path, potential_loc):
 
 
 # model here is the neural net
-def cellcount_planner(sys_actions, bot, sensor_model, neural_model, robot_curr_locs, use_net, device):
+def cellcount_planner(sys_actions, bot, sensor_model, neural_model, robot_curr_locs, use_net, device, oracle=False, ground_truth_map=None, robot_occupied_locs=None):
     best_action = random.choice(sys_actions)
     best_action_score = float('-inf')
     bot_exec_paths = bot.get_exec_path()
@@ -68,7 +68,13 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, robot_curr_l
                     
                 else:
                     action_score = len(bot_belief_map.count_unknown_cells(bot.get_sense_range(), potential_loc))
-
+                    if oracle: # we use ground truth to get the observed locs
+                        occupied_locs = ground_truth_map.get_observation(bot, potential_loc)[0]
+                        
+                        for loc in occupied_locs:
+                            if loc not in robot_occupied_locs:
+                                action_score += 1
+            
                 if action_score > best_action_score:
                     best_action_score = action_score
                     best_action = action
@@ -110,5 +116,22 @@ class CellCountPlanner(Planner):
     def get_action(self, bot, robot_curr_locs):
         return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, robot_curr_locs, self.use_net, self.device)
 
+class OracleCellCountPlanner(Planner):
+    def __init__(self, neural_model, use_net, device, comm_step, comm_type):
+        super().__init__(comm_step, comm_type)
+        self.comm_step = comm_step
+        self.neural_model = neural_model
+        self.use_net = use_net
+        self.device = device
+        self.ground_truth_map = None
+        self.robot_occupied_locs = set()
 
+    def get_action(self, bot, robot_curr_locs):
+        return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, robot_curr_locs, self.use_net, self.device, True, self.ground_truth_map, self.robot_occupied_locs)
+
+    def set_ground_truth_map(self, map):
+        self.ground_truth_map = map
+
+    def set_robot_occupied_locs(self, locs):
+        self.robot_occupied_locs = locs 
 

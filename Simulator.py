@@ -87,7 +87,7 @@ class Simulator:
 
         self._generate_data_matrices(action)
 
-    def visualize(self, robots, curr_step):
+    def visualize(self, robots, curr_step, debug_occ_locs=None):
         plt.xlim(0, self.belief_map.bounds[0])
         plt.ylim(0, self.belief_map.bounds[1])
         plt.title("Step:{}".format(curr_step))
@@ -108,6 +108,11 @@ class Simulator:
         occupied_locs = self.belief_map.get_occupied_locs()
         for spot in occupied_locs:
             hole = patches.Rectangle(spot, 1, 1, facecolor='green')
+            ax.add_patch(hole)
+
+        # used to color cells that we want to specifically see when debugging
+        for spot in debug_occ_locs:
+            hole = patches.Rectangle(spot, 1, 1, facecolor='yellow')
             ax.add_patch(hole)
 
         # plot robot
