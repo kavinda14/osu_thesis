@@ -11,15 +11,15 @@ import time
 from tqdm import tqdm
 
 # This was created for when using a planner with the network
-def create_image(partial_info_binary_matrices, path_matricies, final_actions_binary_matrices):
+def create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices):
     image = list()
-
+    
     for i in range(len(partial_info_binary_matrices)):
         
         for partial_info in partial_info_binary_matrices[i]:
             image.append(partial_info)
 
-        image.append(path_matricies)
+        image.append(path_matrix)
 
         for action in final_actions_binary_matrices[i]:
             image.append(action)
@@ -48,8 +48,8 @@ def create_data_loaders(data):
     
     dataset = PlanningDataset(data)
     validation_split = 0.2
-    # batch_size = 128
-    batch_size = 64
+    batch_size = 128
+    # batch_size = 64
     random_seed= 42
     shuffle_dataset = False
 

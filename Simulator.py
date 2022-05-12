@@ -53,7 +53,7 @@ class Simulator:
         self.sensor_model.create_action_matrix(action, self.bot.get_loc())
 
     # train is there because of the backtracking condition in each planner 
-    def run(self, planner, robot_curr_locs, robot_occupied_locs, robots, curr_step, neural_model, device):       
+    def run(self, planner, robot_curr_locs, robot_occupied_locs, curr_step):       
         # on step=0, we just initialize map and matrices
         if curr_step == 0:
             self._initialize_data_matrices(robot_curr_locs)
@@ -61,6 +61,8 @@ class Simulator:
 
         # get action from planner 
         action = planner.get_action(self.bot, robot_curr_locs)
+        
+        self._generate_data_matrices(action) # must be called before moving - we use curr info of where we are along with action to predict what the score would be
         
         # remember that if we call move() at curr_step=0, all actions will return False because the BeliefMap has no free_locs for is_valid_loc()
         self.bot.move(action)
@@ -85,7 +87,7 @@ class Simulator:
         self.set_score(score)
         self.scores.append(score)
 
-        self._generate_data_matrices(action)
+        # self._generate_data_matrices(action)
 
     def visualize(self, robots, curr_step, debug_occ_locs=None):
         plt.xlim(0, self.belief_map.bounds[0])

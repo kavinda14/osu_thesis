@@ -46,7 +46,7 @@ class SensorModel:
         occupied_locs = self.belief_map.get_occupied_locs()
         for loc in occupied_locs:
             partial_info[loc] = 1
-        
+
         if update:
             self.partial_info_matrices.append(partial_info)
         else: 
@@ -187,7 +187,7 @@ class SensorModel:
         # This function needs to be called before we move the robot in the Simulator
 
         # Create empty matrix of same bounds
-        # Fill matrix in with the obs_occupied digit = 1
+        # Fill matrix in with the unknown digit = 1
         # Get the action location 
         # Get the mid-point of the matrix = [x/2, y/2]
         # Get displacement = mid-point - action_loc
@@ -196,7 +196,8 @@ class SensorModel:
                 # matrix2[coord + displacement] = matrix1[coord]
 
         bounds = self.belief_map.get_bounds()
-        action_matrix = np.ones((bounds[0], bounds[1]), dtype=int)
+        # action_matrix = np.ones((bounds[0], bounds[1]), dtype=int)
+        action_matrix = np.full((bounds[0], bounds[1]), 2, dtype=int)
         mid_point = [bounds[0]//2, bounds[1]//2]
         # assumption is made that the action is valid
         action_loc = self.belief_map.get_action_loc(action, curr_bot_loc)

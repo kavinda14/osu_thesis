@@ -17,9 +17,9 @@ def random_planner(bot, robot_curr_locs, sys_actions):
         valid_move = bot_belief_map.is_valid_action(action, curr_bot_loc)
         potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc)
 
-        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 1 \
-                and (potential_loc not in robot_curr_locs):
-        # if potential_loc not in robot_curr_locs:
+        # if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 1 \
+        #         and (potential_loc not in robot_curr_locs):
+        if potential_loc not in robot_curr_locs:
             visited_before = False
 
         if (valid_move and not visited_before) or (counter > 10):
@@ -50,9 +50,9 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, robot_curr_l
             potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc) # tuple is needed here for count()
             
             # backtrack possibility
-            if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) <= 1 \
-                and (potential_loc not in robot_curr_locs):
-            # if potential_loc not in robot_curr_locs:
+            # if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) <= 1 \
+            #     and (potential_loc not in robot_curr_locs):
+            if potential_loc not in robot_curr_locs:
                 if use_net:
                     # we put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
                     action_matrix = [sensor_model.create_action_matrix(action, curr_bot_loc, True)]

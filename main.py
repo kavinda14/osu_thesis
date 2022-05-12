@@ -15,6 +15,7 @@ from copy import deepcopy
 import numpy as np
 from random import randint
 import pickle
+import sys
 
 def vis_map(planner_name, robots, bounds, map):
     plt.xlim(0, bounds[0])
@@ -80,8 +81,9 @@ def plot_scores(saved_scores):
     plt.show()
 
 def get_neural_model(CONF, json_comp_conf, bounds):
-    # weight_file = "circles_21x21_epoch2_random_cellcount_r3_t2000_s25_rollout:False_samestartloc"
-    weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s35_rolloutotherpath_samestartloc_obsdensity18"
+    weight_file = "circles_21x21_epoch3_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128_actionindic"
+    # weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s35_rolloutotherpath_samestartloc_obsdensity18"
+    print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
     neural_model = Net(bounds).to(device)
@@ -94,10 +96,10 @@ def get_neural_model(CONF, json_comp_conf, bounds):
 def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
     robots = set()
     for i in range(num_robots):
-        # start_loc = robot_start_loc[i] # start at diff locs: use this when testing if paths being communicated properly
+        start_loc = robot_start_loc[i] # start at diff locs: use this when testing if paths being communicated properly
         belief_map_copy = deepcopy(belief_map) # to make sure that each robot has a diff belief map object
-        bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy) # start at same loc
-        # bot = Robot(start_loc[0], start_loc[1], belief_map_copy) # start at diff locs
+        # bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy) # start at same loc
+        bot = Robot(start_loc[0], start_loc[1], belief_map_copy) # start at diff locs
         sensor_model = SensorModel(bot, belief_map_copy)
         simulator = Simulator(belief_map_copy, ground_truth_map, bot, sensor_model, generate_data=False)
         bot.set_sensor_model(sensor_model)
@@ -116,7 +118,8 @@ def communicate(curr_step, robots, planner):
 
 def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_info_binary_matrices, 
                             action_binary_matrices, scores, total_steps, num_robots, rollout):
-    for bot in robots:
+    for j, bot in enumerate(robots):
+        # print("BOT NO: ", j)
         bot_sensor_model = bot.get_sensor_model()
 
         # path matricies
@@ -136,20 +139,21 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
         bot_scores = bot.get_simulator().get_scores()
 
         path_matrices += bot_path_matrices
-        # print("debug_path_matrices:")
-        # print(len(path_matrices))
-        # # just for debugging
-        # count = 0
-        # for i, matrix in enumerate(path_matrices):
-        #     if i == 24:
-        #         print(path_matrices[24])
-        #         for row in matrix:
-        #             for col in row:
-        #                 if col==1:
-        #                     count+=1
-        #         print("debug_path_matrices COUNT: ", count)
-        #         count = 0
-        #         print(matrix)
+        # if j == 0:
+        #     print("debug_path_matrices:")
+        #     print(len(path_matrices))
+        #     # # just for debugging
+        #     count = 0
+        #     for i, matrix in enumerate(path_matrices):
+        #         if i == 15:
+        #             print(path_matrices[i])
+        #             for row in matrix:
+        #                 for col in row:
+        #                     if col==1:
+        #                         count+=1
+        #             print("debug_path_matrices COUNT: ", count)
+        #             count = 0
+            #         print(matrix)
 
         comm_path_matrices += bot_comm_path_matrices
         # print("debug_path_matrices:")
@@ -168,23 +172,24 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
         partial_info_binary_matrices += bot_partial_info_binary_matrices
         # print("partial_info_binary_matrices len", len(partial_info_binary_matrices))
         # # print("debug_partial_info_binary_matrices: ", partial_info_binary_matrices)
-        # count = 0
-        # for i, matrix in enumerate(partial_info_binary_matrices):
-        #     # print(len(matrix))
-        #     # print("MATRIX: ", matrix)          
-        #     # print()
-        #     if i==48:
-        #         print(bot_partial_info_matricies[24])
-        #         print()
-        #         for matrix2 in matrix:
-        #             # print("MATRIX2: ", matrix2)
-        #             for row in matrix2:
-        #                 for col in row:
-        #                     if col==1:
-        #                         count+=1
-        #             print("debug_partial_info_binary_matrices COUNT: ", count)
-        #             count = 0
-        #             print(matrix2)
+        # if j == 0:
+        #     count = 0
+        #     for i, matrix in enumerate(partial_info_binary_matrices):
+        #         # print(len(matrix))
+        #         # print("MATRIX: ", matrix)          
+        #         # print()
+        #         if i==15:
+        #             print(bot_partial_info_matricies[i])
+        #             print()
+        #             for matrix2 in matrix:
+        #                 # print("MATRIX2: ", matrix2)
+        #                 for row in matrix2:
+        #                     for col in row:
+        #                         if col==1:
+        #                             count+=1
+        #                 print("debug_partial_info_binary_matrices COUNT: ", count)
+        #                 count = 0
+                        # print(matrix2)
 
         # print("images count: ", len(partial_info_binary_matrices))
         # for image in partial_info_binary_matrices:
@@ -198,7 +203,15 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
             # print("count: ", count)
 
         action_binary_matrices += bot_action_binary_matrices
+        # if j == 0:
+            # print('len action_binary_matrices', len(action_binary_matrices))
+            # print("action matrix", bot_actions_matrices[15])
+            # print(action_binary_matrices[15])
+
         scores += bot_scores
+        # if j == 0:
+            # print("len scores: ", len(scores))
+            # print("scores: ", scores)
 
     # rollout data is generated after the normal data of each map..
     # ..because when splitting the data at training, if the the normal data is created and the then the rollout..
@@ -313,13 +326,18 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, actions
 
 
 def main():
+    
+    mode = sys.argv[1] # get arg from terminal - two options: 1) eval 2) gen_data
 
     #### SETUP ####
 
     BOUNDS = [21, 21]
     OCC_DENSITY = 18
-    TRIALS = 100
-    TOTAL_STEPS = 25
+    if mode == "gen_data":
+        TRIALS = 1500
+    elif mode == "eval":
+        TRIALS = 100
+    TOTAL_STEPS = 35
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
     PARTIALCOMM_STEP = 5
@@ -330,16 +348,23 @@ def main():
     neural_model = get_neural_model(CONF, json_comp_conf, BOUNDS)
     device = neural_model[1]
 
-    # planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
-    #                    CellCountPlanner(None, False, device, FULLCOMM_STEP, "full"),
-    #                    CellCountPlanner(neural_model[0], True, device, FULLCOMM_STEP, "fullnet")]
-
-    # planner_options = [CellCountPlanner(None, False, device, FULLCOMM_STEP, "full")]
+    # to test another network with curr network
+    # neural_model2_weight_file = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch4_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128_actionindic"
+    # neural_model2 = Net(BOUNDS).to(device)
+    # neural_model2.load_state_dict(torch.load(neural_model2_weight_file))
+    # neural_model2.eval()
 
     oracle_cellcount_planner = OracleCellCountPlanner(None, False, device, FULLCOMM_STEP, "fulloracle")
-    planner_options = [RandomPlanner(FULLCOMM_STEP, "full"),
-                       oracle_cellcount_planner, CellCountPlanner(None, False, device, FULLCOMM_STEP, "full"),
-                       CellCountPlanner(neural_model[0], True, device, FULLCOMM_STEP, "fullnet")]
+    if mode == "gen_data":
+        planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
+                           oracle_cellcount_planner]
+
+        # planner_options = [oracle_cellcount_planner]
+    elif mode == "eval":
+        planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
+                           CellCountPlanner(None, False, device, FULLCOMM_STEP, "full"),
+                           CellCountPlanner(neural_model[0], True, device, FULLCOMM_STEP, "fullnet"),
+                           oracle_cellcount_planner]
 
     # for data generation
     '''
@@ -351,7 +376,7 @@ def main():
         5) TRIALS, NUM_ROBOTS, TOTAL_STEPS
         6) same start loc
     '''
-    generate_data = False
+        
     rollout = False
     partial_info_binary_matrices = list()
     path_matrices = list()
@@ -360,11 +385,14 @@ def main():
     scores = list()
 
     # for pickling data
-    saved_scores = {planner.get_name(): list() for planner in planner_options}
 
-    datafile = "data_21x21_circles_random_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
-    # datafile = "test"
-    outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
+    if mode == "gen_data":
+        datafile = "data_21x21_circles_random_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc_actionindic".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        # datafile = "test"
+        outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
+    elif mode == "eval":
+        saved_scores = {planner.get_name(): list() for planner in planner_options}
+
 
     #### RUN ROBOTS ####
 
@@ -376,8 +404,8 @@ def main():
         belief_map = BeliefMap(BOUNDS)
 
         # start locs should be the same for every planner therefore it is placed here and not in get_robots()
-        robot_start_loc = get_random_loc(ground_truth_map) # start in same loc
-        # robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(NUM_ROBOTS)] # start in diff locs
+        # robot_start_loc = get_random_loc(ground_truth_map) # start in same loc
+        robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(NUM_ROBOTS)] # start in diff locs
 
         for planner in planner_options:
             print("Planner: ", planner.get_name())
@@ -394,27 +422,21 @@ def main():
                     bot_simulator = bot.get_simulator()
                     bot_belief_map = bot.get_belief_map()
 
-                    bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs,
-                                        robots, curr_step, neural_model[0], device)
-                    # communicate(curr_step, robots, planner)
+                    bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs, curr_step)
+
+                    communicate(curr_step, robots, planner)
 
                     robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
                     oracle_cellcount_planner.set_robot_occupied_locs(robot_occupied_locs)
                     step_score += bot_simulator.get_curr_score()
                     bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
-                    
-                #     print("path matrix: ")
-                #     print(bot.get_sensor_model().get_path_matrices()[-1])
-                #     print("comm path matrix: ")
-                #     print(bot.get_sensor_model().get_comm_path_matrices()[-1])
-                #     print("curr step: ", curr_step)
-                #     print("scores: ", bot_simulator.get_scores())
-                #     print()
-                    # bot_simulator.visualize(robots, curr_step)
-                #     vis_map(planner.get_name(), robots, BOUNDS, belief_map)
-    
                 
-                communicate(curr_step, robots, planner)
+                # if curr_step == 15:
+                #     for bot in robots:
+                #         print("scores: ", bot.get_simulator().get_scores())
+                #     vis_map(planner.get_name(), robots, BOUNDS, belief_map)
+
+                # communicate(curr_step, robots, planner)
                 
                 cum_score += step_score
 
@@ -423,18 +445,18 @@ def main():
 
             print("CUM_SCORE: ", cum_score)
         
-            if generate_data:
+            if mode == "gen_data":
                 print("Generating data matrices and rollout is {}..".format(rollout))
                 generate_binary_matrices(robots, path_matrices, comm_path_matrices,
                                          partial_info_binary_matrices, actions_binary_matrices, scores, TOTAL_STEPS, NUM_ROBOTS, rollout)
-            else: # just to be a bit more memory efficient when generating data
+            elif mode == "eval": # just to be a bit more memory efficient when generating data
                 saved_scores[planner.get_name()].append(cum_score)
 
-    if generate_data:
+    if mode == "gen_data":
         print("Generating tensor images...")
         generate_tensor_images(path_matrices, partial_info_binary_matrices, actions_binary_matrices, 
                                 scores, outfile_tensor_images)
-    else:
+    elif mode == "eval":
         plot_scores(saved_scores)
     
 
