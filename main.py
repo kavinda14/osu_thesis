@@ -17,10 +17,10 @@ from random import randint
 import pickle
 import sys
 
-def vis_map(planner_name, robots, bounds, map):
+def vis_map(planner_name, cum_score, robots, bounds, map):
     plt.xlim(0, bounds[0])
     plt.ylim(0, bounds[1])
-    plt.title(planner_name)
+    plt.title("{} score:{}".format(planner_name, cum_score))
 
     ax = plt.gca()
     ax.set_aspect('equal', 'box')
@@ -81,8 +81,9 @@ def plot_scores(saved_scores):
     plt.show()
 
 def get_neural_model(CONF, json_comp_conf, bounds):
-    weight_file = "circles_21x21_epoch3_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128_actionindic"
-    # weight_file = "circles_21x21_epoch1_random_greedyno_r4_t2000_s35_rolloutotherpath_samestartloc_obsdensity18"
+    weight_file = "circles_21x21_epoch1_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128"
+    # weight_file = "circles_21x21_epoch3_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128"
+    # weight_file = "circles_21x21_epoch3_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128_actionindic"
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
@@ -96,10 +97,10 @@ def get_neural_model(CONF, json_comp_conf, bounds):
 def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
     robots = set()
     for i in range(num_robots):
-        start_loc = robot_start_loc[i] # start at diff locs: use this when testing if paths being communicated properly
+        # start_loc = robot_start_loc[i] # start at diff locs: use this when testing if paths being communicated properly
         belief_map_copy = deepcopy(belief_map) # to make sure that each robot has a diff belief map object
-        # bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy) # start at same loc
-        bot = Robot(start_loc[0], start_loc[1], belief_map_copy) # start at diff locs
+        bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy) # start at same loc
+        # bot = Robot(start_loc[0], start_loc[1], belief_map_copy) # start at diff locs
         sensor_model = SensorModel(bot, belief_map_copy)
         simulator = Simulator(belief_map_copy, ground_truth_map, bot, sensor_model, generate_data=False)
         bot.set_sensor_model(sensor_model)
@@ -334,10 +335,10 @@ def main():
     BOUNDS = [21, 21]
     OCC_DENSITY = 18
     if mode == "gen_data":
-        TRIALS = 1500
+        TRIALS = 1200
     elif mode == "eval":
         TRIALS = 100
-    TOTAL_STEPS = 35
+    TOTAL_STEPS = 30
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
     PARTIALCOMM_STEP = 5
@@ -349,21 +350,29 @@ def main():
     device = neural_model[1]
 
     # to test another network with curr network
-    # neural_model2_weight_file = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch4_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128_actionindic"
+    # neural_model2_weight_file = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch1_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128"
     # neural_model2 = Net(BOUNDS).to(device)
     # neural_model2.load_state_dict(torch.load(neural_model2_weight_file))
     # neural_model2.eval()
 
-    oracle_cellcount_planner = OracleCellCountPlanner(None, False, device, FULLCOMM_STEP, "fulloracle")
+    oracle_cellcount_planner = OracleCellCountPlanner(None, device, FULLCOMM_STEP, "fulloracle")
     if mode == "gen_data":
         planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
                            oracle_cellcount_planner]
 
-        # planner_options = [oracle_cellcount_planner]
     elif mode == "eval":
-        planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
-                           CellCountPlanner(None, False, device, FULLCOMM_STEP, "full"),
-                           CellCountPlanner(neural_model[0], True, device, FULLCOMM_STEP, "fullnet"),
+        # planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
+        #                    CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+        #                    CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+        #                    CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+        #                    CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                    CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                    oracle_cellcount_planner]
+
+         planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
+                           CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+                           CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
                            oracle_cellcount_planner]
 
     # for data generation
@@ -375,9 +384,11 @@ def main():
         4) planner_options (only random and cellcount WITHOUT network - FULLCOMM_STEP)
         5) TRIALS, NUM_ROBOTS, TOTAL_STEPS
         6) same start loc
+        7) communicate()
+        8) Simulator.py generate_data()
     '''
         
-    rollout = False
+    rollout = True
     partial_info_binary_matrices = list()
     path_matrices = list()
     comm_path_matrices = list()
@@ -387,7 +398,7 @@ def main():
     # for pickling data
 
     if mode == "gen_data":
-        datafile = "data_21x21_circles_random_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc_actionindic".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        datafile = "data_21x21_circles_random_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
         # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
@@ -404,8 +415,8 @@ def main():
         belief_map = BeliefMap(BOUNDS)
 
         # start locs should be the same for every planner therefore it is placed here and not in get_robots()
-        # robot_start_loc = get_random_loc(ground_truth_map) # start in same loc
-        robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(NUM_ROBOTS)] # start in diff locs
+        robot_start_loc = get_random_loc(ground_truth_map) # start in same loc
+        # robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(NUM_ROBOTS)] # start in diff locs
 
         for planner in planner_options:
             print("Planner: ", planner.get_name())
@@ -424,24 +435,22 @@ def main():
 
                     bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs, curr_step)
 
-                    communicate(curr_step, robots, planner)
+                    if mode == "gen_data":
+                        communicate(curr_step, robots, planner)
+                    # vis_map(planner.get_name(), cum_score, robots, BOUNDS, ground_truth_map)
 
                     robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
                     oracle_cellcount_planner.set_robot_occupied_locs(robot_occupied_locs)
                     step_score += bot_simulator.get_curr_score()
                     bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
                 
-                # if curr_step == 15:
-                #     for bot in robots:
-                #         print("scores: ", bot.get_simulator().get_scores())
-                #     vis_map(planner.get_name(), robots, BOUNDS, belief_map)
-
-                # communicate(curr_step, robots, planner)
+                if mode == "eval":
+                    communicate(curr_step, robots, planner)
                 
                 cum_score += step_score
 
-            # vis_map(planner.get_name(), robots, BOUNDS, belief_map)
-            # vis_map(planner.get_name(), robots, BOUNDS, ground_truth_map)
+            # vis_map(planner.get_name(), cum_score, robots, BOUNDS, belief_map)
+            # vis_map(planner.get_name(), cum_score, robots, BOUNDS, ground_truth_map)
 
             print("CUM_SCORE: ", cum_score)
         

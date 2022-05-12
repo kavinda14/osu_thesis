@@ -32,7 +32,7 @@ def backtrack_count(exec_path, comm_exec_path, potential_loc):
 
 
 # model here is the neural net
-def cellcount_planner(sys_actions, bot, sensor_model, neural_model, robot_curr_locs, use_net, device, oracle=False, ground_truth_map=None, robot_occupied_locs=None):
+def cellcount_planner(sys_actions, bot, sensor_model, neural_model, robot_curr_locs, device, oracle=False, ground_truth_map=None, robot_occupied_locs=None):
     best_action = random.choice(sys_actions)
     best_action_score = float('-inf')
     bot_exec_paths = bot.get_exec_path()
@@ -53,7 +53,7 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, robot_curr_l
             # if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) <= 1 \
             #     and (potential_loc not in robot_curr_locs):
             if potential_loc not in robot_curr_locs:
-                if use_net:
+                if neural_model is not None:
                     # we put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
                     action_matrix = [sensor_model.create_action_matrix(action, curr_bot_loc, True)]
                     action_binary_matrices = sensor_model.create_binary_matrices(action_matrix)
@@ -106,32 +106,33 @@ class RandomPlanner(Planner):
         return random_planner(bot, robot_curr_locs, self.get_sys_actions())
 
 class CellCountPlanner(Planner):
-    def __init__(self, neural_model, use_net, device, comm_step, comm_type):
+    def __init__(self, neural_model, device, comm_step, comm_type):
         super().__init__(comm_step, comm_type)
         self.comm_step = comm_step
         self.neural_model = neural_model
-        self.use_net = use_net
         self.device = device
 
     def get_action(self, bot, robot_curr_locs):
-        return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, robot_curr_locs, self.use_net, self.device)
+        return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, robot_curr_locs, self.device)
 
 class OracleCellCountPlanner(Planner):
-    def __init__(self, neural_model, use_net, device, comm_step, comm_type):
+    def __init__(self, neural_model, device, comm_step, comm_type):
         super().__init__(comm_step, comm_type)
         self.comm_step = comm_step
         self.neural_model = neural_model
-        self.use_net = use_net
         self.device = device
         self.ground_truth_map = None
         self.robot_occupied_locs = set()
 
     def get_action(self, bot, robot_curr_locs):
-        return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, robot_curr_locs, self.use_net, self.device, True, self.ground_truth_map, self.robot_occupied_locs)
+        return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, robot_curr_locs, self.device, True, self.ground_truth_map, self.robot_occupied_locs)
 
     def set_ground_truth_map(self, map):
         self.ground_truth_map = map
 
     def set_robot_occupied_locs(self, locs):
         self.robot_occupied_locs = locs 
+
+# class MCTS(Planner):
+#     def __init__(self, neural_model, device, comm_step, comm_type):
 

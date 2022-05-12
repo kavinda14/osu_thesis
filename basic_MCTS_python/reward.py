@@ -5,7 +5,7 @@ import copy
 def reward_random(sequence):
     return random.randint(0, 20) + len(sequence)
 
-def reward_greedy(rollout_sequence, sensor_model, world_map, oracle=False):
+def reward_cellcount(rollout_sequence, sensor_model, world_map, oracle=False):
     scanned_obstacles = list()
     unobs_free = copy.deepcopy(world_map.get_unobs_free())
     unobs_occupied = copy.deepcopy(world_map.get_unobs_occupied())

@@ -104,7 +104,7 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
-def run_network(data, bounds, epochs, weights_path, net=None):
+def train_net(data, bounds, epochs, weights_path, net=None):
 
     train_loader, valid_loader = create_data_loaders(data)
 
@@ -134,6 +134,7 @@ def run_network(data, bounds, epochs, weights_path, net=None):
             # get the inputs; data is a list of [inputs, labels]
             # torch.stack() converts list of tensors into a tensor of tensors
             # only then can we apply the to() function
+            # inputs, labels = torch.stack(tuple(data[0])).to(device), torch.stack(tuple(data[1])).to(device)
             inputs, labels = torch.stack(tuple(data[0])).to(device), torch.stack(tuple(data[1])).to(device)
 
             # zero the parameter gradients
@@ -168,6 +169,7 @@ def run_network(data, bounds, epochs, weights_path, net=None):
 
                 avg_valid_loss = valid_loss / len(valid_loader)
                 print('[%d, %5d] valid loss: %.3f' % (epoch + 1, i + 1, avg_valid_loss))
+                print()
                 valid_loss_values.append(avg_valid_loss)
 
     end = time.time()

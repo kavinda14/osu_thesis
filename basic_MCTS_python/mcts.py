@@ -8,17 +8,18 @@ Jan 2020
 from tree_node import TreeNode
 import reward
 from cost import cost
-from rollout import rollout_network, rollout_greedy, rollout_random
+from rollout import rollout_network, rollout_cellcount, rollout_random
 import copy
 import random
 import math
 import pickle
 from utils import State, generate_valid_neighbors
+from utils import get_CONF, get_json_comp_conf
 
 
 # def mcts(action_set, budget, max_iterations, exploration_exploitation_parameter, robot, input_map):
-def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sensor_model, world_map, rollout_type, reward_type, neural_model, 
-         debug_mcts_reward_greedy_list, debug_mcts_reward_network_list, CONF, json_comp_conf, device=False):
+def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type, neural_model, 
+         debug_mcts_reward_greedy_list, debug_mcts_reward_network_list, device=False):
 
     ################################
     # Setup
@@ -27,20 +28,20 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
     # in our case, this sequence is passed to every other node to keep track of history
     # the history will allow us to check if a particular state was previously visited
     # world_map = copy.deepcopy(input_map)
-    start_sequence = [State('root', robot.get_loc())]
+    start_sequence = [State('root', bot.get_loc())]
     # what is action_set?
     # -> there is an action object created in main.py
-    unpicked_child_actions = generate_valid_neighbors(start_sequence[0], start_sequence, robot)
+    unpicked_child_actions = generate_valid_neighbors(start_sequence[0], start_sequence, bot)
     # unpicked_child_actions = copy.deepcopy(action_set)
     # root is created when mcts is run
-    root = TreeNode(parent=None, sequence=start_sequence, budget=budget, unpicked_child_actions=unpicked_child_actions, coords=robot.get_loc())
+    root = TreeNode(parent=None, sequence=start_sequence, budget=budget, unpicked_child_actions=unpicked_child_actions, coords=bot.get_loc())
     list_of_all_nodes = []
     list_of_all_nodes.append(root) # for debugging only
 
     ################################
     # Main loop
     # this determines the depth of the tree
-    for iter in range(max_iterations):
+    for iter in range(max_iter):
 
         # print('Iteration: ', iter)
 
@@ -80,7 +81,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
 
                 # Setup the new child's unpicked children
                 # Remove any over budget children from this set
-                new_unpicked_child_actions = generate_valid_neighbors(child_action, new_sequence, robot)
+                new_unpicked_child_actions = generate_valid_neighbors(child_action, new_sequence, bot)
                 def is_overbudget(a):
                     seq_copy = copy.copy(current.sequence)
                     seq_copy.append(a)
@@ -113,7 +114,7 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
 
                     # Define the UCB
                     def ucb(average, n_parent, n_child):
-                        return average + exploration_exploitation_parameter * math.sqrt( (2*math.log(n_parent)) / float(n_child) )
+                        return average + explore_exploit_param * math.sqrt( (2*math.log(n_parent)) / float(n_child) )
 
                     # Pick the child that maximises the UCB
                     n_parent = current.num_updates
@@ -131,14 +132,16 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
 
         ################################
         # Rollout
-        if rollout_type in ("random_poorcomm", "random_partialcomm", "random_fullcomm"):
-            rollout_sequence = rollout_random(subsequence=current.sequence, budget=budget, robot=robot)
-        elif rollout_type in ("greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm"):
-            rollout_sequence = rollout_greedy(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map)
-        else: # all networks will run this
-            rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=robot, sensor_model=sensor_model, world_map=world_map, neural_model=neural_model, device=device)
+        if rollout_type == "random":
+            rollout_sequence = rollout_random(subsequence=current.sequence, budget=budget, robot=bot)
+        elif rollout_type == "cellcount":
+            rollout_sequence = rollout_cellcount(subsequence=current.sequence, budget=budget, robot=bot, sensor_model=sensor_model, world_map=belief_map)
+        else:
+            rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=bot, sensor_model=sensor_model, world_map=belief_map, neural_model=neural_model, device=device)
 
         # TEST TO CHECK IF GREEDY AND NETWORK REWARDS ARE LINEAR
+        # CONF = get_CONF()
+        # json_comp_conf = get_json_comp_conf()
         # debug_reward_greedy = reward.reward_greedy(rollout_sequence, sensor_model, world_map, oracle=True)
         # debug_reward_network = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model, device=device)
         # debug_mcts_reward_greedy_list.append(debug_reward_greedy)
@@ -154,12 +157,12 @@ def mcts(budget, max_iterations, exploration_exploitation_parameter, robot, sens
         # pickle.dump(debug_mcts_reward_network_list, outfile)
         # outfile.close()
 
-        # if reward_type == 'random':
-        #     rollout_reward = reward.reward_random(rollout_sequence)
-        if reward_type in ("greedy_poorcomm", "greedy_partialcomm", "greedy_fullcomm"):
-            rollout_reward = reward.reward_greedy(rollout_sequence, sensor_model, world_map)
+        if reward_type == 'random':
+            rollout_reward = reward.reward_random(rollout_sequence)
+        if reward_type == "greedy":
+            rollout_reward = reward.reward_cellcount(rollout_sequence, sensor_model, belief_map)
         else: # all networks will run this
-            rollout_reward = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model, device=device)
+            rollout_reward = reward.reward_network(rollout_sequence, sensor_model, belief_map, neural_model, device=device)
 
         ################################
         #### BACK PROPAGATION

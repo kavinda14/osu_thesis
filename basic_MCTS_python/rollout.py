@@ -19,7 +19,7 @@ def rollout_random(subsequence, budget, robot):
     
     return sequence
 
-def rollout_greedy(subsequence, budget, robot, sensor_model, world_map, oracle=False):
+def rollout_cellcount(subsequence, budget, robot, sensor_model, world_map, oracle=False):
     sequence = copy.copy(subsequence)
     unobs_free = world_map.get_unobs_free()
     unobs_occupied = world_map.get_unobs_occupied()

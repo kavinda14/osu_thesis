@@ -196,7 +196,6 @@ class SensorModel:
                 # matrix2[coord + displacement] = matrix1[coord]
 
         bounds = self.belief_map.get_bounds()
-        # action_matrix = np.ones((bounds[0], bounds[1]), dtype=int)
         action_matrix = np.full((bounds[0], bounds[1]), 2, dtype=int)
         mid_point = [bounds[0]//2, bounds[1]//2]
         # assumption is made that the action is valid
