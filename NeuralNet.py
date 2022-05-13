@@ -153,7 +153,7 @@ def train_net(data, bounds, epochs, weights_path, net=None):
             training_loss += loss.item()
             if i % 100 == 99:    # print every 100 mini-batches
                 avg_training_loss = training_loss / 100
-                print('[%d, %5d] train loss: %.3f' % (epoch + 1, i + 1, avg_training_loss))
+                print('[%d, %5d] train loss: %.6f' % (epoch + 1, i + 1, avg_training_loss))
                 train_loss_values.append(avg_training_loss)
                 training_loss = 0.0    
 
@@ -168,7 +168,7 @@ def train_net(data, bounds, epochs, weights_path, net=None):
                     valid_loss += loss.item()
 
                 avg_valid_loss = valid_loss / len(valid_loader)
-                print('[%d, %5d] valid loss: %.3f' % (epoch + 1, i + 1, avg_valid_loss))
+                print('[%d, %5d] valid loss: %.6f' % (epoch + 1, i + 1, avg_valid_loss))
                 print()
                 valid_loss_values.append(avg_valid_loss)
 

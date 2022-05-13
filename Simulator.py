@@ -23,7 +23,7 @@ class Simulator:
         self.debug_greedy_score = list()
 
     # creates the initially matrices needed
-    def _initialize_data_matrices(self, robot_start_locs):
+    def _initialize_data_matrices(self):
         self.sensor_model.create_partial_info()
         self.scores.append(self.curr_score)  # init score is 0
 
@@ -41,10 +41,8 @@ class Simulator:
         path_matrix[curr_bot_loc[0]][curr_bot_loc[1]] = 1
 
         path_matrix = self.sensor_model.get_comm_path_matrices()[0]
-        for loc in robot_start_locs:
-            if loc != curr_bot_loc:
-                path_matrix[loc[0]][loc[1]] = 1
     
+
     def _generate_data_matrices(self, action):
         self.sensor_model.create_partial_info()
         self.sensor_model.create_rollout_path_matrix()
@@ -52,15 +50,16 @@ class Simulator:
         self.sensor_model.create_rollout_comm_path_matrix()
         self.sensor_model.create_action_matrix(action, self.bot.get_loc())
 
+
     # train is there because of the backtracking condition in each planner 
-    def run(self, planner, robot_curr_locs, robot_occupied_locs, curr_step):       
+    def run(self, planner, robot_occupied_locs, curr_step):       
         # on step=0, we just initialize map and matrices
         if curr_step == 0:
-            self._initialize_data_matrices(robot_curr_locs)
+            self._initialize_data_matrices()
             return
 
         # get action from planner 
-        action = planner.get_action(self.bot, robot_curr_locs)
+        action = planner.get_action(self.bot)
         
         self._generate_data_matrices(action) # must be called before moving - we use curr info of where we are along with action to predict what the score would be
         

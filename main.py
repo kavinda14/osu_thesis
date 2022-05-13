@@ -82,8 +82,6 @@ def plot_scores(saved_scores):
 
 def get_neural_model(CONF, json_comp_conf, bounds):
     weight_file = "circles_21x21_epoch1_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128"
-    # weight_file = "circles_21x21_epoch3_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128"
-    # weight_file = "circles_21x21_epoch3_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128_actionindic"
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
@@ -333,7 +331,7 @@ def main():
     #### SETUP ####
 
     BOUNDS = [21, 21]
-    OCC_DENSITY = 18
+    OCC_DENSITY = 6
     if mode == "gen_data":
         TRIALS = 1200
     elif mode == "eval":
@@ -350,7 +348,7 @@ def main():
     device = neural_model[1]
 
     # to test another network with curr network
-    # neural_model2_weight_file = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch1_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128"
+    # neural_model2_weight_file = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch1_random_oraclecellcount_r4_t1200_s35_rollout:True_samestartloc__normalscores_batch128"
     # neural_model2 = Net(BOUNDS).to(device)
     # neural_model2.load_state_dict(torch.load(neural_model2_weight_file))
     # neural_model2.eval()
@@ -361,19 +359,19 @@ def main():
                            oracle_cellcount_planner]
 
     elif mode == "eval":
-        # planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
-        #                    CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
-        #                    CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
-        #                    CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
-        #                    CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-        #                    CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-        #                    oracle_cellcount_planner]
-
-         planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
+        planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
+                           CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+                           CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
                            CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+                           CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+                           CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
                            CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
                            oracle_cellcount_planner]
+
+        #  planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
+        #                    CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                    oracle_cellcount_planner]
 
     # for data generation
     '''
@@ -398,7 +396,7 @@ def main():
     # for pickling data
 
     if mode == "gen_data":
-        datafile = "data_21x21_circles_random_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        datafile = "data_21x21_circles_random_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc_normalscores".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
         # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
@@ -429,14 +427,13 @@ def main():
 
                 # run multiple robots in same map
                 for bot in robots:
-                    robot_curr_locs = [bot.get_loc() for bot in robots] # to make sure no two robots are in the same loc
                     bot_simulator = bot.get_simulator()
                     bot_belief_map = bot.get_belief_map()
 
-                    bot_simulator.run(planner, robot_curr_locs, robot_occupied_locs, curr_step)
+                    bot_simulator.run(planner, robot_occupied_locs, curr_step)
 
-                    if mode == "gen_data":
-                        communicate(curr_step, robots, planner)
+                    # if mode == "gen_data":
+                    communicate(curr_step, robots, planner)
                     # vis_map(planner.get_name(), cum_score, robots, BOUNDS, ground_truth_map)
 
                     robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
@@ -444,8 +441,8 @@ def main():
                     step_score += bot_simulator.get_curr_score()
                     bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
                 
-                if mode == "eval":
-                    communicate(curr_step, robots, planner)
+                # if mode == "eval":
+                    # communicate(curr_step, robots, planner)
                 
                 cum_score += step_score
 
@@ -464,7 +461,7 @@ def main():
     if mode == "gen_data":
         print("Generating tensor images...")
         generate_tensor_images(path_matrices, partial_info_binary_matrices, actions_binary_matrices, 
-                                scores, outfile_tensor_images)
+                               scores, outfile_tensor_images)
     elif mode == "eval":
         plot_scores(saved_scores)
     
