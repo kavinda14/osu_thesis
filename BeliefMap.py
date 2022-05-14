@@ -39,31 +39,46 @@ class BeliefMap:
             if loc in self.unknown_locs:
                 self.unknown_locs.remove(loc)
 
-    def is_valid_action(self, direction, bot_curr_loc, bot=None, update_state=False):
+    def is_valid_action(self, direction, bot_curr_loc, bot=None, update_state=False, mcts=False):
         x_loc = bot_curr_loc[0]
         y_loc = bot_curr_loc[1]
 
         if direction == 'left':
             valid = self.is_valid_loc(x_loc-1, y_loc)
-            if valid and update_state:
-                bot.change_xloc(-1)
+            if valid:
+                if update_state:
+                    bot.change_xloc(-1)
+                if mcts:
+                    x_loc -= 1
 
         elif direction == 'right':
             valid = self.is_valid_loc(x_loc+1, y_loc)
-            if valid and update_state:
-                bot.change_xloc(+1)
+            if valid:
+                if update_state:
+                    bot.change_xloc(+1)
+                if mcts:
+                    x_loc += 1
 
         elif direction == 'backward':
             valid = self.is_valid_loc(x_loc, y_loc+1)
-            if valid and update_state:
-                bot.change_yloc(+1)
+            if valid:
+                if update_state:
+                    bot.change_yloc(+1)
+                if mcts:
+                    y_loc += 1
 
         elif direction == 'forward':
             valid = self.is_valid_loc(x_loc, y_loc-1)
-            if valid and update_state:
-                bot.change_yloc(-1)
+            if valid:
+                if update_state:
+                    bot.change_yloc(-1)
+                if mcts:
+                    y_loc -= 1
         else:
             raise ValueError(f"Robot received invalid direction: {direction}!")
+
+        if mcts:
+            return valid, [x_loc, y_loc]
 
         return valid
 

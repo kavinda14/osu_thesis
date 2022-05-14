@@ -42,6 +42,7 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
     bot_exec_paths = bot.get_exec_path()
     bot_comm_exec_paths = bot.get_comm_exec_path()
     bot_belief_map = bot.get_belief_map()
+    bot_sense_range = bot.get_sense_range()
     curr_bot_loc = bot.get_loc()
 
     # create map and path matrices for network 
@@ -53,7 +54,6 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
         if bot_belief_map.is_valid_action(action, curr_bot_loc):
             potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc) # tuple is needed here for count()
             
-            # backtrack possibility
             if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) <= 1:
                 if neural_model is not None:
                     # we put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
@@ -69,7 +69,7 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
                     action_score = neural_model(input).item()
                     
                 else:
-                    action_score = len(bot_belief_map.count_unknown_cells(bot.get_sense_range(), potential_loc))
+                    action_score = len(bot_belief_map.count_unknown_cells(bot_sense_range, potential_loc))
                     if oracle: # we use ground truth to get the observed locs
                         occupied_locs = ground_truth_map.get_observation(bot, potential_loc)[0]
                         
@@ -136,9 +136,8 @@ class OracleCellCountPlanner(Planner):
         self.robot_occupied_locs = locs 
 
 class MCTS(Planner):
-    def __init__(self, bot, rollout, reward, comm_step, comm_type, neural_model, device):
+    def __init__(self, rollout, reward, comm_step, comm_type, neural_model, device):
         super().__init__(comm_step, comm_type)
-        self.bot = bot
         self.rollout = rollout
         self.reward = reward
         self.budget = 6
@@ -153,10 +152,9 @@ class MCTS(Planner):
 
         self.name = "{}_{}_{}_{}".format(self.__class__.__name__, self.rollout, self.reward, comm_type)
       
-    def get_action(self, debug_mcts_reward_greedy_list, debug_mcts_reward_network_list):
+    def get_action(self, bot):
         solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(self.budget, self.max_iter, self.explore_exploit_param , 
-                                                                                     self.bot, self.rollout, self.reward, self.neural_model, self.device, 
-                                                                                              debug_mcts_reward_greedy_list, debug_mcts_reward_network_list)
+                                                                                     bot, self.rollout, self.reward, self.neural_model, self.device)
     
     def get_name(self):
         return self.name

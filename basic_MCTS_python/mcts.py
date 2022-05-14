@@ -13,13 +13,15 @@ import copy
 import random
 import math
 import pickle
-from utils import State, generate_valid_neighbors
 from utils import get_CONF, get_json_comp_conf
+from State import State, generate_valid_neighbors
 
 
 # def mcts(action_set, budget, max_iterations, exploration_exploitation_parameter, robot, input_map):
-def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type, neural_model, 
-         debug_mcts_reward_greedy_list, debug_mcts_reward_network_list, device=False):
+def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type, neural_model, device):
+
+    debug_mcts_reward_greedy = list()
+    debug_mcts_reward_network= list()
 
     ################################
     # Setup
@@ -31,7 +33,7 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
     start_sequence = [State('root', bot.get_loc())]
     # what is action_set?
     # -> there is an action object created in main.py
-    unpicked_child_actions = generate_valid_neighbors(start_sequence[0], start_sequence, bot)
+    unpicked_child_actions = generate_valid_neighbors(start_sequence[0], start_sequence, bot_belief_map)
     # unpicked_child_actions = copy.deepcopy(action_set)
     # root is created when mcts is run
     root = TreeNode(parent=None, sequence=start_sequence, budget=budget, unpicked_child_actions=unpicked_child_actions, coords=bot.get_loc())
@@ -81,7 +83,7 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
 
                 # Setup the new child's unpicked children
                 # Remove any over budget children from this set
-                new_unpicked_child_actions = generate_valid_neighbors(child_action, new_sequence, bot)
+                new_unpicked_child_actions = generate_valid_neighbors(child_action, new_sequence, bot_belief_map)
                 def is_overbudget(a):
                     seq_copy = copy.copy(current.sequence)
                     seq_copy.append(a)
@@ -133,11 +135,11 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
         ################################
         # Rollout
         if rollout_type == "random":
-            rollout_sequence = rollout_random(subsequence=current.sequence, budget=budget, robot=bot)
+            rollout_sequence = rollout_random(current.sequence, budget, bot)
         elif rollout_type == "cellcount":
-            rollout_sequence = rollout_cellcount(subsequence=current.sequence, budget=budget, robot=bot, sensor_model=sensor_model, world_map=belief_map)
+            rollout_sequence = rollout_cellcount(current.sequence, budget, bot)
         else:
-            rollout_sequence = rollout_network(subsequence=current.sequence, budget=budget, robot=bot, sensor_model=sensor_model, world_map=belief_map, neural_model=neural_model, device=device)
+            rollout_sequence = rollout_network(current.sequence, budget, bot, neural_model, device)
 
         # TEST TO CHECK IF GREEDY AND NETWORK REWARDS ARE LINEAR
         # CONF = get_CONF()
@@ -160,9 +162,9 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
         if reward_type == 'random':
             rollout_reward = reward.reward_random(rollout_sequence)
         if reward_type == "greedy":
-            rollout_reward = reward.reward_cellcount(rollout_sequence, sensor_model, belief_map)
+            rollout_reward = reward.reward_cellcount(rollout_sequence, bot)
         else: # all networks will run this
-            rollout_reward = reward.reward_network(rollout_sequence, sensor_model, belief_map, neural_model, device=device)
+            rollout_reward = reward.reward_network(rollout_sequence, bot, neural_model, device)
 
         ################################
         #### BACK PROPAGATION
@@ -182,23 +184,6 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
     # calculate best solution so far
     # by recursively choosing child with highest average reward
     current = root
-    # print('root :', current.get_children())
-    # for node in current.get_children():
-    #     print('child loc: ', node.get_coords())
-
-    # while current.children: # is not empty
-
-    #     # Find the child with best score
-    #     best_score = 0
-    #     best_child = -1
-    #     for child_idx in range(len(current.children)):
-    #         child = current.children[child_idx]
-    #         score = child.average_evaluation_score
-    #         if best_child == -1 or (score > best_score):
-    #             best_child = child
-    #             best_score = score
-
-    #     current = best_child
 
     best_score = 0
     best_child = -1

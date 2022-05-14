@@ -5,61 +5,46 @@ import copy
 def reward_random(sequence):
     return random.randint(0, 20) + len(sequence)
 
-def reward_cellcount(rollout_sequence, sensor_model, world_map, oracle=False):
-    scanned_obstacles = list()
-    unobs_free = copy.deepcopy(world_map.get_unobs_free())
-    unobs_occupied = copy.deepcopy(world_map.get_unobs_occupied())
-    reward = 0
+def reward_cellcount(rollout_sequence, bot):
+    bot_belief_map = bot.get_belief_map()
+    bot_sense_range = bot.get_sense_range()
     
+    reward = 0
     for state in rollout_sequence:
-        scanned_unobs = sensor_model.scan_mcts(state.get_location(), unobs_free, unobs_occupied)
-        if oracle:
-            curr_scanned_obstacles = scanned_unobs[0]
-        else:
-            temp_curr_scanned_obstacles = scanned_unobs
-            curr_scanned_obstacles = temp_curr_scanned_obstacles[0].union(temp_curr_scanned_obstacles[1])
-
-        curr_reward = 0
-        # this makes sure that reward is calculated for total UNIQUE obstacles that are scanned
-        for loc in curr_scanned_obstacles:
-            if loc not in scanned_obstacles:
-                scanned_obstacles.append(loc)
-                curr_reward += 1
-        reward += curr_reward
+        potential_loc = state.get_loc()      
+        action_score = len(bot_belief_map.count_unknown_cells(bot_sense_range, potential_loc))
+        reward += action_score
 
     return reward
 
-def reward_network(rollout_sequence, sensor_model, world_map, neural_model, device):
-    # the map should be updating as we are iterating through the sequence
-    # if not, it is taking the old map and just doing that
-    # pass the action_loc to the action matrix function instead of the actual action
-    reward_final_path = copy.copy(sensor_model.get_final_path()) # these are the executed paths + all the incremental rollout paths
-    # we don't need other_paths here because it is already handled by the create_final_path_matrix_mcts() function
+def reward_network(rollout_sequence, bot, neural_model, device):
+    bot_sensor_model = bot.get_sensor_model()
+
+    exec_path_copy = copy.copy(bot.get_exec_path()) # these are the executed paths + all the incremental rollout paths
+    # we don't need other_paths here because it is already handled by create_path_matrix()
     
-    partial_info = [sensor_model.create_partial_info_mcts(unobs_free=world_map.get_unobs_free(),
-    unobs_occupied=world_map.get_unobs_occupied(), obs_occupied=world_map.get_obs_occupied(),
-    obs_free=world_map.get_obs_free(), bounds=world_map.get_bounds(), update=False)]
+    partial_info = [bot_sensor_model.create_partial_info(False)]
+    partial_info_binary_matrices = bot_sensor_model.create_binary_matrices(partial_info)
 
-    partial_info_binary_matrices = sensor_model.create_binary_matrices(
-        partial_info)
-    partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
-
+    curr_bot_loc = bot.get_loc()
     reward = 0
     for state in rollout_sequence:
-        loc = state.get_location()
         # if tuple(loc) in reward_final_path or tuple(loc) in reward_final_other_path:
         #     continue
-        reward_final_path.append(state.get_location())
 
-        path_matrix = sensor_model.create_final_path_matrix_mcts(reward_final_path, update=False)
+        path_matrix = bot_sensor_model.create_path_matrix(False, exec_path_copy)
         
-        final_actions = [sensor_model.create_action_matrix_mcts(loc)]
-        final_actions_binary_matrices = sensor_model.create_binary_matrices(final_actions)
+        action = state.get_action()
+        action_matrix = [bot_sensor_model.create_action_matrix(action, curr_bot_loc, True)]
+        action_binary_matrices = bot_sensor_model.create_binary_matrices(action_matrix)
 
-        input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices)
+        input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, action_binary_matrices)
         input = input.unsqueeze(0).float().to(device)
         
         reward += neural_model(input).item()
+
+        curr_bot_loc = state.get_loc()
+        exec_path_copy.append(curr_bot_loc)  # CHECK IF THIS IS CORRECT
 
     return reward
 
