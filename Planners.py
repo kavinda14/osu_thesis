@@ -153,8 +153,14 @@ class MCTS(Planner):
         self.name = "{}_{}_{}_{}".format(self.__class__.__name__, self.rollout, self.reward, comm_type)
       
     def get_action(self, bot):
-        solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc = mcts.mcts(self.budget, self.max_iter, self.explore_exploit_param , 
-                                                                                     bot, self.rollout, self.reward, self.neural_model, self.device)
+        # at curr_step == 0, nothing is explored so the generate_valid_neighbors() will be in an infinite loop because..
+        # .. is_valid_action() always returns False
+        # so at the very first step we can run cellcount or random planner so that the bot has free_locs to iterate over in is_valid_action()
+        if len(bot.get_exec_path()) == 0:
+            return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, self.device)
+
+        return mcts.mcts(self.budget, self.max_iter, self.explore_exploit_param, 
+                         bot, self.rollout, self.reward, self.neural_model, self.device)
     
     def get_name(self):
         return self.name

@@ -37,11 +37,11 @@ class Robot:
     def get_direction(self, curr_loc, next_loc):
         if (next_loc[0] - curr_loc[0] == -1):
             return 'left'
-        if (next_loc[0] - curr_loc[0] == 1):
+        elif (next_loc[0] - curr_loc[0] == 1):
             return 'right'
-        if (next_loc[1] - curr_loc[1] == 1):
+        elif (next_loc[1] - curr_loc[1] == 1):
             return 'backward'
-        if (next_loc[1] - curr_loc[1] == -1):
+        elif (next_loc[1] - curr_loc[1] == -1):
             return 'forward'
 
         return None

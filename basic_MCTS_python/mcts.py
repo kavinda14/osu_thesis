@@ -15,7 +15,7 @@ import math
 import pickle
 from utils import get_CONF, get_json_comp_conf
 from State import State, generate_valid_neighbors
-
+from plot_tree import plot_tree
 
 # def mcts(action_set, budget, max_iterations, exploration_exploitation_parameter, robot, input_map):
 def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type, neural_model, device):
@@ -33,6 +33,7 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
     start_sequence = [State('root', bot.get_loc())]
     # what is action_set?
     # -> there is an action object created in main.py
+    bot_belief_map = bot.get_belief_map()
     unpicked_child_actions = generate_valid_neighbors(start_sequence[0], start_sequence, bot_belief_map)
     # unpicked_child_actions = copy.deepcopy(action_set)
     # root is created when mcts is run
@@ -69,7 +70,7 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
                 else:
                     child_index = random.randint(0,num_unpicked_child_actions-1)
                 child_action = current.unpicked_child_actions[child_index] # even though it says action, it is a State() object that contains action as an attribute
-                child_loc = child_action.get_location()
+                child_loc = child_action.get_loc()
 
                 # Remove the child form the unpicked list
                 del current.unpicked_child_actions[child_index]
@@ -203,4 +204,10 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
     winner_node = best_child
     winner_loc = winner_node.get_coords()
 
-    return [solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc]
+    # returns action to make it easier in Simulator.py
+    return bot.get_direction(bot.get_loc(), winner_loc)
+
+    # plot_tree(list_of_all_nodes, winner_node, False, budget, "1", explore_exploit_param)
+
+    # return [solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc]
+    # return winner_loc

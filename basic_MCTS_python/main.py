@@ -8,7 +8,7 @@ Jan 2020
 from mcts import mcts
 from action import Action, printActionSequence
 from tree_node import countNodes
-from plot_tree import plotTree
+from plot_tree import plot_tree
 import time, sys
 
 def run():
@@ -28,8 +28,8 @@ def run():
 
     # Display the tree
     printActionSequence(solution)
-    plotTree(list_of_all_nodes, winner, action_set, False, budget, 1, exploration_exploitation_parameter)
-    plotTree(list_of_all_nodes, winner, action_set, True, budget, 2, exploration_exploitation_parameter)
+    plot_tree(list_of_all_nodes, winner, action_set, False, budget, 1, exploration_exploitation_parameter)
+    plot_tree(list_of_all_nodes, winner, action_set, True, budget, 2, exploration_exploitation_parameter)
 
     # Wait for Ctrl+C
     while True:

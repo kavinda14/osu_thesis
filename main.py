@@ -10,7 +10,7 @@ from BeliefMap import BeliefMap
 from Robot import Robot
 from SensorModel import SensorModel
 from Simulator import Simulator
-from Planners import RandomPlanner, CellCountPlanner, OracleCellCountPlanner
+from Planners import RandomPlanner, CellCountPlanner, OracleCellCountPlanner, MCTS
 from copy import deepcopy
 import numpy as np
 from random import randint
@@ -326,7 +326,8 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, actions
 
 def main():
     
-    mode = sys.argv[1] # get arg from terminal - two options: 1) eval 2) gen_data
+    # mode = sys.argv[1] # get arg from terminal - two options: 1) eval 2) gen_data
+    mode = "eval"
 
     #### SETUP ####
 
@@ -335,9 +336,11 @@ def main():
     if mode == "gen_data":
         TRIALS = 1200
     elif mode == "eval":
-        TRIALS = 100
-    TOTAL_STEPS = 30
-    NUM_ROBOTS = 4
+        TRIALS = 10
+    # TOTAL_STEPS = 30
+    TOTAL_STEPS = 10
+    # NUM_ROBOTS = 4
+    NUM_ROBOTS = 2
     FULLCOMM_STEP = 1
     PARTIALCOMM_STEP = 5
     POORCOMM_STEP = 10
@@ -359,20 +362,25 @@ def main():
                            oracle_cellcount_planner]
 
     elif mode == "eval":
-        planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
-                           CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
-                           CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
-                           CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
-                           CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-                           CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-                           CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-                           oracle_cellcount_planner]
+        # planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
+        #                    CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+        #                    CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+        #                    CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+        #                    CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                    CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                    oracle_cellcount_planner]
 
         #  planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
         #                    CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
         #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
         #                    oracle_cellcount_planner]
 
+        planner_options = [RandomPlanner(FULLCOMM_STEP, "full"),
+                           CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+                           CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+                           MCTS("cellcount", "cellcount", FULLCOMM_STEP, "full", neural_model[0], device)]
+                           
     # for data generation
     '''
     checklist: 
@@ -422,7 +430,7 @@ def main():
 
             robot_occupied_locs = set()  # so that we can calculate unique occupied cells observed for the score
             cum_score = 0
-            for curr_step in range(TOTAL_STEPS):
+            for curr_step in tqdm(range(TOTAL_STEPS)):
                 step_score = 0
 
                 # run multiple robots in same map

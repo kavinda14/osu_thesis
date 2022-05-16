@@ -26,7 +26,7 @@ class State():
 # returns valid State objects (contains action and location) from a given position
 def generate_valid_neighbors(curr_state, state_sequence, bot_belief_map):
     neighbors = list()
-    curr_bot_loc = curr_state.get_location()
+    curr_bot_loc = curr_state.get_loc()
 
     sequence = [state.get_loc() for state in state_sequence]
     actions = ['left', 'right', 'forward', 'backward']
