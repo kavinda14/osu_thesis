@@ -4,15 +4,15 @@ import copy
 import NeuralNet
 from State import generate_valid_neighbors
 
+
 def rollout_random(subsequence, budget, bot):
     # THESE ARE STATES
     curr_state = subsequence[-1]
-    # sequence = copy.deepcopy(subsequence)
     sequence = copy.copy(subsequence)
 
     bot_belief_map = bot.get_belief_map()
     while cost(sequence) < budget:
-        neighbors = generate_valid_neighbors(curr_state, subsequence, bot_belief_map)
+        neighbors = generate_valid_neighbors(curr_state, bot_belief_map)
         r = random.randint(0, len(neighbors)-1)
         next_state = neighbors[r]
         sequence.append(next_state)
@@ -20,10 +20,10 @@ def rollout_random(subsequence, budget, bot):
     return sequence
 
 def rollout_cellcount(subsequence, budget, bot):
-    bot_belief_map = bot.get_belief_map()
-    bot_sense_range = bot.get_sense_range()
     sequence = copy.copy(subsequence)
 
+    bot_belief_map = bot.get_belief_map()
+    bot_sense_range = bot.get_sense_range()
     exec_path = bot.get_exec_path()
     comm_exec_path = bot.get_comm_exec_path()
    
@@ -31,36 +31,34 @@ def rollout_cellcount(subsequence, budget, bot):
     curr_state = subsequence[-1]
    
     while cost(sequence) < budget:
-        neighbors = generate_valid_neighbors(curr_state, subsequence, bot_belief_map)
+        neighbors = generate_valid_neighbors(curr_state, bot_belief_map)
         best_state = None
         # use -infinity because network outputs negative values sometimes
         best_action_score = float("-inf")
 
-        # count was added because of other_executed_paths..
+        # count was added because of comm_exec_path..
         # if not what happens is the entire for loop is skipped because none of the States() in subsequence..
         # ..gets iterated over because they have all been traversed 
         count = 0
         for state in neighbors:
             count += 1
             if count != len(neighbors):
-                loc = tuple(state.get_loc())
-                # times_visited = executed_paths.count(loc) + other_executed_paths.count(loc)
-                if loc in (exec_path, comm_exec_path):
-                # if times_visited >= 1:
+                potential_loc = state.get_loc()
+                if potential_loc in (exec_path, comm_exec_path):
+                    print("HERE")
                     continue
             else: 
                 index = random.randint(0, len(neighbors)-1)
                 state = neighbors[index]
                 potential_loc = state.get_loc()
                
-                action_score = len(bot_belief_map.count_unknown_cells(bot_sense_range, potential_loc))
+            action_score = len(bot_belief_map.count_unknown_cells(bot_sense_range, potential_loc))
 
-                if action_score > best_action_score:
-                    best_action_score = action_score
-                    best_state = state
+            if action_score > best_action_score:
+                best_action_score = action_score
+                best_state = state
         
         sequence.append(best_state)
-        # rollout_final_path.append(best_state.get_location())
         # this is where the robot "moves"
         curr_state = best_state
         best_action_score = float("-inf")
@@ -86,7 +84,7 @@ def rollout_network(subsequence, budget, bot, neural_model, device):
    
     while cost(sequence) < budget:
         curr_bot_loc = curr_state.get_loc()
-        neighbors = generate_valid_neighbors(curr_state, subsequence, bot_belief_map)
+        neighbors = generate_valid_neighbors(curr_state, bot_belief_map)
 
         path_matrix = bot_sensor_model.create_path_matrix(False, rollout_path)
         
@@ -95,13 +93,17 @@ def rollout_network(subsequence, budget, bot, neural_model, device):
         # use -infinity because network outputs negative values sometimes
         best_action_score = float("-inf")
 
+        count = 0
         for state in neighbors:
-            loc = tuple(state.get_loc())
-            # times_visited = executed_paths.count(loc) + other_executed_paths.count(loc)
-            if loc in (exec_path, comm_exec_path):
-            # if times_visited >= 1:
-                continue
-
+            count += 1
+            if count != len(neighbors):
+                potential_loc = state.get_loc()
+                if potential_loc in (exec_path, comm_exec_path):
+                    continue
+            else:
+                index = random.randint(0, len(neighbors)-1)
+                state = neighbors[index]
+            
             action = state.get_action()
             action_matrix = [bot_sensor_model.create_action_matrix(action, curr_bot_loc, True)]
             action_binary_matrices = bot_sensor_model.create_binary_matrices(action_matrix)

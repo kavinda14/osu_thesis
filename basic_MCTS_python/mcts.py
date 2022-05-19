@@ -17,11 +17,13 @@ from utils import get_CONF, get_json_comp_conf
 from State import State, generate_valid_neighbors
 from plot_tree import plot_tree
 
-# def mcts(action_set, budget, max_iterations, exploration_exploitation_parameter, robot, input_map):
 def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type, neural_model, device):
-
-    debug_mcts_reward_greedy = list()
-    debug_mcts_reward_network= list()
+    
+    debug = False
+    debug_plot_tree = False
+    if debug:
+        debug_mcts_reward_greedy = list()
+        debug_mcts_reward_network= list()
 
     ################################
     # Setup
@@ -34,7 +36,7 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
     # what is action_set?
     # -> there is an action object created in main.py
     bot_belief_map = bot.get_belief_map()
-    unpicked_child_actions = generate_valid_neighbors(start_sequence[0], start_sequence, bot_belief_map)
+    unpicked_child_actions = generate_valid_neighbors(start_sequence[0], bot_belief_map)
     # unpicked_child_actions = copy.deepcopy(action_set)
     # root is created when mcts is run
     root = TreeNode(parent=None, sequence=start_sequence, budget=budget, unpicked_child_actions=unpicked_child_actions, coords=bot.get_loc())
@@ -84,7 +86,7 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
 
                 # Setup the new child's unpicked children
                 # Remove any over budget children from this set
-                new_unpicked_child_actions = generate_valid_neighbors(child_action, new_sequence, bot_belief_map)
+                new_unpicked_child_actions = generate_valid_neighbors(child_action, bot_belief_map)
                 def is_overbudget(a):
                     seq_copy = copy.copy(current.sequence)
                     seq_copy.append(a)
@@ -143,26 +145,27 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
             rollout_sequence = rollout_network(current.sequence, budget, bot, neural_model, device)
 
         # TEST TO CHECK IF GREEDY AND NETWORK REWARDS ARE LINEAR
-        # CONF = get_CONF()
-        # json_comp_conf = get_json_comp_conf()
-        # debug_reward_greedy = reward.reward_greedy(rollout_sequence, sensor_model, world_map, oracle=True)
-        # debug_reward_network = reward.reward_network(rollout_sequence, sensor_model, world_map, neural_model, device=device)
-        # debug_mcts_reward_greedy_list.append(debug_reward_greedy)
-        # debug_mcts_reward_network_list.append(debug_reward_network)
+        if debug:
+            CONF = get_CONF()
+            json_comp_conf = get_json_comp_conf()
+            debug_reward_greedy = reward.reward_cellcount(rollout_sequence, bot)
+            debug_reward_network = reward.reward_network(rollout_sequence, bot, neural_model, device=device)
+            debug_mcts_reward_greedy.append(debug_reward_greedy)
+            debug_mcts_reward_network.append(debug_reward_network)
 
-        # # pickle progress
-        # filename1 = CONF[json_comp_conf]["pickle_path"] + "debug_reward_greedy_list"
-        # filename2 = CONF[json_comp_conf]["pickle_path"] + "debug_reward_network_list"
-        # outfile = open(filename1,'wb')
-        # pickle.dump(debug_mcts_reward_greedy_list, outfile)
-        # outfile.close()
-        # outfile = open(filename2,'wb')
-        # pickle.dump(debug_mcts_reward_network_list, outfile)
-        # outfile.close()
+            # pickle progress
+            filename1 = CONF[json_comp_conf]["pickle_path"] + "debug_reward_greedy_list"
+            filename2 = CONF[json_comp_conf]["pickle_path"] + "debug_reward_network_list"
+            outfile = open(filename1,'wb')
+            pickle.dump(debug_mcts_reward_greedy, outfile)
+            outfile.close()
+            outfile = open(filename2,'wb')
+            pickle.dump(debug_mcts_reward_network, outfile)
+            outfile.close()
 
         if reward_type == 'random':
             rollout_reward = reward.reward_random(rollout_sequence)
-        if reward_type == "greedy":
+        if reward_type == "cellcount":
             rollout_reward = reward.reward_cellcount(rollout_sequence, bot)
         else: # all networks will run this
             rollout_reward = reward.reward_network(rollout_sequence, bot, neural_model, device)
@@ -204,10 +207,14 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
     winner_node = best_child
     winner_loc = winner_node.get_coords()
 
+    if debug_plot_tree:
+        print("bot_curr_loc: ", bot.get_loc())
+        print("new loc: ", winner_loc)
+        plot_tree(list_of_all_nodes, winner_node, False, budget, "1", explore_exploit_param)
+    
     # returns action to make it easier in Simulator.py
     return bot.get_direction(bot.get_loc(), winner_loc)
 
-    # plot_tree(list_of_all_nodes, winner_node, False, budget, "1", explore_exploit_param)
 
     # return [solution, solution_locs, root, list_of_all_nodes, winner_node, winner_loc]
     # return winner_loc

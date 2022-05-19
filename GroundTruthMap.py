@@ -58,6 +58,8 @@ class GroundTruthMap:
         y = self.bounds[1]//2
         self._create_obj(x, y, occ_locs)
 
+        # np.random.seed(8)  # this can be used for debugging when we want the same kind of map
+
         # circle at other locs
         for _ in range(self.OCC_DENSITY):
             x = int(np.random.uniform(3, self.bounds[0] - 2, size=1))
@@ -111,10 +113,10 @@ class GroundTruthMap:
         return [scanned_occupied, scanned_free]
 
     def _scan_locs(self, bot, bot_loc, exist_locs, scanned_list):
-        SENSE_RANGE = bot.get_sense_range()
+        sense_range = bot.get_sense_range()
         for loc in exist_locs:
             distance = euclidean_distance(bot_loc, loc)
-            if (distance <= SENSE_RANGE):
+            if (distance <= sense_range):
                 scanned_list.add(loc)
 
     def get_occupied_locs(self):

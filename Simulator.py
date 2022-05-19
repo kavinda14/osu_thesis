@@ -1,10 +1,10 @@
+from random import randint
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import sys
-
 sys.path.insert(0, './basic_MCTS_python')
-from basic_MCTS_python import mcts
-from basic_MCTS_python import plot_tree
+from copy import deepcopy
+
 
 class Simulator:
     def __init__(self, belief_map, ground_truth_map, bot, sensor_model, generate_data):
@@ -18,6 +18,8 @@ class Simulator:
 
         # Simulator.py is used for eval and data generation
         self.generate_data = generate_data
+
+        self.sys_actions = ['left', 'right', 'forward', 'backward']
 
         self.debug_network_score = list()
         self.debug_greedy_score = list()
@@ -52,7 +54,7 @@ class Simulator:
 
 
     # train is there because of the backtracking condition in each planner 
-    def run(self, planner, robot_occupied_locs, curr_step):       
+    def run(self, planner, robot_occupied_locs, curr_step, robot_curr_locs):       
         # on step=0, we just initialize map and matrices
         if curr_step == 0:
             self._initialize_data_matrices()
@@ -60,10 +62,20 @@ class Simulator:
 
         # get action from planner 
         action = planner.get_action(self.bot)
-        
+
+        # to make sure that robots aren't in the same loc
+        # if (self.belief_map.get_action_loc(action, self.bot.get_loc())) in robot_curr_locs:
+        #     while True:
+        #         old_action = deepcopy(action)
+        #         action_idx = randint(0, len(self.sys_actions)-1)
+        #         action = self.sys_actions[action_idx]
+        #         new_loc = self.belief_map.get_action_loc(action, self.bot.get_loc())
+        #         if self.belief_map.is_valid_loc(new_loc[0], new_loc[1]) and action is not old_action:         
+        #             break
+
         self._generate_data_matrices(action) # must be called before moving - we use curr info of where we are along with action to predict what the score would be
         
-        # remember that if we call move() at curr_step=0, all actions will return False because the BeliefMap has no free_locs for is_valid_loc()
+        # remember that if we call move() at curr_step=0 and 1, all actions will return False because the BeliefMap has no free_locs for is_valid_loc()
         self.bot.move(action)
 
         # sanity check the robot is in bounds after moving
@@ -74,6 +86,7 @@ class Simulator:
         # update belief map
         new_observations = self.ground_truth_map.get_observation(self.bot, self.bot.get_loc())
         self.belief_map.update_map(new_observations[0], new_observations[1])
+
         # update exec_path
         self.bot.append_exec_loc(self.bot.get_loc())
 
@@ -87,6 +100,8 @@ class Simulator:
         self.scores.append(score)
 
         # self._generate_data_matrices(action)
+
+        return action
 
     def visualize(self, robots, curr_step, debug_occ_locs=None):
         plt.xlim(0, self.belief_map.bounds[0])

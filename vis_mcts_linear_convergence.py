@@ -2,6 +2,7 @@ from utils import get_CONF, get_json_comp_conf
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.preprocessing import minmax_scale
 
 if __name__ == "__main__":
     
@@ -27,9 +28,11 @@ if __name__ == "__main__":
 
     # scatter plot
     y1 = debug_reward_greedy_list
+    y1 = minmax_scale(y1)
     print("debug_reward_greedy_list: ", len(y1))
 
     y2 = debug_reward_network_list
+    y2 = minmax_scale(y2)
     print("debug_reward_network_list", len(y2))
 
     """  
@@ -55,9 +58,10 @@ if __name__ == "__main__":
     end = increment
     data_dict = {}
 
-    # modified_list = debug_reward_greedy_list[0:20000]
+    modified_list = debug_reward_greedy_list[0:1000]
+    # print(debug_reward_greedy_list)
     # modified_list = debug_reward_network_list[0:12000]
-    modified_list = debug_reward_network_list[4000:5000]
+    # modified_list = debug_reward_network_list[0:1000]
 
     y1 = [i for i in range(len(modified_list))]
     y2 = modified_list

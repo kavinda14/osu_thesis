@@ -8,8 +8,6 @@ class Robot:
 
         # static variables
         self.start_loc = x, y
-        # self.sensing_range = 2.85 # Range for square with bounds 21, 21
-        # self.sensing_range = 4.3 # Range for circles with bounds 41, 41
         self.SENSE_RANGE = 3.0 # Range for circles with bounds 41, 41
         self.belief_map = belief_map
         self.bounds = self.belief_map.get_bounds()

@@ -39,6 +39,7 @@ class SensorModel:
         bounds = self.belief_map.get_bounds()
         path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
         
+        # input_path is for mcts rollout
         if input_path == None:
             exec_paths = self.bot.get_exec_path()
             for path in exec_paths:

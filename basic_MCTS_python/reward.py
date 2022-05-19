@@ -29,9 +29,6 @@ def reward_network(rollout_sequence, bot, neural_model, device):
     curr_bot_loc = bot.get_loc()
     reward = 0
     for state in rollout_sequence:
-        # if tuple(loc) in reward_final_path or tuple(loc) in reward_final_other_path:
-        #     continue
-
         path_matrix = bot_sensor_model.create_path_matrix(False, exec_path_copy)
         
         action = state.get_action()
@@ -44,7 +41,7 @@ def reward_network(rollout_sequence, bot, neural_model, device):
         reward += neural_model(input).item()
 
         curr_bot_loc = state.get_loc()
-        exec_path_copy.append(curr_bot_loc)  # CHECK IF THIS IS CORRECT
+        exec_path_copy.append(curr_bot_loc) 
 
     return reward
 

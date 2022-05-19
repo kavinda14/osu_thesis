@@ -46,9 +46,10 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
     curr_bot_loc = bot.get_loc()
 
     # create map and path matrices for network 
-    partial_info = [sensor_model.create_partial_info(False)]
-    partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
-    path_matrix = sensor_model.create_path_matrix(False)
+    if neural_model is not None:
+        partial_info = [sensor_model.create_partial_info(False)]
+        partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
+        path_matrix = sensor_model.create_path_matrix(False)
 
     for action in sys_actions:
         if bot_belief_map.is_valid_action(action, curr_bot_loc):
@@ -142,8 +143,11 @@ class MCTS(Planner):
         self.reward = reward
         self.budget = 6
         self.max_iter = 1000
-        self.explore_exploit_param = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
-        
+        if self.reward == "network":
+            self.explore_exploit_param = 5.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
+        else:
+            self.explore_exploit_param = 30.0
+
         self.comm_step = comm_step
         self.comm_type = comm_type
         
