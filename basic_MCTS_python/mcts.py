@@ -16,6 +16,7 @@ import pickle
 from utils import get_CONF, get_json_comp_conf
 from State import State, generate_valid_neighbors
 from plot_tree import plot_tree
+from copy import deepcopy
 
 def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type, neural_model, device):
     
@@ -31,13 +32,11 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
     # -> a list to hold the actions, which can be used to calculate the budget left
     # in our case, this sequence is passed to every other node to keep track of history
     # the history will allow us to check if a particular state was previously visited
-    # world_map = copy.deepcopy(input_map)
     start_sequence = [State('root', bot.get_loc())]
     # what is action_set?
     # -> there is an action object created in main.py
     bot_belief_map = bot.get_belief_map()
     unpicked_child_actions = generate_valid_neighbors(start_sequence[0], bot_belief_map)
-    # unpicked_child_actions = copy.deepcopy(action_set)
     # root is created when mcts is run
     root = TreeNode(parent=None, sequence=start_sequence, budget=budget, unpicked_child_actions=unpicked_child_actions, coords=bot.get_loc())
     list_of_all_nodes = []
@@ -51,18 +50,16 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
         # print('Iteration: ', iter)
 
         ################################
-        # Selection and Expansion
+        '''### SELECTION AND EXPANSION ###'''
         # move recursively down the tree from root
         # then add a new leaf node
         current = root
         while True: 
 
             # Are there any children to be added here?
-            #### SELECTION
+            '''### SELECTION ###'''
             if current.unpicked_child_actions: # if not empty
                 
-                # does this mean that selection happens randomly?
-
                 # Pick one of the UNPICKED children that haven't been added
                 # Remember that these child actions are "State" objects - contains action + location
                 # Do this at random
@@ -80,7 +77,8 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
                 # Setup the new action sequence
                 # what does it mean to add something to a treenode sequence?
                 # -> is it the order of traversal down the tree?
-                new_sequence = copy.copy(current.sequence)
+                new_sequence = deepcopy(current.sequence) 
+                # new_sequence = copy.copy(current.sequence)
                 new_sequence.append(child_action)
                 new_budget_left = budget - cost(new_sequence)
 
@@ -88,7 +86,7 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
                 # Remove any over budget children from this set
                 new_unpicked_child_actions = generate_valid_neighbors(child_action, bot_belief_map)
                 def is_overbudget(a):
-                    seq_copy = copy.copy(current.sequence)
+                    seq_copy = deepcopy(current.sequence) 
                     seq_copy.append(a)
                     return cost(seq_copy) >= budget
                 
@@ -96,7 +94,7 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
                 new_unpicked_child_actions = [a for a in new_unpicked_child_actions if not is_overbudget(a)]
 
                 # Create the new node and add it to the tree
-                #### EXPANSION
+                '''### EXPANSION ###'''
                 new_child_node = TreeNode(parent=current, sequence=new_sequence, budget=new_budget_left, unpicked_child_actions=new_unpicked_child_actions, coords=child_loc)
                 current.children.append(new_child_node)
                 current = new_child_node
@@ -136,7 +134,7 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
                     current = best_child
 
         ################################
-        # Rollout
+        '''### ROLLOUT ###'''
         if rollout_type == "random":
             rollout_sequence = rollout_random(current.sequence, budget, bot)
         elif rollout_type == "cellcount":
@@ -162,16 +160,16 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
             outfile = open(filename2,'wb')
             pickle.dump(debug_mcts_reward_network, outfile)
             outfile.close()
-
+        
         if reward_type == 'random':
             rollout_reward = reward.reward_random(rollout_sequence)
-        if reward_type == "cellcount":
+        elif reward_type == "cellcount":
             rollout_reward = reward.reward_cellcount(rollout_sequence, bot)
         else: # all networks will run this
             rollout_reward = reward.reward_network(rollout_sequence, bot, neural_model, device)
 
         ################################
-        #### BACK PROPAGATION
+        '''### BACK PROPAGATION ###'''
         # update stats of all nodes from current back to root node
         parent = current
         while parent: # is not None
@@ -192,13 +190,9 @@ def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type
     best_score = 0
     best_child = -1
 
-    solution_locs = list()
     for child in current.children: # is not empty
-        solution_locs.append(child.get_coords())
-
-        # Find the child with best score
+        # find the child with best score
         score = child.average_evaluation_score
-        # print('score: ', [child.get_coords(), score])
         if best_child == -1 or (score > best_score):
             best_child = child
             best_score = score

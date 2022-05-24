@@ -16,37 +16,35 @@ file_count = len(files)
 
 # this holds all the pickle data
 pickles_dict = dict()
-first_iter = True
+full_comms_planners = ["MCTS_network_network_fullnet", "MCTS_random_network_full",
+                       "CellCountPlanner_fullnet", "MCTS_cellcount_cellcount_full", "MCTS_random_cellcount_full", "CellCountPlanner_full", "RandomPlanner_full"]
+partial_comms_planners = ["MCTS_network_network_partialnet", "MCTS_random_network_partial",
+                          "CellCountPlanner_partialnet", "MCTS_cellcount_cellcount_partial", "MCTS_random_cellcount_partial", "CellCountPlanner_partial", "RandomPlanner_partial"]
+poor_comms_planners = ["MCTS_network_network_poornet", "MCTS_random_network_poor",
+                       "CellCountPlanner_poornet", "MCTS_cellcount_cellcount_poor", "MCTS_random_cellcount_poor", "CellCountPlanner_poor", "RandomPlanner_poor"]
+all_planners = full_comms_planners + partial_comms_planners + poor_comms_planners
+
+for planner in all_planners:
+    pickles_dict[planner] = list()    
+
 for i in range(file_count):
-    filename = CONF[json_comp_conf]["shared_files_path"] +  "scores_r4_t100_s20_{}".format(i+1)
+    filename = CONF[json_comp_conf]["shared_files_path"] +  "scores_r4_t100_s25_{}".format(i+1)
     infile = open(filename, 'rb')
     temp_dict = pickle.load(infile)
 
-    # append planner names into pickles_dict
-    if first_iter == True:
-        for key in temp_dict.keys(): 
-            pickles_dict[key] = list()
-        first_iter = False
-
     # append values for each planner
     for key in temp_dict.keys():
-        pickles_dict[key] += temp_dict[key]
+        if key in pickles_dict:
+            pickles_dict[key] += temp_dict[key]
 
     infile.close()
 
-# list the planners in each list
-full_comms_planners = ["MCTS_network_network_full", "MCTS_random_network_full",
-                       "CellCountPlanner_fullnet", "MCTS_cellcount_cellcount_full", "MCTS_random_cellcount_full", "CellCountPlanner_full", "RandomPlanner_full"]
-partial_comms_planners = ["MCTS_network_network_partial", "MCTS_random_network_partial",
-                          "CellCountPlanner_partialnet", "MCTS_cellcount_cellcount_partial", "MCTS_random_cellcount_partial", "CellCountPlanner_partial", "RandomPlanner_partial"]
-poor_comms_planners = ["MCTS_network_network_poor", "MCTS_random_network_poor",
-                       "CellCountPlanner_poornet", "MCTS_cellcount_cellcount_poor", "MCTS_random_cellcount_poor", "CellCountPlanner_poor", "RandomPlanner_poor"]
 
+# combine the pickles_dict planners in the dicts given above
 full_comms_dict = {k: list() for k in full_comms_planners}
 partial_comms_dict = {k: list() for k in partial_comms_planners}
 poor_comms_dict = {k: list() for k in poor_comms_planners}
 
-# combine the pickles_dict planners in the dicts given above
 for key in full_comms_dict.keys():
     if key in pickles_dict.keys():
         full_comms_dict[key] += pickles_dict[key]

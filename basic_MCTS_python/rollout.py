@@ -6,7 +6,6 @@ from State import generate_valid_neighbors
 
 
 def rollout_random(subsequence, budget, bot):
-    # THESE ARE STATES
     curr_state = subsequence[-1]
     sequence = copy.copy(subsequence)
 
@@ -16,7 +15,8 @@ def rollout_random(subsequence, budget, bot):
         r = random.randint(0, len(neighbors)-1)
         next_state = neighbors[r]
         sequence.append(next_state)
-    
+        curr_state = next_state
+
     return sequence
 
 def rollout_cellcount(subsequence, budget, bot):
@@ -36,21 +36,10 @@ def rollout_cellcount(subsequence, budget, bot):
         # use -infinity because network outputs negative values sometimes
         best_action_score = float("-inf")
 
-        # count was added because of comm_exec_path..
-        # if not what happens is the entire for loop is skipped because none of the States() in subsequence..
-        # ..gets iterated over because they have all been traversed 
-        count = 0
         for state in neighbors:
-            count += 1
-            if count != len(neighbors):
-                potential_loc = state.get_loc()
-                if potential_loc in (exec_path, comm_exec_path):
-                    print("HERE")
-                    continue
-            else: 
-                index = random.randint(0, len(neighbors)-1)
-                state = neighbors[index]
-                potential_loc = state.get_loc()
+            potential_loc = tuple(state.get_loc())
+            # if potential_loc in exec_path or potential_loc in comm_exec_path:
+                # continue
                
             action_score = len(bot_belief_map.count_unknown_cells(bot_sense_range, potential_loc))
 
@@ -89,20 +78,15 @@ def rollout_network(subsequence, budget, bot, neural_model, device):
         path_matrix = bot_sensor_model.create_path_matrix(False, rollout_path)
         
         # we can't initialize this to None because we are skipping exec_path in the for loop
-        best_state = neighbors[0]
+        r = random.randint(0, len(neighbors)-1)
+        best_state = neighbors[r]
         # use -infinity because network outputs negative values sometimes
         best_action_score = float("-inf")
 
-        count = 0
         for state in neighbors:
-            count += 1
-            if count != len(neighbors):
-                potential_loc = state.get_loc()
-                if potential_loc in (exec_path, comm_exec_path):
-                    continue
-            else:
-                index = random.randint(0, len(neighbors)-1)
-                state = neighbors[index]
+            # potential_loc = tuple(state.get_loc())
+            # if potential_loc in exec_path or potential_loc in comm_exec_path:
+                # continue
             
             action = state.get_action()
             action_matrix = [bot_sensor_model.create_action_matrix(action, curr_bot_loc, True)]
@@ -123,7 +107,8 @@ def rollout_network(subsequence, budget, bot, neural_model, device):
         # this is where the robot "moves"
         curr_state = best_state
         best_action_score = float("-inf")
-        best_state = neighbors[0]
+        r = random.randint(0, len(neighbors)-1)
+        best_state = neighbors[r]
 
     return sequence
 

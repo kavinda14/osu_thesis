@@ -35,15 +35,4 @@ def generate_valid_neighbors(curr_state, bot_belief_map):
         if valid:
             neighbors.append(State(action, new_loc))
 
-    # condition added because rollout_random and rollout_cellcount ends up in spot with no neighbors sometimes
-    if len(neighbors) == 0:
-        print("ZERO NEIGHBORS")
-        # while True:
-        #     action_idx = randint(0, len(actions)-1)
-        #     action = actions[action_idx]
-        #     new_loc = bot_belief_map.get_action_loc(action, curr_bot_loc)
-        #     if bot_belief_map.is_valid_loc(new_loc[0], new_loc[1]):
-        #         neighbors.append(State(action, new_loc))
-        #         break
-
     return neighbors

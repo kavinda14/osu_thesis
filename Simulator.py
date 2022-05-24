@@ -64,14 +64,16 @@ class Simulator:
         action = planner.get_action(self.bot)
 
         # to make sure that robots aren't in the same loc
-        # if (self.belief_map.get_action_loc(action, self.bot.get_loc())) in robot_curr_locs:
-        #     while True:
-        #         old_action = deepcopy(action)
-        #         action_idx = randint(0, len(self.sys_actions)-1)
-        #         action = self.sys_actions[action_idx]
-        #         new_loc = self.belief_map.get_action_loc(action, self.bot.get_loc())
-        #         if self.belief_map.is_valid_loc(new_loc[0], new_loc[1]) and action is not old_action:         
-        #             break
+        # only mcts is allowed this because other planners have backtrack count and mcts does not - this makes it fair
+        if planner.__class__.__name__ == "MCTS":
+            if (self.belief_map.get_action_loc(action, self.bot.get_loc())) in robot_curr_locs:
+                while True:
+                    old_action = action
+                    idx = randint(0, len(self.sys_actions)-1)
+                    action = self.sys_actions[idx]
+                    new_loc = self.belief_map.get_action_loc(action, self.bot.get_loc())
+                    if self.belief_map.is_valid_loc(new_loc[0], new_loc[1]) and action is not old_action:
+                        break
 
         self._generate_data_matrices(action) # must be called before moving - we use curr info of where we are along with action to predict what the score would be
         

@@ -9,13 +9,14 @@ def reward_cellcount(rollout_sequence, bot):
     bot_belief_map = bot.get_belief_map()
     bot_sense_range = bot.get_sense_range()
     
-    reward = 0
+    unknown_cells = set()
     for state in rollout_sequence:
-        potential_loc = state.get_loc()      
-        action_score = len(bot_belief_map.count_unknown_cells(bot_sense_range, potential_loc))
-        reward += action_score
-
-    return reward
+        potential_loc = state.get_loc() 
+        curr_unknown_cells = bot_belief_map.count_unknown_cells(bot_sense_range, potential_loc)
+        unknown_cells = unknown_cells.union(curr_unknown_cells)
+    
+    # reward is the unique unknown locs
+    return len(unknown_cells)
 
 def reward_network(rollout_sequence, bot, neural_model, device):
     bot_sensor_model = bot.get_sensor_model()
