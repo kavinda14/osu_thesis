@@ -28,7 +28,7 @@ for planner in all_planners:
     pickles_dict[planner] = list()    
 
 for i in range(file_count):
-    filename = CONF[json_comp_conf]["shared_files_path"] +  "scores_r4_t100_s25_{}".format(i+1)
+    filename = CONF[json_comp_conf]["shared_files_path"] +  "scores_r4_t50_s20_{}".format(i+1)
     infile = open(filename, 'rb')
     temp_dict = pickle.load(infile)
 

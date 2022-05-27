@@ -24,8 +24,6 @@ def rollout_cellcount(subsequence, budget, bot):
 
     bot_belief_map = bot.get_belief_map()
     bot_sense_range = bot.get_sense_range()
-    exec_path = bot.get_exec_path()
-    comm_exec_path = bot.get_comm_exec_path()
    
     # these are State objects
     curr_state = subsequence[-1]
@@ -38,8 +36,6 @@ def rollout_cellcount(subsequence, budget, bot):
 
         for state in neighbors:
             potential_loc = tuple(state.get_loc())
-            # if potential_loc in exec_path or potential_loc in comm_exec_path:
-                # continue
                
             action_score = len(bot_belief_map.count_unknown_cells(bot_sense_range, potential_loc))
 
@@ -62,7 +58,6 @@ def rollout_network(subsequence, budget, bot, neural_model, device):
     sequence = copy.copy(subsequence)
     # paths already traversed before mcts     
     exec_path = bot.get_exec_path()
-    comm_exec_path = bot.get_comm_exec_path()
     rollout_path = copy.copy(exec_path)
 
     partial_info = [bot_sensor_model.create_partial_info(False)]
@@ -84,10 +79,6 @@ def rollout_network(subsequence, budget, bot, neural_model, device):
         best_action_score = float("-inf")
 
         for state in neighbors:
-            # potential_loc = tuple(state.get_loc())
-            # if potential_loc in exec_path or potential_loc in comm_exec_path:
-                # continue
-            
             action = state.get_action()
             action_matrix = [bot_sensor_model.create_action_matrix(action, curr_bot_loc, True)]
             action_binary_matrices = bot_sensor_model.create_binary_matrices(action_matrix)
