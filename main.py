@@ -346,8 +346,8 @@ def main():
 
     CONF = get_CONF()
     json_comp_conf = get_json_comp_conf()
-    neural_model = get_neural_model(CONF, json_comp_conf, BOUNDS)
-    device = neural_model[1]
+    # neural_model = get_neural_model(CONF, json_comp_conf, BOUNDS)
+    # device = neural_model[1]
 
     # to test another network with curr network
     # neural_model2_weight_file = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch1_random_oraclecellcount_r4_t1200_s35_rollout:True_samestartloc__normalscores_batch128"
@@ -383,16 +383,22 @@ def main():
         #                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
         #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
+        # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
+        #                     RandomPlanner(PARTIALCOMM_STEP, "partial"),
+        #                     RandomPlanner(FULLCOMM_STEP, "full"),
+        #                     CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+        #                     CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+        #                     CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+        #                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                     CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                     oracle_cellcount_planner]
+
+        
         planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
                             RandomPlanner(PARTIALCOMM_STEP, "partial"),
-                            RandomPlanner(FULLCOMM_STEP, "full"),
-                            CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
-                            CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
-                            CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
-                            CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-                            CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-                            CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-                            oracle_cellcount_planner]
+                            RandomPlanner(FULLCOMM_STEP, "full")]
+                        
                            
     # for data generation
     '''
@@ -418,12 +424,13 @@ def main():
     # for pickling data
 
     if mode == "gen_data":
-        # datafile = "data_21x21_circles_random_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc_harborenv".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
-        datafile = "test"
+        datafile = "data_21x21_circles_random_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc_harborenv".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
-        # scorefile = "/home/kavi/thesis/pickles/planner_scores_multibot/scores_r{}_t{}_s{}_4".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        # scorefile = "scores_r{}_t{}_s{}_4".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
         scorefile = "test"
+        score_path = CONF[json_comp_conf]["shared_files_path"]+scorefile
         print("scorefile: ", scorefile)
         saved_scores = {planner.get_name(): list() for planner in planner_options}
 
@@ -484,7 +491,7 @@ def main():
         
         if mode == "eval":
             # pickle progress
-            outfile = open(scorefile, 'wb')
+            outfile = open(score_path, 'wb')
             pickle.dump(saved_scores, outfile)
             outfile.close()
 
