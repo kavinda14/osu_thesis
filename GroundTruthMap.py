@@ -12,45 +12,100 @@ class GroundTruthMap:
         self.occupied_locs = self._get_occ_harbor()
         self.free_locs = self._get_free()
 
+    # def _get_occ_harbor(self):
+    #     occ_locs = set()
+        
+    #     # top left pier
+    #     length = int((3/4) * self.bounds[0]) #15
+    #     width = int(self.bounds[1] / 8) #2
+    #     for x in range(width):
+    #         for y in range(length):
+    #             occ_locs.add((x, y))
+
+    #     # # bottom short pier
+    #     # for x in range(15, 21):
+    #     #     for y in range(4, 6):
+    #     #         occ_locs.add((x, y))
+
+    #     # middle mid-length pier
+    #     for x in range(10, 21):
+    #         for y in range(10, 12):
+    #             occ_locs.add((x, y))
+
+    #     for x in range (10, 12):
+    #         for y in range(2, 12):
+    #             occ_locs.add((x, y))
+
+    #     # top long pier
+    #     for x in range(5, 21):
+    #         for y in range(19, 21):
+    #             occ_locs.add((x, y))
+
+    #     for x in range(2, 8):
+    #         for y in range(7, 9):
+    #             occ_locs.add((x, y))
+
+        
+    #     left_boat_locs = [(3, 1), (3, 4), (3, 10)]
+    #     # left_boat_locs = [(3, 1), (3, 4), (3, 7), (3, 10)]
+    #     # bottom_boat_locs = [(15, 1), (18, 1), (15, 7), (18, 7)]
+    #     middle_boat_locs = [(18, 13), (15, 13), (12, 13)]
+    #     top_boat_locs = [(18, 16), (15, 16), (12, 16), (9, 16), (6, 16)]
+
+    #     # all_boat_locs = left_boat_locs + bottom_boat_locs + middle_boat_locs + top_boat_locs
+    #     all_boat_locs = left_boat_locs + middle_boat_locs + top_boat_locs
+
+    #     # randomize spawning of boats
+    #     selected_boat_locs = set()
+    #     for _ in range(len(all_boat_locs)):
+    #         idx = np.random.randint(0, len(all_boat_locs)-1)
+    #         selected_boat_locs.add(all_boat_locs[idx])
+
+    #     # plot boat
+    #     for loc in selected_boat_locs:
+    #         x = loc[0]
+    #         y = loc[1]
+    #         occ_locs.add((x, y))
+    #         occ_locs.add((x+1, y))
+    #         occ_locs.add((x, y+1))
+    #         occ_locs.add((x+1, y+1))
+
+
+    #     return occ_locs
+
+    # more complex T harbor
     def _get_occ_harbor(self):
         occ_locs = set()
 
-        # top left pier
-        length = int((3/4) * self.bounds[0]) #15
-        width = int(self.bounds[1] / 8) #2
-        for x in range(width):
-            for y in range(length):
-                occ_locs.add((x, y))
-
-        # bottom short pier
-        # for x in range(15, 21):
-        #     for y in range(4, 6):
-        #         occ_locs.add((x, y))
-
         # middle mid-length pier
-        for x in range(8, 21):
+        for x in range(3, 21):
             for y in range(8, 10):
                 occ_locs.add((x, y))
+ 
+        # middle mid-length pier 2
+        for x in range(3, 8):
+            for y in range(15, 17):
+                occ_locs.add((x, y))
+
 
         # middle piece
         for x in range(8, 10):
-            for y in range(2, 19):
+            for y in range(0, 19):
                 occ_locs.add((x, y))
 
-        # top long pier
-        # for x in range(5, 21):
-        #     for y in range(19, 21):
-        #         occ_locs.add((x, y))
-        
-        left_boat_locs = [(3, 1), (3, 4), (3, 7), (3, 10), (3, 13)]
+
+
+        # left_boat_locs = [(3, 1), (3, 4), (3, 7), (3, 10), (3, 13)]
         bottom_of_t_boat_locs = [(11, 5), (11, 2), (14, 5), (17, 5)]
         top_of_t_boat_locs = [(11, 11), (11, 14), (11, 17), (14, 11), (17, 11)]
+        left_bottom_of_t = [(5, 5), (5, 2)]
         # bottom_boat_locs = [(15, 1), (18, 1), (15, 7), (18, 7)]
         # middle_boat_locs = [(18, 13), (15, 13), (12, 13), (12, 7)]
         # top_boat_locs = [(18, 16), (15, 16), (12, 16), (9, 16), (6, 16)]
 
         # all_boat_locs = left_boat_locs + bottom_boat_locs + middle_boat_locs + top_boat_locs
-        all_boat_locs = left_boat_locs + bottom_of_t_boat_locs + top_of_t_boat_locs
+        # all_boat_locs = left_boat_locs + bottom_of_t_boat_locs + top_of_t_boat_locs
+        all_boat_locs = bottom_of_t_boat_locs + top_of_t_boat_locs + left_bottom_of_t
 
         # randomize spawning of boats
         selected_boat_locs = set()
@@ -67,8 +122,66 @@ class GroundTruthMap:
             occ_locs.add((x, y+1))
             occ_locs.add((x+1, y+1))
 
-
         return occ_locs
+
+    # def _get_occ_harbor(self):
+    #     occ_locs = set()
+
+    #     # top left pier
+    #     # length = int((3/4) * self.bounds[0]) #15
+    #     # width = int(self.bounds[1] / 8) #2
+    #     # for x in range(width):
+    #     #     for y in range(length):
+    #     #         occ_locs.add((x, y))
+
+    #     # bottom short pier
+    #     # for x in range(15, 21):
+    #     #     for y in range(4, 6):
+    #     #         occ_locs.add((x, y))
+
+    #     # middle mid-length pier
+    #     for x in range(8, 21):
+    #         for y in range(8, 10):
+    #             occ_locs.add((x, y))
+
+    #     # middle piece
+    #     for x in range(8, 10):
+    #         for y in range(2, 19):
+    #             occ_locs.add((x, y))
+
+    #     # top long pier
+    #     # for x in range(5, 21):
+    #     #     for y in range(19, 21):
+    #     #         occ_locs.add((x, y))
+        
+    #     # left_boat_locs = [(3, 1), (3, 4), (3, 7), (3, 10), (3, 13)]
+    #     bottom_of_t_boat_locs = [(11, 5), (11, 2), (14, 5), (17, 5)]
+    #     top_of_t_boat_locs = [(11, 11), (11, 14), (11, 17), (14, 11), (17, 11)]
+    #     # bottom_boat_locs = [(15, 1), (18, 1), (15, 7), (18, 7)]
+    #     # middle_boat_locs = [(18, 13), (15, 13), (12, 13), (12, 7)]
+    #     # top_boat_locs = [(18, 16), (15, 16), (12, 16), (9, 16), (6, 16)]
+
+    #     # all_boat_locs = left_boat_locs + bottom_boat_locs + middle_boat_locs + top_boat_locs
+    #     # all_boat_locs = left_boat_locs + bottom_of_t_boat_locs + top_of_t_boat_locs
+    #     all_boat_locs = bottom_of_t_boat_locs + top_of_t_boat_locs
+
+    #     # randomize spawning of boats
+    #     selected_boat_locs = set()
+    #     for _ in range(len(all_boat_locs)):
+    #         idx = np.random.randint(0, len(all_boat_locs)-1)
+    #         selected_boat_locs.add(all_boat_locs[idx])
+
+    #     # plot boat
+    #     for loc in selected_boat_locs:
+    #         x = loc[0]
+    #         y = loc[1]
+    #         occ_locs.add((x, y))
+    #         occ_locs.add((x+1, y))
+    #         occ_locs.add((x, y+1))
+    #         occ_locs.add((x+1, y+1))
+
+
+    #     return occ_locs
 
 
     # def _get_occ_harbor(self):

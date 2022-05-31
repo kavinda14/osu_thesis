@@ -48,7 +48,7 @@ class Simulator:
     def _generate_data_matrices(self, action):
         self.sensor_model.create_partial_info()
         self.sensor_model.create_rollout_path_matrix()
-        # self.sensor_model.create_path_matrix()
+        # self.sensor_model.create_path_matrix() # only use when not creating rollout data
         self.sensor_model.create_rollout_comm_path_matrix()
         self.sensor_model.create_action_matrix(action, self.bot.get_loc())
 
