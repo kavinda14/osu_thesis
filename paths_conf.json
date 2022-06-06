@@ -9,7 +9,8 @@
     "graeme desktop": {
         "neural_net_weights_path": "/home/subt/kavi/osu_thesis/neural_net_weights/",
         "pickle_path": "/home/subt/kavi/osu_thesis/pickles/",
-        "visualize_figs_path:": "/home/subt/kavi/thesis/visualize_figs/"
+        "visualize_figs_path:": "/home/subt/kavi/thesis/visualize_figs/",
+        "shared_files_path": "/home/subt/kavi/osu_thesis/shared_files/"
     },
 
     "macbook - kavi": {

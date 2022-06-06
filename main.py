@@ -336,8 +336,8 @@ def main():
         TRIALS = 400
         TOTAL_STEPS = 60
     elif mode == "eval":
-        TRIALS = 1
-        TOTAL_STEPS = 3
+        TRIALS = 50
+        TOTAL_STEPS = 60
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
     PARTIALCOMM_STEP = 5
@@ -385,6 +385,18 @@ def main():
         #                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
         #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
+        # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
+        #                     RandomPlanner(PARTIALCOMM_STEP, "partial"),
+        #                     RandomPlanner(FULLCOMM_STEP, "full"),
+        #                     CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+        #                     CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+        #                     CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+        #                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                     CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                     oracle_cellcount_planner]
+
+        
         planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
                            RandomPlanner(PARTIALCOMM_STEP, "partial"),
                            RandomPlanner(FULLCOMM_STEP, "full"),
@@ -445,12 +457,13 @@ def main():
     # for pickling data
 
     if mode == "gen_data":
-        datafile = "data_41x41_circles_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc_harborenv_sense3point0_2".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        datafile = "data_21x21_circles_random_cellcount_r{}_t{}_s{}_rollout:{}_samestartloc_harborenv".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
         # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
-        scorefile = "/home/kavi/thesis/pickles/planner_scores_multibot/scores_r{}_t{}_s{}_1".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        scorefile = "scores_r{}_t{}_s{}_3".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
         # scorefile = "test"
+        score_path = CONF[json_comp_conf]["shared_files_path"]+scorefile
         print("scorefile: ", scorefile)
         saved_scores = {planner.get_name(): list() for planner in planner_options}
 
@@ -511,7 +524,7 @@ def main():
         
         if mode == "eval":
             # pickle progress
-            outfile = open(scorefile, 'wb')
+            outfile = open(score_path, 'wb')
             pickle.dump(saved_scores, outfile)
             outfile.close()
 
