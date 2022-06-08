@@ -12,59 +12,48 @@ class GroundTruthMap:
         self.occupied_locs = self._get_occ_harbor()
         self.free_locs = self._get_free()
 
-    # more complex T harbor
     def _get_occ_harbor(self):
         occ_locs = set()
 
-        # bottom left section
-        # middle mid-length pier
-        for x in range(3, 21):
-            for y in range(8, 10):
-                occ_locs.add((x, y))
- 
-        # middle mid-length pier 2
-        for x in range(3, 8):
-            for y in range(15, 17):
+        # first pier
+        for x in range(5, 7):
+            for y in range(0, 20):
                 occ_locs.add((x, y))
 
-        # middle piece
-        for x in range(8, 10):
-            for y in range(0, 25):
+        # second pier
+        for x in range(15, 17):
+            for y in range(0, 28):
                 occ_locs.add((x, y))
 
-        # top right section
-        # long pier coming down
-        for x in range(28, 30):
-            for y in range(15, 41):
+        # third pier
+        for x in range(25, 27):
+            for y in range(0, 28):
                 occ_locs.add((x, y))
 
-        # top long one
-        for x in range(19, 36):
-            for y in range(35, 37):
+        # fourth pier
+        for x in range(35, 37):
+            for y in range(0, 28):
                 occ_locs.add((x, y))
 
-        # bottom short one
-        for x in range(30, 38):
-            for y in range(26, 28):
-                occ_locs.add((x, y))
+        # boat locs
+        first_pier = [(2, 1), (2, 4), (2, 7), (2, 10), (2, 13), (2, 16),
+                      (8, 1), (8, 4), (8, 7), (8, 10), (8, 13), (8, 16)]
 
-        # bottom left section
-        bottom_of_t_boat_locs = [(11, 5), (11, 2), (14, 5), (17, 5)]
-        top_of_t_boat_locs = [(11, 11), (11, 14), (11, 17), (11, 20), (11, 23), (14, 11), (17, 11)]
-        left_bottom_of_t = [(5, 5), (5, 2), (5, 11), (5, 18), (5, 21)]
+        second_pier = [(12, 1), (12, 4), (12, 7), (12, 10), (12, 13), (12, 16), (12, 19), (12, 22), (12, 25),
+                       (18, 1), (18, 4), (18, 7), (18, 10), (18, 13), (18, 16), (18, 19), (18, 22), (18, 25)]
+        
+        third_pier = [(22, 1), (22, 4), (22, 7), (22, 10), (22, 13), (22, 16), (22, 19), (22, 22), (22, 25),
+                      (28, 1), (28, 4), (28, 7), (28, 10), (28, 13), (28, 16), (28, 19), (28, 22), (28, 25)]
 
-        # top right section
-        bottom_left_of_t = [(25, 17), (25, 20), (25, 23), (25, 26), (25, 29), (25, 32), (22, 32), (19, 32)]
-        right_of_t = [(31, 32), (31, 29), (34, 29)]
-        right_bottom_of_t = [(31, 23), (34, 23), (31, 20), (31, 17)]
+        fourth_pier = [(32, 1), (32, 4), (32, 7), (32, 10), (32, 13), (32, 16), (32, 19), (32, 22), (32, 25),
+                       (38, 1), (38, 4), (38, 7), (38, 10), (38, 13), (38, 16), (38, 19), (38, 22), (38, 25)]
 
-        all_boat_locs = bottom_of_t_boat_locs + top_of_t_boat_locs + left_bottom_of_t \
-            + bottom_left_of_t + right_of_t + right_bottom_of_t
+        all_boat_locs = first_pier + second_pier + third_pier + fourth_pier
 
         # randomize spawning of boats
         selected_boat_locs = set()
-        for _ in range(len(all_boat_locs)):
-            idx = np.random.randint(0, len(all_boat_locs)-1)
+        for _ in range(len(all_boat_locs)-40):
+            idx = np.random.randint(0, len(all_boat_locs))
             selected_boat_locs.add(all_boat_locs[idx])
 
         # plot boat
@@ -77,6 +66,73 @@ class GroundTruthMap:
             occ_locs.add((x+1, y+1))
 
         return occ_locs
+
+
+    # # more complex T harbor
+    # def _get_occ_harbor(self):
+    #     occ_locs = set()
+
+    #     # bottom left section
+    #     # middle mid-length pier
+    #     for x in range(3, 21):
+    #         for y in range(8, 10):
+    #             occ_locs.add((x, y))
+ 
+    #     # middle mid-length pier 2
+    #     for x in range(3, 8):
+    #         for y in range(15, 17):
+    #             occ_locs.add((x, y))
+
+    #     # middle piece
+    #     for x in range(8, 10):
+    #         for y in range(0, 25):
+    #             occ_locs.add((x, y))
+
+    #     # top right section
+    #     # long pier coming down
+    #     for x in range(28, 30):
+    #         for y in range(15, 41):
+    #             occ_locs.add((x, y))
+
+    #     # top long one
+    #     for x in range(19, 36):
+    #         for y in range(35, 37):
+    #             occ_locs.add((x, y))
+
+    #     # bottom short one
+    #     for x in range(30, 38):
+    #         for y in range(26, 28):
+    #             occ_locs.add((x, y))
+
+    #     # bottom left section
+    #     bottom_of_t_boat_locs = [(11, 5), (11, 2), (14, 5), (17, 5)]
+    #     top_of_t_boat_locs = [(11, 11), (11, 14), (11, 17), (11, 20), (11, 23), (14, 11), (17, 11)]
+    #     left_bottom_of_t = [(5, 5), (5, 2), (5, 11), (5, 18), (5, 21)]
+
+    #     # top right section
+    #     bottom_left_of_t = [(25, 17), (25, 20), (25, 23), (25, 26), (25, 29), (25, 32), (22, 32), (19, 32)]
+    #     right_of_t = [(31, 32), (31, 29), (34, 29)]
+    #     right_bottom_of_t = [(31, 23), (34, 23), (31, 20), (31, 17)]
+
+    #     all_boat_locs = bottom_of_t_boat_locs + top_of_t_boat_locs + left_bottom_of_t \
+    #         + bottom_left_of_t + right_of_t + right_bottom_of_t
+
+    #     # randomize spawning of boats
+    #     selected_boat_locs = set()
+    #     for _ in range(len(all_boat_locs)):
+    #         idx = np.random.randint(0, len(all_boat_locs)-1)
+    #         selected_boat_locs.add(all_boat_locs[idx])
+
+    #     # plot boat
+    #     for loc in selected_boat_locs:
+    #         x = loc[0]
+    #         y = loc[1]
+    #         occ_locs.add((x, y))
+    #         occ_locs.add((x+1, y))
+    #         occ_locs.add((x, y+1))
+    #         occ_locs.add((x+1, y+1))
+
+    #     return occ_locs
 
     
     def _get_occ_tetris(self):
@@ -172,17 +228,21 @@ class GroundTruthMap:
 
         return in_bounds
 
-    def get_observation(self, bot, bot_loc):
+    # is_oracle added because we want ONLY the oracle planner to have larger scanning radius
+    def get_observation(self, bot, bot_loc, is_oracle=False):
         scanned_occupied = set()
         scanned_free = set()
 
-        self._scan_locs(bot, bot_loc, self.occupied_locs, scanned_occupied)
-        self._scan_locs(bot, bot_loc, self.free_locs, scanned_free)
+        self._scan_locs(bot, bot_loc, self.occupied_locs, scanned_occupied, is_oracle)
+        self._scan_locs(bot, bot_loc, self.free_locs, scanned_free, is_oracle)
 
         return [scanned_occupied, scanned_free]
 
-    def _scan_locs(self, bot, bot_loc, exist_locs, scanned_list):
-        sense_range = bot.get_sense_range()
+    def _scan_locs(self, bot, bot_loc, exist_locs, scanned_list, is_oracle):
+        if is_oracle:
+            sense_range = 7.0
+        else:
+            sense_range = bot.get_sense_range()
         for loc in exist_locs:
             distance = euclidean_distance(bot_loc, loc)
             if (distance <= sense_range):

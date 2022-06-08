@@ -72,7 +72,7 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
                 else:
                     action_score = len(bot_belief_map.count_unknown_cells(bot_sense_range, potential_loc))
                     if oracle: # we use ground truth to get the observed locs
-                        occupied_locs = ground_truth_map.get_observation(bot, potential_loc)[0]
+                        occupied_locs = ground_truth_map.get_observation(bot, potential_loc, is_oracle=True)[0]
                         
                         for loc in occupied_locs:
                             if loc not in robot_occupied_locs:
