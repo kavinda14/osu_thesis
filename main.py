@@ -80,12 +80,12 @@ def plot_scores(saved_scores):
     plt.tight_layout()
     plt.show()
 
-def get_neural_model(CONF, json_comp_conf, bounds):
-    weight_file = "circles_41x41_epoch1_oraclecellcount_r4_t400_s60_rollout:True_samestartloc_batch128_harborenv_sense3point0" 
+def get_neural_model(CONF, json_comp_conf):
+    weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t400_s80_rollout:True_batch128" 
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
-    neural_model = Net(bounds).to(device)
+    neural_model = Net().to(device)
     neural_model.load_state_dict(torch.load(
         CONF[json_comp_conf]["neural_net_weights_path"]+weight_file))
     neural_model.eval()
@@ -333,7 +333,7 @@ def main():
     BOUNDS = [41, 41]
     OCC_DENSITY = 6
     if mode == "gen_data":
-        TRIALS = 350
+        TRIALS = 600
         TOTAL_STEPS = 80
     elif mode == "eval":
         TRIALS = 50
@@ -345,7 +345,7 @@ def main():
 
     CONF = get_CONF()
     json_comp_conf = get_json_comp_conf()
-    neural_model = get_neural_model(CONF, json_comp_conf, BOUNDS)
+    neural_model = get_neural_model(CONF, json_comp_conf)
     device = neural_model[1]
 
     # to test another network with curr network
@@ -403,6 +403,22 @@ def main():
         #                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
         #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
+        
+         planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
+                           RandomPlanner(PARTIALCOMM_STEP, "partial"),
+                           RandomPlanner(FULLCOMM_STEP, "full"),
+                           CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+                           CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+                           CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+                           CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+                           CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+                           CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+                           MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
+                           MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
+                           MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
+
+        
+
         # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
         #                     RandomPlanner(PARTIALCOMM_STEP, "partial"),
         #                     RandomPlanner(FULLCOMM_STEP, "full"),
@@ -419,8 +435,8 @@ def main():
         #                     RandomPlanner(PARTIALCOMM_STEP, "partial"),
         #                     RandomPlanner(FULLCOMM_STEP, "full")]
 
-        planner_options = [oracle_cellcount_planner, 
-                            CellCountPlanner(None, device, FULLCOMM_STEP, "full")]
+        # planner_options = [oracle_cellcount_planner, 
+                            # CellCountPlanner(None, device, FULLCOMM_STEP, "full")]
                         
                            
     # for data generation
@@ -451,8 +467,8 @@ def main():
         # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
-        # scorefile = "scores_r{}_t{}_s{}_16".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
-        scorefile = "test"
+        scorefile = "scores_r{}_t{}_s{}_5".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        # scorefile = "test"
         score_path = CONF[json_comp_conf]["shared_files_path"]+scorefile
         print("scorefile: ", scorefile)
         saved_scores = {planner.get_name(): list() for planner in planner_options}

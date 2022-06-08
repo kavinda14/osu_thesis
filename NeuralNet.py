@@ -78,9 +78,8 @@ def get_linear_layer_multiple(value):
 
 
 class Net(nn.Module):
-    def __init__(self, bounds):
+    def __init__(self):
         super().__init__()
-        self.bounds = bounds
         # input channels, output no. of features, kernel size
         self.conv1 = nn.Conv2d(7, 12, 5)
 #         self.pool = nn.MaxPool2d(2, 2)
@@ -105,7 +104,7 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
-def train_net(data, bounds, epochs, weights_path, net=None):
+def train_net(data, epochs, weights_path, net=None):
 
     train_loader, valid_loader = create_data_loaders(data)
 
@@ -113,7 +112,7 @@ def train_net(data, bounds, epochs, weights_path, net=None):
     print("Device used: ", device)
     # condition so that we can retrain an existing network
     if net is None:
-        net = Net(bounds).to(device)
+        net = Net().to(device)
 
     # Loss + Optimizer
     criterion = nn.MSELoss()
