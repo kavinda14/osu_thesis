@@ -336,8 +336,8 @@ def main():
         TRIALS = 600
         TOTAL_STEPS = 80
     elif mode == "eval":
-        TRIALS = 50
-        TOTAL_STEPS = 80
+        TRIALS = 30
+        TOTAL_STEPS = 60
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
     PARTIALCOMM_STEP = 5
@@ -349,9 +349,9 @@ def main():
     device = neural_model[1]
 
     # to test another network with curr network
-    # neural_model2_weight_file = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch1_random_oraclecellcount_r4_t1200_s35_rollout:True_samestartloc__normalscores_batch128"
-    # neural_model2 = Net(BOUNDS).to(device)
-    # neural_model2.load_state_dict(torch.load(neural_model2_weight_file))
+    # neural_model2_weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t400_s80_rollout:True_batch64"
+    # neural_model2 = Net().to(device)
+    # neural_model2.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+neural_model2_weight_file))
     # neural_model2.eval()
 
     oracle_cellcount_planner = OracleCellCountPlanner(None, None, FULLCOMM_STEP, "fulloracle")
@@ -404,18 +404,18 @@ def main():
         #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
         
-         planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
-                           RandomPlanner(PARTIALCOMM_STEP, "partial"),
-                           RandomPlanner(FULLCOMM_STEP, "full"),
-                           CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
-                           CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
-                           CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
-                           CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-                           CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-                           CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-                           MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
-                           MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
-                           MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
+        #  planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
+        #                    RandomPlanner(PARTIALCOMM_STEP, "partial"),
+        #                    RandomPlanner(FULLCOMM_STEP, "full"),
+        #                    CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+        #                    CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+        #                    CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+        #                    CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                    CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                    MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
+        #                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
+        #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
         
 
@@ -436,8 +436,8 @@ def main():
         #                     RandomPlanner(FULLCOMM_STEP, "full")]
 
         # planner_options = [oracle_cellcount_planner, 
-                            # CellCountPlanner(None, device, FULLCOMM_STEP, "full")]
-                        
+        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet1"),
+        #                    CellCountPlanner(neural_model2, device, FULLCOMM_STEP, "fullnet2")]                        
                            
     # for data generation
     '''
@@ -467,8 +467,8 @@ def main():
         # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
-        scorefile = "scores_r{}_t{}_s{}_5".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
-        # scorefile = "test"
+        # scorefile = "scores_r{}_t{}_s{}_16".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        scorefile = "test"
         score_path = CONF[json_comp_conf]["shared_files_path"]+scorefile
         print("scorefile: ", scorefile)
         saved_scores = {planner.get_name(): list() for planner in planner_options}
