@@ -2,14 +2,14 @@
     "alienware - kavi": {
         "neural_net_weights_path": "/home/kavi/thesis/neural_net_weights/",
         "pickle_path": "/home/kavi/thesis/pickles/",
-        "vis_figs_path:": "/home/kavi/thesis/vis_figs",
+        "vis_figs_path:": "/home/kavi/thesis/vis_figs/",
         "shared_files_path": "/home/kavi/thesis/shared_files/"
     },
 
     "graeme desktop": {
         "neural_net_weights_path": "/home/subt/kavi/osu_thesis/neural_net_weights/",
         "pickle_path": "/home/subt/kavi/osu_thesis/pickles/",
-        "visualize_figs_path:": "/home/subt/kavi/thesis/visualize_figs/",
+        "visualize_figs_path:": "/home/subt/kavi/osu_thesis/vis_figs/",
         "shared_files_path": "/home/subt/kavi/osu_thesis/shared_files/"
     },
 
@@ -17,5 +17,11 @@
         "neural_net_weights_path": "/Users/kavisen/osu_thesis/neural_net_weights/",
         "pickle_path": "/Users/kavisen/osu_thesis/pickles/",
         "experiments_path": "/Users/kavisen/osu_thesis/experiments/"
+    },
+    "hpc - osu": {
+        "neural_net_weights_path": "/nfs/stak/users/senewiry/osu_thesis/neural_net_weights/",
+        "pickle_path": "/nfs/stak/users/senewiry/osu_thesis/pickles/",
+        "vis_figs_path:": "/nfs/stak/users/senewiry/osu_thesis/vis_figs/",
+        "shared_files_path": "/nfs/stak/users/senewiry/osu_thesis/shared_files/"
     }
 }

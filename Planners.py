@@ -144,7 +144,7 @@ class MCTS(Planner):
         self.budget = 6
         self.max_iter = 1000
         if self.reward == "network":
-            self.explore_exploit_param = 2.0 
+            self.explore_exploit_param = 7.0 
         else:
             self.explore_exploit_param = 11.0  
 
