@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J eval 06/13 12:41
+#SBATCH -J eval
 #SBATCH -A mime
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=senewiry@oregonstate.edu
@@ -13,8 +13,7 @@
 #SBATCH --nodelist=dgx2-5
 
 # Load any required software environment module
-/nfs/stak/users/senewiry/miniconda3/etc/profile.d/conda.sh
-conda init bash
+. ~/miniconda3/etc/profile.d/conda.sh
 conda activate thesis
 
 # run my job
