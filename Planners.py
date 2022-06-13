@@ -36,7 +36,7 @@ def random_planner(bot, sys_actions):
 
 
 # model here is the neural net
-def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, oracle=False, ground_truth_map=None, robot_occupied_locs=None):
+def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, oracle=False, ground_truth_map=None, robot_occupied_locs=None, sense_range=None):
     best_action = random.choice(sys_actions)
     best_action_score = float('-inf')
     bot_exec_paths = bot.get_exec_path()
@@ -55,7 +55,7 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
         if bot_belief_map.is_valid_action(action, curr_bot_loc):
             potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc) # tuple is needed here for count()
             
-            if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) <= 1:
+            if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) == 0:
                 if neural_model is not None:
                     # we put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
                     action_matrix = [sensor_model.create_action_matrix(action, curr_bot_loc, True)]
@@ -72,12 +72,16 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
                 else:
                     action_score = len(bot_belief_map.count_unknown_cells(bot_sense_range, potential_loc))
                     if oracle: # we use ground truth to get the observed locs
-                        occupied_locs = ground_truth_map.get_observation(bot, potential_loc, is_oracle=True)[0]
+                        occupied_locs = ground_truth_map.get_observation(potential_loc, sense_range)[0]
                         
                         for loc in occupied_locs:
                             if loc not in robot_occupied_locs:
                                 action_score += 1
-            
+                # if oracle:
+                #     if action_score > best_action_score:
+                #         best_action_score = action_score
+                #         best_action = action
+                # else:
                 if action_score > best_action_score:
                     best_action_score = action_score
                     best_action = action
@@ -88,7 +92,7 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
 class Planner:
     def __init__(self, comm_step, comm_type):
         self.comm_step = comm_step
-        self.sys_actions = ['left', 'right', 'backward', 'forward']
+        self.sys_actions = ['left', 'right','forward', 'backward']
         self.name = "{}_{}".format(self.__class__.__name__, comm_type)
 
     def get_comm_step(self):
@@ -119,16 +123,17 @@ class CellCountPlanner(Planner):
         return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, self.device)
 
 class OracleCellCountPlanner(Planner):
-    def __init__(self, neural_model, device, comm_step, comm_type):
+    def __init__(self, sense_range, neural_model, device, comm_step, comm_type):
         super().__init__(comm_step, comm_type)
         self.comm_step = comm_step
+        self.sense_range = sense_range # added here because it is used in get_observation() in GroundTruthMap
         self.neural_model = neural_model
         self.device = device
         self.ground_truth_map = None
         self.robot_occupied_locs = set()
 
     def get_action(self, bot):
-        return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, self.device, True, self.ground_truth_map, self.robot_occupied_locs)
+        return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, self.device, True, self.ground_truth_map, self.robot_occupied_locs, self.sense_range)
 
     def set_ground_truth_map(self, map):
         self.ground_truth_map = map

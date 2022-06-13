@@ -354,7 +354,7 @@ def main():
     # neural_model2.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+neural_model2_weight_file))
     # neural_model2.eval()
 
-    oracle_cellcount_planner = OracleCellCountPlanner(None, None, FULLCOMM_STEP, "fulloracle")
+    oracle_cellcount_planner = OracleCellCountPlanner(6, None, None, FULLCOMM_STEP, "fulloracle")
     if mode == "gen_data":
         # planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
                         #    oracle_cellcount_planner]
@@ -420,15 +420,15 @@ def main():
         
 
         # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
-        #                     RandomPlanner(PARTIALCOMM_STEP, "partial"),
-        #                     RandomPlanner(FULLCOMM_STEP, "full"),
-        #                     CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
-        #                     CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
-        #                     CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
-        #                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-        #                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-        #                     CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-        #                     oracle_cellcount_planner]
+                            # RandomPlanner(PARTIALCOMM_STEP, "partial"),
+                            # RandomPlanner(FULLCOMM_STEP, "full"),
+                            # CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+                            # CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+                            # CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+                            # CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+                            # CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+                            # CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+                            # oracle_cellcount_planner]
 
         
         # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
@@ -437,7 +437,15 @@ def main():
 
         # planner_options = [oracle_cellcount_planner, 
         #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet1"),
-        #                    CellCountPlanner(neural_model2, device, FULLCOMM_STEP, "fullnet2")]                        
+        #                    CellCountPlanner(neural_model2, device, FULLCOMM_STEP, "fullnet2")] 
+
+        planner_options = [RandomPlanner(FULLCOMM_STEP, "full"),
+                          CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+                        oracle_cellcount_planner]
+
+        # planner_options = [oracle_cellcount_planner]
+                    
+        
                            
     # for data generation
     '''
@@ -467,7 +475,7 @@ def main():
         # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
-        # scorefile = "scores_r{}_t{}_s{}_16".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        # scorefile = "scores_r{}_t{}_s{}_3".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
         scorefile = "test"
         score_path = CONF[json_comp_conf]["shared_files_path"]+scorefile
         print("scorefile: ", scorefile)

@@ -86,7 +86,7 @@ class Simulator:
                 f"Robot has left the map. It is at position: {self.bot.get_loc()}, outside of the map boundary")
 
         # update belief map
-        new_observations = self.ground_truth_map.get_observation(self.bot, self.bot.get_loc())
+        new_observations = self.ground_truth_map.get_observation(self.bot.get_loc(), self.bot.get_sense_range())
         self.belief_map.update_map(new_observations[0], new_observations[1])
 
         # update exec_path
