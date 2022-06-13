@@ -327,6 +327,8 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, actions
 def main():
     
     mode = sys.argv[1] # get arg from terminal - two options: 1) eval 2) gen_data
+    scorefile_num = sys.argv[2]
+    print(scorefile_num)
 
     #### SETUP ####
 
@@ -336,7 +338,7 @@ def main():
         TRIALS = 600
         TOTAL_STEPS = 80
     elif mode == "eval":
-        TRIALS = 30
+        TRIALS = 1
         TOTAL_STEPS = 60
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
@@ -475,8 +477,9 @@ def main():
         # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
-        # scorefile = "scores_r{}_t{}_s{}_3".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
-        scorefile = "test"
+        print("HEREL: :< ", scorefile_num)
+        scorefile = "scores_r{}_t{}_s{}_{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, scorefile_num)
+        # scorefile = "test"
         score_path = CONF[json_comp_conf]["shared_files_path"]+scorefile
         print("scorefile: ", scorefile)
         saved_scores = {planner.get_name(): list() for planner in planner_options}
