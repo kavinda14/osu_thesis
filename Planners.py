@@ -26,7 +26,7 @@ def random_planner(bot, sys_actions):
         valid_move = bot_belief_map.is_valid_action(action, curr_bot_loc)
         potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc)
 
-        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 1:
+        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) == 0:
             visited_before = False
 
         if (valid_move and not visited_before) or (counter > 10):
@@ -92,7 +92,7 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
 class Planner:
     def __init__(self, comm_step, comm_type):
         self.comm_step = comm_step
-        self.sys_actions = ['left', 'right','forward', 'backward']
+        self.sys_actions = ['left', 'right', 'backward', 'forward']
         self.name = "{}_{}".format(self.__class__.__name__, comm_type)
 
     def get_comm_step(self):

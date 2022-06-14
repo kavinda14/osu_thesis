@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # this is the path where the NN weights will be saved
     weights_path = CONF[json_comp_conf]["neural_net_weights_path"] + "depoeharbor_41x41_epoch{}_oracle_r4_t400_s80_rollout:True_batch128".format(epochs)
     print("Training network")
-    NeuralNet.train_net(data, bounds, epochs, weights_path)
+    NeuralNet.train_net(data, epochs, weights_path)
     
     # train already trained network
     # weights_path = "/home/kavi/thesis/neural_net_weights/circles_21x21_epoch3_random_oraclecellcount_r4_t1500_s35_rollout:False_samestartloc_batch128_actionindic"
