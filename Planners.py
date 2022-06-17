@@ -26,7 +26,7 @@ def random_planner(bot, sys_actions):
         valid_move = bot_belief_map.is_valid_action(action, curr_bot_loc)
         potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc)
 
-        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) == 0:
+        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 1:
             visited_before = False
 
         if (valid_move and not visited_before) or (counter > 10):
@@ -149,7 +149,8 @@ class MCTS(Planner):
         self.budget = 6
         self.max_iter = 1000
         if self.reward == "network":
-            self.explore_exploit_param = 7.0 
+            # self.explore_exploit_param = 7.0 
+            self.explore_exploit_param = 4.0 
         else:
             self.explore_exploit_param = 11.0  
 

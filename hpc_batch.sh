@@ -5,7 +5,7 @@
 #SBATCH --mail-user=senewiry@oregonstate.edu
 #SBATCH -p dgx
 #SBATCH -n 1 # request tasks
-#SBATCH -c 8 # request 8 cores
+#SBATCH -c 4 # request 8 cores
 #SBATCH -N 2 # number of nodes
 #SBATCH --gres=gpu:1 # request a GPU
 #SBATCH --constraint=v100                  # request node with V100 GPU
@@ -18,12 +18,3 @@ conda activate thesis
 
 # run my job
 python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval 1
-python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval 2
-python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval 3
-python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval 4
-python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval 5
-python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval 6
-python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval 7
-python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval 8
-python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval 9
-python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval 10
