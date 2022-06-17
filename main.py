@@ -327,7 +327,8 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, actions
 def main():
     
     mode = sys.argv[1] # get arg from terminal - two options: 1) eval 2) gen_data
-    scorefile_num = sys.argv[2]
+    if mode == "eval":
+        scorefile_num = sys.argv[2]
 
     #### SETUP ####
 
@@ -473,7 +474,7 @@ def main():
     # for pickling data
 
     if mode == "gen_data":
-        datafile = "data_41x41_depoeharbor_cellcount_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        datafile = "data_41x41_circularharbor_cellcount_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
         # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
