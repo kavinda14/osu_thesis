@@ -1,10 +1,13 @@
+from copy import deepcopy
 from random import randint
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import sys
 sys.path.insert(0, './basic_MCTS_python')
-from copy import deepcopy
 
+
+def backtrack_count(exec_path, comm_exec_path, potential_loc):
+    return exec_path.count(potential_loc) + comm_exec_path.count(potential_loc)
 
 class Simulator:
     def __init__(self, belief_map, ground_truth_map, bot, sensor_model, generate_data):
@@ -66,7 +69,10 @@ class Simulator:
         # to make sure that robots aren't in the same loc
         # only mcts is allowed this because other planners have backtrack count and mcts does not - this makes it fair
         if planner.__class__.__name__ == "MCTS":
-            if (self.belief_map.get_action_loc(action, self.bot.get_loc())) in robot_curr_locs:
+            # if (self.belief_map.get_action_loc(action, self.bot.get_loc())) in robot_occupied_locs:
+            potential_loc = self.belief_map.get_action_loc(action, self.bot.get_loc())
+            if backtrack_count(self.bot.get_exec_path(), self.bot.get_comm_exec_path(), potential_loc) >= 1:
+            # if (self.belief_map.get_action_loc(action, self.bot.get_loc())) in robot_curr_locs:
                 while True:
                     old_action = action
                     idx = randint(0, len(self.sys_actions)-1)

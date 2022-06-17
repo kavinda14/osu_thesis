@@ -1,6 +1,5 @@
 
 
-from basic_MCTS_python import plot_tree
 from basic_MCTS_python import mcts
 import random
 import NeuralNet
