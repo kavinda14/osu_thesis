@@ -18,7 +18,7 @@
         "pickle_path": "/Users/kavisen/osu_thesis/pickles/",
         "experiments_path": "/Users/kavisen/osu_thesis/experiments/"
     },
-    "hpc - osu": {
+    "hpc": {
         "neural_net_weights_path": "/nfs/stak/users/senewiry/osu_thesis/neural_net_weights/",
         "pickle_path": "/nfs/stak/users/senewiry/osu_thesis/pickles/",
         "vis_figs_path:": "/nfs/stak/users/senewiry/osu_thesis/vis_figs/",
