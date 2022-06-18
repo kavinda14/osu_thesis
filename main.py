@@ -338,7 +338,7 @@ def main():
         TRIALS = 600
         TOTAL_STEPS = 80
     elif mode == "eval":
-        TRIALS = 30
+        TRIALS = 100
         TOTAL_STEPS = 40
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
