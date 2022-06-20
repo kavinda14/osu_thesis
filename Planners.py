@@ -153,7 +153,7 @@ class MCTS(Planner):
             # self.explore_exploit_param = 4.0 
         else:
             # self.explore_exploit_param = 11.0  
-            self.explore_exploit_param = 45.0  
+            self.explore_exploit_param = 1.0  
 
         self.comm_step = comm_step
         self.comm_type = comm_type
