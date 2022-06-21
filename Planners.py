@@ -25,7 +25,7 @@ def random_planner(bot, sys_actions):
         valid_move = bot_belief_map.is_valid_action(action, curr_bot_loc)
         potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc)
 
-        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 1:
+        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 20:
             visited_before = False
 
         if (valid_move and not visited_before) or (counter > 10):
@@ -54,7 +54,7 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
         if bot_belief_map.is_valid_action(action, curr_bot_loc):
             potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc) # tuple is needed here for count()
             
-            if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) <= 1:
+            if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) == 0:
                 if neural_model is not None:
                     # we put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
                     action_matrix = [sensor_model.create_action_matrix(action, curr_bot_loc, True)]
@@ -148,12 +148,10 @@ class MCTS(Planner):
         self.budget = 6
         self.max_iter = 1000
         if self.reward == "network":
-            # self.explore_exploit_param = 18.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
-            self.explore_exploit_param = 10.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
-            # self.explore_exploit_param = 4.0 
+            # self.explore_exploit_param = 11.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
+            self.explore_exploit_param = 2.0 # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
         else:
-            # self.explore_exploit_param = 11.0  
-            self.explore_exploit_param = 1.0  
+            self.explore_exploit_param = 11.0  
 
         self.comm_step = comm_step
         self.comm_type = comm_type

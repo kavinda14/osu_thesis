@@ -336,11 +336,11 @@ def main():
     BOUNDS = [41, 41]
     OCC_DENSITY = 6
     if mode == "gen_data":
-        TRIALS = 1200
-        TOTAL_STEPS = 40
+        TRIALS = 1100
+        TOTAL_STEPS = 50
     elif mode == "eval":
-        TRIALS = 100
-        TOTAL_STEPS = 40
+        TRIALS = 30
+        TOTAL_STEPS = 50
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
     PARTIALCOMM_STEP = 10
@@ -357,7 +357,9 @@ def main():
     # neural_model2.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+neural_model2_weight_file))
     # neural_model2.eval()
 
-    oracle_cellcount_planner = OracleCellCountPlanner(9, None, None, FULLCOMM_STEP, "fulloracle")
+    oracle_cellcount_planner = OracleCellCountPlanner(7, None, None, FULLCOMM_STEP, "fulloracle")
+    # oracle_cellcount_planner2 = OracleCellCountPlanner(7, None, None, FULLCOMM_STEP, "fulloracle7")
+    # oracle_cellcount_planner3 = OracleCellCountPlanner(7, None, None, FULLCOMM_STEP, "fulloracle7")
     if mode == "gen_data":
         # planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
                         #    oracle_cellcount_planner]
@@ -429,6 +431,11 @@ def main():
         #                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
         #                     CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
         #                     oracle_cellcount_planner]
+
+        # planner_options = [CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+        #                    oracle_cellcount_planner,
+        #                    oracle_cellcount_planner2,
+        #                    oracle_cellcount_planner3]
         
         # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
         #                     RandomPlanner(PARTIALCOMM_STEP, "partial"),
@@ -474,7 +481,7 @@ def main():
     # for pickling data
 
     if mode == "gen_data":
-        datafile = "data_41x41_circularharbor_cellcount_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        datafile = "data_41x41_depoeharbor_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
         # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
@@ -492,6 +499,8 @@ def main():
 
         ground_truth_map = GroundTruthMap(BOUNDS, OCC_DENSITY)
         oracle_cellcount_planner.set_ground_truth_map(ground_truth_map)
+        # oracle_cellcount_planner2.set_ground_truth_map(ground_truth_map)
+        # oracle_cellcount_planner3.set_ground_truth_map(ground_truth_map)
         belief_map = BeliefMap(BOUNDS)
 
         # start locs should be the same for every planner therefore it is placed here and not in get_robots()
@@ -519,6 +528,8 @@ def main():
                 
                     robot_occupied_locs = robot_occupied_locs.union(bot_belief_map.get_occupied_locs())
                     oracle_cellcount_planner.set_robot_occupied_locs(robot_occupied_locs)
+                    # oracle_cellcount_planner2.set_robot_occupied_locs(robot_occupied_locs)
+                    # oracle_cellcount_planner3.set_robot_occupied_locs(robot_occupied_locs)
                     step_score += bot_simulator.get_curr_score()
                     bot_simulator.reset_score() # needs to be reset otherwise the score will carry on to the next iteration
                 
