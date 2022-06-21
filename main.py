@@ -81,7 +81,8 @@ def plot_scores(saved_scores):
     plt.show()
 
 def get_neural_model(CONF, json_comp_conf):
-    weight_file = "circularharbor_41x41_epoch1_oracle_r4_t1200_s40_rollout:True_batch128_senserange7"
+    weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t400_s80_rollout:True_batch128"
+    # weight_file = "circularharbor_41x41_epoch1_oracle_r4_t1200_s40_rollout:True_batch128_senserange7"
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
@@ -335,15 +336,15 @@ def main():
     BOUNDS = [41, 41]
     OCC_DENSITY = 6
     if mode == "gen_data":
-        TRIALS = 600
-        TOTAL_STEPS = 80
+        TRIALS = 1200
+        TOTAL_STEPS = 40
     elif mode == "eval":
         TRIALS = 100
         TOTAL_STEPS = 40
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
-    PARTIALCOMM_STEP = 5
-    POORCOMM_STEP = 10
+    PARTIALCOMM_STEP = 10
+    POORCOMM_STEP = 20
 
     CONF = get_CONF()
     json_comp_conf = get_json_comp_conf()
@@ -356,7 +357,7 @@ def main():
     # neural_model2.load_state_dict(torch.load(CONF[json_comp_conf]["neural_net_weights_path"]+neural_model2_weight_file))
     # neural_model2.eval()
 
-    oracle_cellcount_planner = OracleCellCountPlanner(7, None, None, FULLCOMM_STEP, "fulloracle")
+    oracle_cellcount_planner = OracleCellCountPlanner(9, None, None, FULLCOMM_STEP, "fulloracle")
     if mode == "gen_data":
         # planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
                         #    oracle_cellcount_planner]
