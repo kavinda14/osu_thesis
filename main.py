@@ -81,7 +81,8 @@ def plot_scores(saved_scores):
     plt.show()
 
 def get_neural_model(CONF, json_comp_conf):
-    weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t400_s80_rollout:True_batch128"
+    weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128"
+    # weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t400_s80_rollout:True_batch128"
     # weight_file = "circularharbor_41x41_epoch1_oracle_r4_t1200_s40_rollout:True_batch128_senserange7"
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -339,7 +340,7 @@ def main():
         TRIALS = 1100
         TOTAL_STEPS = 50
     elif mode == "eval":
-        TRIALS = 30
+        TRIALS = 100
         TOTAL_STEPS = 50
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
