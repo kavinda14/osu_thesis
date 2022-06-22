@@ -70,9 +70,9 @@ class Simulator:
         # only mcts is allowed this because other planners have backtrack count and mcts does not - this makes it fair
         if planner.__class__.__name__ == "MCTS":
             # if (self.belief_map.get_action_loc(action, self.bot.get_loc())) in robot_occupied_locs:
-            potential_loc = self.belief_map.get_action_loc(action, self.bot.get_loc())
-            if backtrack_count(self.bot.get_exec_path(), self.bot.get_comm_exec_path(), potential_loc) >= 1:
-            # if (self.belief_map.get_action_loc(action, self.bot.get_loc())) in robot_curr_locs:
+            # potential_loc = self.belief_map.get_action_loc(action, self.bot.get_loc())
+            # if backtrack_count(self.bot.get_exec_path(), self.bot.get_comm_exec_path(), potential_loc) >= 1:
+            if (self.belief_map.get_action_loc(action, self.bot.get_loc())) in robot_curr_locs:
                 while True:
                     old_action = action
                     idx = randint(0, len(self.sys_actions)-1)

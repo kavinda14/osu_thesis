@@ -8,7 +8,6 @@
 #SBATCH -n 1 # request tasks
 #SBATCH -c 2 # request 2 cores
 #SBATCH --gres=gpu:1 # request a GPU
-#SBATCH --constraint=v100                  # request node with V100 GPU
 #SBATCH --mem=20GB # request X GB
 #SBATCH -o /nfs/stak/users/senewiry/osu_thesis/outfiles/log.11.out
 
