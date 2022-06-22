@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH -J eval
 #SBATCH -A mime
+#SBATCH -t 7-00:00:00
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=senewiry@oregonstate.edu
 #SBATCH -p dgx
