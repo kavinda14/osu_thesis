@@ -43,7 +43,7 @@ if __name__ == "__main__":
     plt.scatter(y1, y2, s=2.0)
     plt.xlabel("greedy")
     plt.ylabel("network")
-    plt.show()
+    # plt.show()
 
     """ 
     Reward convergence:
@@ -58,10 +58,10 @@ if __name__ == "__main__":
     end = increment
     data_dict = {}
 
-    modified_list = debug_reward_greedy_list[0:1000]
+    # modified_list = debug_reward_greedy_list[0:1000]
     # print(debug_reward_greedy_list)
     # modified_list = debug_reward_network_list[0:12000]
-    # modified_list = debug_reward_network_list[0:1000]
+    modified_list = debug_reward_network_list[0:1000]
 
     y1 = [i for i in range(len(modified_list))]
     y2 = modified_list

@@ -28,7 +28,7 @@ for planner in all_planners:
     pickles_dict[planner] = list()    
 
 for i in range(file_count):
-    filename = CONF[json_comp_conf]["shared_files_path"] +  "scores_r4_t50_s20_{}".format(i+1)
+    filename = CONF[json_comp_conf]["shared_files_path"] +  "scores_r4_t100_s50_{}".format(i+1)
     infile = open(filename, 'rb')
     temp_dict = pickle.load(infile)
 
@@ -92,7 +92,7 @@ plt.xticks(np.arange(0, len(ticks) * 3, 3), ticks, rotation=40, ha='right', rota
 plt.xlim(-1.5, len(ticks)*3-1.5)
  
 ymin=-2
-ymax=130
+ymax=200
 plt.ylim(ymin, ymax)
 plt.yticks(range(0,ymax,10))
 

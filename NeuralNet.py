@@ -82,22 +82,15 @@ class Net(nn.Module):
         super().__init__()
         # input channels, output no. of features, kernel size
         self.conv1 = nn.Conv2d(7, 12, 5)
-#         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(12, 16, 5)
-        # self.fc1 = nn.Linear(16 * 103 * 103, 120)
-        # self.fc1 = nn.Linear(16 * 13 * 13, 120)
-        self.fc1 = nn.Linear(16 * 33 * 33, 120) # it's 33x33 because the feature maps shrink due to no padding
+        self.fc1 = nn.Linear(16 * 13 * 13, 120) # circularworld
+        # self.fc1 = nn.Linear(16 * 33 * 33, 120) # it's 33x33 because the feature maps shrink due to no padding
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 1)
 
     def forward(self, x):
-#         x = self.pool(F.relu(self.conv1(x)))
-#         x = self.pool(F.relu(self.conv1(x)))
-        
-#         x = self.pool(F.relu(self.conv2(x)))
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
-     #   x = self.pool(F.relu(self.conv2(x)))
         x = torch.flatten(x, 1) # flatten all dimensions except batch
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))

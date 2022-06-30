@@ -9,7 +9,8 @@ class GroundTruthMap:
         self.OCC_DENSITY = OCC_DENSITY
         self.bounds = bounds
 
-        self.occupied_locs = self._get_occ_depoeharbor()
+        # self.occupied_locs = self._get_occ_depoeharbor()
+        self.occupied_locs = self._get_occ_circles()
         self.free_locs = self._get_free()
 
     def _get_occ_depoeharbor(self):
