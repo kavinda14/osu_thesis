@@ -150,11 +150,11 @@ class MCTS(Planner):
         self.max_iter = 1000
         # =1.0 is recommended. <1.0 more exploitation. >1.0 more exploration.
         if self.reward == "network":
-            # self.explore_exploit_param = 10.0 # depoeworld
-            self.explore_exploit_param = 5.0 # circularworld
+            self.explore_exploit_param = 10.0 # depoeworld
+            # self.explore_exploit_param = 5.0 # circularworld
         else:
-            # self.explore_exploit_param = 1.0 # depoeworld
-            self.explore_exploit_param = 15.0  # circularworld
+            self.explore_exploit_param = 1.0 # depoeworld
+            # self.explore_exploit_param = 15.0  # circularworld
 
         self.comm_step = comm_step
         self.comm_type = comm_type

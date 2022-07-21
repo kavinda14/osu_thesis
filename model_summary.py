@@ -27,4 +27,4 @@ if __name__ == "__main__":
 
     model, device = get_neural_model(CONF, json_comp_conf)
 
-    summary(model, (7, 41, 41))
+    summary(model, (4, 41, 41))

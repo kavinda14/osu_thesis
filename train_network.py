@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # unpickle all the data
     print("Unpickling started!")
     # filename = CONF[json_comp_conf]["pickle_path"] + "data_41x41_depoeharbor_cellcount_r4_t400_s80_rollout:True"
-    filename = CONF[json_comp_conf]["pickle_path"] + "data_41x41_circular_oracle_r4_t1100_s20_rollout:True"
+    filename = CONF[json_comp_conf]["pickle_path"] + "data_41x41_depoeharbor_oracle_r4_t1100_s50_rollout:True"
     infile = open(filename,'rb')
     data = pickle.load(infile)
     infile.close()
@@ -22,8 +22,8 @@ if __name__ == "__main__":
     # train network - initial 
     epochs = 1
     # this is the path where the NN weights will be saved
-    # weights_path = CONF[json_comp_conf]["neural_net_weights_path"] + "depoeharbor_41x41_epoch{}_oracle_r4_t400_s80_rollout:True_batch128".format(epochs)
-    weights_path = CONF[json_comp_conf]["neural_net_weights_path"] + "circular_21x21_epoch{}_oracle_r4_t1100_s20_rollout:True_batch128".format(epochs)
+    weights_path = CONF[json_comp_conf]["neural_net_weights_path"] + "depoeharbor_41x41_epoch{}_oracle_r4_t1100_s50_rollout:True_batch128".format(epochs)
+    # weights_path = CONF[json_comp_conf]["neural_net_weights_path"] + "circular_21x21_epoch{}_oracle_r4_t1100_s20_rollout:True_batch128".format(epochs)
     print("Training network")
     NeuralNet.train_net(data, epochs, weights_path)
     

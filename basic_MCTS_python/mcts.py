@@ -20,8 +20,8 @@ from copy import deepcopy
 
 def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type, neural_model, device):
     
-    debug = True
-    debug_plot_tree = True
+    debug = False
+    debug_plot_tree = False
     # print("explore_exploit_param", explore_exploit_param)
     if debug:
         debug_mcts_reward_greedy = list()
