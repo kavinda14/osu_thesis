@@ -89,7 +89,8 @@ def plot_scores(saved_scores):
 
 def get_neural_model(CONF, json_comp_conf):
     # weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" # depoeworld weights
-    weight_file = "circles_21x21_epoch1_random_oraclecellcount_r4_t1200_s35_rollout:True_samestartloc_batch128" # circularworld weights
+    # weight_file = "circles_21x21_epoch1_random_oraclecellcount_r4_t1200_s35_rollout:True_samestartloc_batch128" # circularworld weights
+    weight_file = "circular_21x21_epoch1_oracle_r4_t1100_s20_rollout:True_batch128" # circularworld weights
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
@@ -307,7 +308,8 @@ def generate_data_rollout(path_matrices, comm_path_matrices, actions_binary_matr
 
 def generate_tensor_images(path_matricies, actions_binary_matrices, scores, outfile):
     data = list()
-
+    
+    print("HERE: ", len(actions_binary_matrices))
     for i in tqdm(range(len(actions_binary_matrices))):
         image = list()
 
@@ -317,6 +319,7 @@ def generate_tensor_images(path_matricies, actions_binary_matrices, scores, outf
         image.append(path_matricies[i])
 
         for action in actions_binary_matrices[i]:
+            print(actions_binary_matrices[i])
             image.append(action)
 
         # this is needed, because torch complains otherwise that converting a list is too slow
@@ -346,12 +349,12 @@ def main():
     # BOUNDS = [41, 41] # depoeworld
     OCC_DENSITY = 6
     if mode == "gen_data":
-        TRIALS = 1100
+        TRIALS = 11
         # TOTAL_STEPS = 50  # depoeworld
         TOTAL_STEPS = 20  # circularworld
     elif mode == "eval":
         # TRIALS = 100
-        TRIALS = 10
+        TRIALS = 30
         # TOTAL_STEPS = 50 # depoeworld
         # TOTAL_STEPS = 80 # depoeworld
         TOTAL_STEPS = 20 # circularworld
@@ -491,14 +494,15 @@ def main():
         #                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
         #                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet")]
 
-        # planner_options = [CellCountPlanner(None, None, POORCOMM_STEP, "poor"),
-        #                     CellCountPlanner(None, None, PARTIALCOMM_STEP, "partial"),
-        #                    CellCountPlanner(None, None, FULLCOMM_STEP, "full"),
-        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"), 
-        #                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-        #                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet")]
+        planner_options = [CellCountPlanner(None, None, POORCOMM_STEP, "poor"),
+                            CellCountPlanner(None, None, PARTIALCOMM_STEP, "partial"),
+                           CellCountPlanner(None, None, FULLCOMM_STEP, "full"),
+                           CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"), 
+                            CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+                            CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+                           oracle_cellcount_planner]
 
-        planner_options = [oracle_cellcount_planner]
+        # planner_options = [oracle_cellcount_planner]
 
         
                            
@@ -527,8 +531,8 @@ def main():
 
     if mode == "gen_data":
         # datafile = "data_41x41_depoeharbor_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
-        datafile = "data_41x41_circular_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
-        # datafile = "test"
+        # datafile = "data_41x41_circular_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
         scorefile = "scores_circularworld_r{}_t{}_s{}_{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, scorefile_num)

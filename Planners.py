@@ -45,10 +45,10 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
     curr_bot_loc = bot.get_loc()
 
     # create map and path matrices for network 
-    if neural_model is not None:
-        partial_info = [sensor_model.create_partial_info(False)]
-        partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
-        path_matrix = sensor_model.create_path_matrix(False)
+    # if neural_model is not None:
+        # partial_info = [sensor_model.create_partial_info(False)]
+        # partial_info_binary_matrices = sensor_model.create_binary_matrices(partial_info)
+        # path_matrix = sensor_model.create_path_matrix(False)
 
     for action in sys_actions:
         if bot_belief_map.is_valid_action(action, curr_bot_loc):
@@ -59,8 +59,9 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
                     # we put partial_info and final_actions in a list because that's how those functions needed them in SensorModel
                     action_matrix = [sensor_model.create_action_matrix(action, curr_bot_loc, True)]
                     action_binary_matrices = sensor_model.create_binary_matrices(action_matrix)
-                    
-                    input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, action_binary_matrices)
+                    path_matrix = sensor_model.create_path_matrix(action, curr_bot_loc, True)
+
+                    input = NeuralNet.create_image(path_matrix, action_binary_matrices)
 
                     # the unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
                     # by unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 

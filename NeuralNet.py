@@ -82,8 +82,8 @@ class Net(nn.Module):
     def __init__(self):
         super().__init__()
         # input channels, output no. of features, kernel size
-        self.conv1 = nn.Conv2d(7, 12, 5)
-        # self.conv1 = nn.Conv2d(4, 12, 5)
+        # self.conv1 = nn.Conv2d(7, 12, 5)
+        self.conv1 = nn.Conv2d(4, 12, 5)
         self.conv2 = nn.Conv2d(12, 16, 5)
         self.fc1 = nn.Linear(16 * 13 * 13, 120) # circularworld
         # self.fc1 = nn.Linear(16 * 33 * 33, 120) # it's 33x33 because the feature maps shrink due to no padding
