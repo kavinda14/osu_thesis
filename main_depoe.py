@@ -44,19 +44,19 @@ def vis_map(planner_name, cum_score, robots, bounds, map, trial):
         bot_occupied_locs = bot_belief_map.get_occupied_locs()
         bot_color = bot.get_color()
 
-        # plot robot
-        # robot_x = bot.get_loc()[0] + 0.5
-        # robot_y = bot.get_loc()[1] + 0.5
-        # plt.scatter(robot_x, robot_y, color=bot_color, zorder=5)
+        # plot robot # remove for results
+        robot_x = bot.get_loc()[0] + 0.5
+        robot_y = bot.get_loc()[1] + 0.5
+        plt.scatter(robot_x, robot_y, color=bot_color, zorder=5)
 
-        # plot robot path
-        # x_values = list()
-        # y_values = list()
-        # bot_exec_path = bot.get_exec_path()
-        # for path in bot_exec_path:
-        #     x_values.append(path[0] + 0.5)
-        #     y_values.append(path[1] + 0.5)
-        # plt.plot(x_values, y_values, color=bot_color)
+        # plot robot path # remove for results
+        x_values = list()
+        y_values = list()
+        bot_exec_path = bot.get_exec_path()
+        for path in bot_exec_path:
+            x_values.append(path[0] + 0.5)
+            y_values.append(path[1] + 0.5)
+        plt.plot(x_values, y_values, color=bot_color)
 
         # plot occupied_locs
         # this is in the loop so that we can use diff colors for each robot's occ cells 
@@ -71,11 +71,11 @@ def vis_map(planner_name, cum_score, robots, bounds, map, trial):
             ax.add_patch(hole)
 
     # removes axes ticks and values
-    plt.tick_params(left=False, right=False, labelleft=False,
-                    labelbottom=False, bottom=False)
+    # plt.tick_params(left=False, right=False, labelleft=False,
+    #                 labelbottom=False, bottom=False)
 
-    plt.savefig('figs/{}_{}_{}_score:{}.png'.format(trial, map.__class__.__name__, planner_name, cum_score), bbox_inches='tight')
-    # plt.show()
+    # plt.savefig('figs/{}_{}_{}_score:{}.png'.format(trial, map.__class__.__name__, planner_name, cum_score), bbox_inches='tight')
+    plt.show()
     plt.close()  # prevents old data getting used in the same fig
 
 def plot_scores(saved_scores):
@@ -339,35 +339,35 @@ def generate_tensor_images(path_matricies, actions_binary_matrices, scores, outf
 def main():
     
     mode = sys.argv[1] # get arg from terminal - two options: 1) eval 2) gen_data
-    # mode = 'gen_data'
+    # mode = 'eval'
     if mode == "eval":
         scorefile_num = sys.argv[2]
         # scorefile_num = 'test'
     #### SETUP ####
 
-    BOUNDS = [21, 21] # circularworld
-    # BOUNDS = [41, 41] # depoeworld
+    # BOUNDS = [21, 21] # circularworld
+    BOUNDS = [41, 41] # depoeworld
     OCC_DENSITY = 6
     if mode == "gen_data":
-        TRIALS = 11
-        # TOTAL_STEPS = 50  # depoeworld
-        TOTAL_STEPS = 20  # circularworld
+        TRIALS = 1100
+        TOTAL_STEPS = 50  # depoeworld
+        # TOTAL_STEPS = 20  # circularworld
     elif mode == "eval":
         # TRIALS = 100
         TRIALS = 30
-        # TOTAL_STEPS = 50 # depoeworld
+        TOTAL_STEPS = 50 # depoeworld
         # TOTAL_STEPS = 80 # depoeworld
-        TOTAL_STEPS = 20 # circularworld
+        # TOTAL_STEPS = 20 # circularworld
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
-    # PARTIALCOMM_STEP = 10  # depoeworld
+    PARTIALCOMM_STEP = 10  # depoeworld
     # PARTIALCOMM_STEP = 3  # depoeworld
     # PARTIALCOMM_STEP = 5  # circularworld
-    PARTIALCOMM_STEP = 3  # circularworld
-    # POORCOMM_STEP = 20  # depoeworld
+    # PARTIALCOMM_STEP = 3  # circularworld
+    POORCOMM_STEP = 20  # depoeworld
     # POORCOMM_STEP = 5  # depoeworld
     # POORCOMM_STEP = 10  # circularworld
-    POORCOMM_STEP = 5  # circularworld
+    # POORCOMM_STEP = 5  # circularworld
 
     CONF = get_CONF()
     json_comp_conf = get_json_comp_conf()
@@ -494,15 +494,15 @@ def main():
         #                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
         #                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet")]
 
-        planner_options = [CellCountPlanner(None, None, POORCOMM_STEP, "poor"),
-                            CellCountPlanner(None, None, PARTIALCOMM_STEP, "partial"),
-                           CellCountPlanner(None, None, FULLCOMM_STEP, "full"),
-                           CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"), 
-                            CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-                            CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-                           oracle_cellcount_planner]
+        # planner_options = [CellCountPlanner(None, None, POORCOMM_STEP, "poor"),
+        #                     CellCountPlanner(None, None, PARTIALCOMM_STEP, "partial"),
+        #                    CellCountPlanner(None, None, FULLCOMM_STEP, "full"),
+        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"), 
+        #                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                    oracle_cellcount_planner]
 
-        # planner_options = [oracle_cellcount_planner]
+        planner_options = [oracle_cellcount_planner]
 
         
                            
@@ -557,6 +557,7 @@ def main():
 
         # start locs should be the same for every planner therefore it is placed here and not in get_robots()
         robot_start_loc = get_random_loc(ground_truth_map) # start in same loc
+        # robot_start_loc = [7, 7]
         # robot_start_loc = [20, 20]
         # robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(NUM_ROBOTS)] # start in diff locs
 
@@ -593,10 +594,10 @@ def main():
                     # print("actions_binary_matrices", len(bot_sensor_model.get_action_matrices()))
 
                 cum_score += step_score
-                # vis_map(planner.get_name(), cum_score, robots, BOUNDS, belief_map)
-                # vis_map(planner.get_name(), cum_score, robots, BOUNDS, ground_truth_map)
+                # vis_map(planner.get_name(), cum_score, robots, BOUNDS, belief_map, i)
+                # vis_map(planner.get_name(), cum_score, robots, BOUNDS, ground_truth_map, i)
             
-            # vis_map(planner.get_name(), cum_score, robots, BOUNDS, ground_truth_map, i)
+            vis_map(planner.get_name(), cum_score, robots, BOUNDS, ground_truth_map, i)
             # vis_map(planner.get_name(), cum_score, robots, BOUNDS, belief_map, i)
 
             print("CUM_SCORE: ", cum_score)

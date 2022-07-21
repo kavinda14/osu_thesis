@@ -60,8 +60,8 @@ def rollout_network(subsequence, budget, bot, neural_model, device):
     exec_path = bot.get_exec_path()
     rollout_path = copy.copy(exec_path)
 
-    partial_info = [bot_sensor_model.create_partial_info(False)]
-    partial_info_binary_matrices = bot_sensor_model.create_binary_matrices(partial_info)
+    # partial_info = [bot_sensor_model.create_partial_info(False)]
+    # partial_info_binary_matrices = bot_sensor_model.create_binary_matrices(partial_info)
 
     # these are State objects
     curr_state = subsequence[-1]
@@ -70,7 +70,7 @@ def rollout_network(subsequence, budget, bot, neural_model, device):
         curr_bot_loc = curr_state.get_loc()
         neighbors = generate_valid_neighbors(curr_state, bot_belief_map)
 
-        path_matrix = bot_sensor_model.create_path_matrix(False, rollout_path)
+        # path_matrix = bot_sensor_model.create_path_matrix(False, rollout_path)
         
         # we can't initialize this to None because we are skipping exec_path in the for loop
         r = random.randint(0, len(neighbors)-1)
@@ -82,8 +82,9 @@ def rollout_network(subsequence, budget, bot, neural_model, device):
             action = state.get_action()
             action_matrix = [bot_sensor_model.create_action_matrix(action, curr_bot_loc, True)]
             action_binary_matrices = bot_sensor_model.create_binary_matrices(action_matrix)
+            path_matrix = bot_sensor_model.create_path_matrix(action, curr_bot_loc, get_matrix=True, input_path=rollout_path)
            
-            input = NeuralNet.create_image(partial_info_binary_matrices, path_matrix, action_binary_matrices)
+            input = NeuralNet.create_image(path_matrix, action_binary_matrices)
             # The unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
             # By unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width) 
             input = input.unsqueeze(0).float().to(device)

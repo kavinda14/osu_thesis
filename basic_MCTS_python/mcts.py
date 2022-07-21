@@ -20,7 +20,7 @@ from copy import deepcopy
 
 def mcts(budget, max_iter, explore_exploit_param, bot, rollout_type, reward_type, neural_model, device):
     
-    debug = False
+    debug = True
     debug_plot_tree = True
     # print("explore_exploit_param", explore_exploit_param)
     if debug:
