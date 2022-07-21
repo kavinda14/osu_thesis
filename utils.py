@@ -20,8 +20,9 @@ def get_random_loc(belief_map):
     bounds = belief_map.get_bounds()
     while not valid_start_loc:
         x = randint(0, bounds[0]-1)
-        # y = randint(0, bounds[0]-1)
-        y = randint(0, 25)
+        y = randint(0, bounds[0]-1)
+        # y = randint(0, 25)
+        # y = randint(25, 28)
         valid_start_loc = belief_map.is_valid_loc([x, y])
     return [x, y]
 

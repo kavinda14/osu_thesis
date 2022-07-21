@@ -1,7 +1,7 @@
 import random as random
 
 class Robot:
-    def __init__(self, x, y, belief_map):
+    def __init__(self, x, y, belief_map, color):
         # variables that changes
         self.x_loc = x
         self.y_loc = y
@@ -20,10 +20,11 @@ class Robot:
         self.comm_exec_path = list()  # this is for communicate() with other robots
 
         # for oracle visualization
-        r = random.random()
-        b = random.random()
-        g = random.random()
-        self.color = (r, g, b)
+        # r = random.random()
+        # b = random.random()
+        # g = random.random()
+        # self.color = (r, g, b)
+        self.color = color
 
     def reset_robot(self):
         self.x_loc = self.start_loc[0]

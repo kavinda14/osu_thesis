@@ -29,31 +29,39 @@ class Simulator:
 
     # creates the initially matrices needed
     def _initialize_data_matrices(self):
-        self.sensor_model.create_partial_info()
+        # self.sensor_model.create_partial_info()
         self.scores.append(self.curr_score)  # init score is 0
+        self.sensor_model.create_action_matrix('right', self.bot.get_loc())
 
         # at the start, there is no action, so we just add the initial partial info into the action matrix list
-        partial_info_matrix = self.sensor_model.get_partial_info_matrices()[0]
-        self.sensor_model.append_action_matrix(partial_info_matrix)
+        # partial_info_matrix = self.sensor_model.get_partial_info_matrices()[0]
+        # self.sensor_model.append_action_matrix(partial_info_matrix)
 
         # to initialize a matrix in comm_path_matrices for data generation ONLY
-        curr_bot_loc = self.bot.get_loc()
+        # curr_bot_loc = self.bot.get_loc()
         # keep in mind that for rollout in data generation, we create the path matrices separately and then combine them
-        self.sensor_model.create_rollout_path_matrix()
-        self.sensor_model.create_rollout_comm_path_matrix()
+        self.sensor_model.create_rollout_path_matrix('right', self.bot.get_loc())
+        self.sensor_model.create_rollout_comm_path_matrix('right', self.bot.get_loc())
 
-        path_matrix = self.sensor_model.get_path_matrices()[0]
-        path_matrix[curr_bot_loc[0]][curr_bot_loc[1]] = 1
+        # path_matrix = self.sensor_model.get_path_matrices()[0]
+        # path_matrix[curr_bot_loc[0]][curr_bot_loc[1]] = 1
 
-        path_matrix = self.sensor_model.get_comm_path_matrices()[0]
+        # path_matrix = self.sensor_model.get_comm_path_matrices()[0]
     
 
     def _generate_data_matrices(self, action):
-        self.sensor_model.create_partial_info()
-        self.sensor_model.create_rollout_path_matrix()
+        # self.sensor_model.create_partial_info()
+        self.sensor_model.create_rollout_path_matrix(action, self.bot.get_loc())
         # self.sensor_model.create_path_matrix() # only use when not creating rollout data
-        self.sensor_model.create_rollout_comm_path_matrix()
+        self.sensor_model.create_rollout_comm_path_matrix(action, self.bot.get_loc())
+        # self.sensor_model.create_centered_path_matrix(action, self.bot.get_loc())
         self.sensor_model.create_action_matrix(action, self.bot.get_loc())
+        # print("CURR LOC: ", self.bot.get_loc())
+        # print("ACTION: ", action)
+        # print("PART: ")
+        # print(part_info)
+        # print("CEN: ")
+        # print(cen_part_info)
 
 
     # train is there because of the backtracking condition in each planner 

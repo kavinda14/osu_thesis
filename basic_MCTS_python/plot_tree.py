@@ -84,8 +84,8 @@ def plot_tree(list_of_all_nodes, winner, use_UCT, budget, fig_num, exploration_e
             if n == winner:
                 x = my_position
                 y = -my_depth
-                winner_handle = ax.plot(
-                    x, y, 'or', zorder=2, linewidth=5, markersize=12)
+                # winner_handle = ax.plot(
+                #     x, y, 'or', zorder=2, linewidth=5, markersize=12)
 
             # show the average_evaluation_score for the root children
 

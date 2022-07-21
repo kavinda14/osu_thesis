@@ -35,10 +35,40 @@ class SensorModel:
 
     
     # update flag was added because when running greedy planner with NN, we want to get path but not update final list
-    def create_path_matrix(self, update=True, input_path=None):
-        bounds = self.belief_map.get_bounds()
-        path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+    # def create_path_matrix(self, update=True, input_path=None):
+    #     bounds = self.belief_map.get_bounds()
+    #     path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
         
+    #     # input_path is for mcts rollout
+    #     if input_path == None:
+    #         exec_paths = self.bot.get_exec_path()
+    #         for path in exec_paths:
+    #             path_matrix[path] = 1
+    #     else:
+    #         for path in input_path:
+    #             path_matrix[path] = 1
+        
+    #     # this is for multi-robot when communication of other_paths is done
+    #     comm_exec_paths = self.bot.get_comm_exec_path()
+    #     for path in comm_exec_paths:
+    #         path_matrix[path] = 1
+
+    #     if update:
+    #         self.path_matrices.append(path_matrix)
+    #     else:
+    #         return path_matrix
+
+    def create_path_matrix(self, action, curr_bot_loc, get_matrix=False, update=True, input_path=None):
+        bounds = self.belief_map.get_bounds()
+        cen_path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+        mid_point = [bounds[0]//2, bounds[1]//2]
+        # assumption is made that the action is valid
+        action_loc = self.belief_map.get_action_loc(action, curr_bot_loc)
+
+        displacement = [(mid_point[0] - action_loc[0]), (mid_point[1] - action_loc[1])]
+
+        path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+
         # input_path is for mcts rollout
         if input_path == None:
             exec_paths = self.bot.get_exec_path()
@@ -47,47 +77,170 @@ class SensorModel:
         else:
             for path in input_path:
                 path_matrix[path] = 1
-        
+
         # this is for multi-robot when communication of other_paths is done
         comm_exec_paths = self.bot.get_comm_exec_path()
         for path in comm_exec_paths:
             path_matrix[path] = 1
 
-        if update:
-            self.path_matrices.append(path_matrix)
-        else:
-            return path_matrix
-    
-    # this was created to combine path and others together for multi-robot rollout
-    # it differs from create_path_matrix() because it adds ONLY the exec_paths and NOT comm_exec_paths
-    def create_rollout_path_matrix(self, update=True):
-        bounds = self.belief_map.get_bounds()
-        path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+        for x in range(len(path_matrix)):
+            if (x + displacement[0]) < bounds[0]:
+                for y in range(len(path_matrix)):
+                    if (y + displacement[1] < bounds[1]):
+                        cen_path_matrix[(x + displacement[0]), (y + displacement[1])] = path_matrix[x, y]
 
+        """"
+        [[2 2 2 2 2]
+        [2 0 0 0 2]
+        [2 0 0 0 2]
+        [2 0 0 0 2]
+        [2 2 2 2 2]]
+
+        action = forward
+
+        [[1 2 2 2 2]
+        [1 2 0 0 0]
+        [1 2 0 0 0]
+        [1 2 0 0 0]
+        [1 2 2 2 2]]
+
+        Remember that the x axis here is the left corner going downwards.
+        Y axis is going to the right.
+        So an action of forward where (y-1) means that the action will be to the left of robot mid-point from my frame.
+        """
+        if get_matrix:
+            return cen_path_matrix
+            
+        # refractor: this should not be appending to a final list. 
+        # this should just return the action matrix and the appending should happen elsewhere
+        self.path_matrices.append(cen_path_matrix)
+    
+    def create_rollout_path_matrix(self, action, curr_bot_loc, get_matrix=False):
+        bounds = self.belief_map.get_bounds()
+        cen_path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+        mid_point = [bounds[0]//2, bounds[1]//2]
+        # assumption is made that the action is valid
+        action_loc = self.belief_map.get_action_loc(action, curr_bot_loc)
+
+        displacement = [(mid_point[0] - action_loc[0]), (mid_point[1] - action_loc[1])]
+
+        path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+   
         exec_paths = self.bot.get_exec_path()
         for path in exec_paths:
             path_matrix[path] = 1
-        
-        if update:
-            self.path_matrices.append(path_matrix)
+    
+        for x in range(len(path_matrix)):
+            if (x + displacement[0]) < bounds[0]:
+                for y in range(len(path_matrix)):
+                    if (y + displacement[1] < bounds[1]):
+                        cen_path_matrix[(x + displacement[0]), (y + displacement[1])] = path_matrix[x, y]
 
-        else:
-            return path_matrix
+        """"
+        [[2 2 2 2 2]
+        [2 0 0 0 2]
+        [2 0 0 0 2]
+        [2 0 0 0 2]
+        [2 2 2 2 2]]
 
-    # this was created to combine path and others together for multi-robot rollout
-    def create_rollout_comm_path_matrix(self, update=True):
+        action = forward
+
+        [[1 2 2 2 2]
+        [1 2 0 0 0]
+        [1 2 0 0 0]
+        [1 2 0 0 0]
+        [1 2 2 2 2]]
+
+        Remember that the x axis here is the left corner going downwards.
+        Y axis is going to the right.
+        So an action of forward where (y-1) means that the action will be to the left of robot mid-point from my frame.
+        """
+        if get_matrix:
+            return cen_path_matrix
+            
+        # refractor: this should not be appending to a final list. 
+        # this should just return the action matrix and the appending should happen elsewhere
+        self.path_matrices.append(cen_path_matrix)
+
+    def create_rollout_comm_path_matrix(self, action, curr_bot_loc, get_matrix=False):
         bounds = self.belief_map.get_bounds()
+        cen_path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+        mid_point = [bounds[0]//2, bounds[1]//2]
+        # assumption is made that the action is valid
+        action_loc = self.belief_map.get_action_loc(action, curr_bot_loc)
+
+        displacement = [(mid_point[0] - action_loc[0]), (mid_point[1] - action_loc[1])]
+
         path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
 
+        # this is for multi-robot when communication of other_paths is done
         comm_exec_paths = self.bot.get_comm_exec_path()
         for path in comm_exec_paths:
             path_matrix[path] = 1
 
-        if update:
-            self.comm_path_matrices.append(path_matrix)
+        for x in range(len(path_matrix)):
+            if (x + displacement[0]) < bounds[0]:
+                for y in range(len(path_matrix)):
+                    if (y + displacement[1] < bounds[1]):
+                        cen_path_matrix[(x + displacement[0]), (y + displacement[1])] = path_matrix[x, y]
 
-        else:
-            return path_matrix
+        """"
+        [[2 2 2 2 2]
+        [2 0 0 0 2]
+        [2 0 0 0 2]
+        [2 0 0 0 2]
+        [2 2 2 2 2]]
+
+        action = forward
+
+        [[1 2 2 2 2]
+        [1 2 0 0 0]
+        [1 2 0 0 0]
+        [1 2 0 0 0]
+        [1 2 2 2 2]]
+
+        Remember that the x axis here is the left corner going downwards.
+        Y axis is going to the right.
+        So an action of forward where (y-1) means that the action will be to the left of robot mid-point from my frame.
+        """
+        if get_matrix:
+            return cen_path_matrix
+            
+        # refractor: this should not be appending to a final list. 
+        # this should just return the action matrix and the appending should happen elsewhere
+        self.comm_path_matrices.append(cen_path_matrix)
+
+    
+    # this was created to combine path and others together for multi-robot rollout
+    # it differs from create_path_matrix() because it adds ONLY the exec_paths and NOT comm_exec_paths
+    # def create_rollout_path_matrix(self, update=True):
+    #     bounds = self.belief_map.get_bounds()
+    #     path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+
+    #     exec_paths = self.bot.get_exec_path()
+    #     for path in exec_paths:
+    #         path_matrix[path] = 1
+        
+    #     if update:
+    #         self.path_matrices.append(path_matrix)
+
+    #     else:
+    #         return path_matrix
+
+    # this was created to combine path and others together for multi-robot rollout
+    # def create_rollout_comm_path_matrix(self, update=True):
+    #     bounds = self.belief_map.get_bounds()
+    #     path_matrix = np.zeros((bounds[0], bounds[1]), dtype=int)
+
+    #     comm_exec_paths = self.bot.get_comm_exec_path()
+    #     for path in comm_exec_paths:
+    #         path_matrix[path] = 1
+
+    #     if update:
+    #         self.comm_path_matrices.append(path_matrix)
+
+    #     else:
+    #         return path_matrix
 
 
     def create_binary_matrices(self, input_list):
@@ -145,15 +298,29 @@ class SensorModel:
             # If coord + displacement is within bounds:
                 # matrix2[coord + displacement] = matrix1[coord]
 
+        # creates belief map
         bounds = self.belief_map.get_bounds()
-        action_matrix = np.full((bounds[0], bounds[1]), 2, dtype=int)
+        partial_info = np.empty((bounds[0], bounds[1]), dtype=int)
+
+        unknown_locs = self.belief_map.get_unknown_locs()
+        for loc in unknown_locs:
+            partial_info[loc] = 2
+
+        free_locs = self.belief_map.get_free_locs()
+        for loc in free_locs:
+            partial_info[loc] = 0
+
+        occupied_locs = self.belief_map.get_occupied_locs()
+        for loc in occupied_locs:
+            partial_info[loc] = 1
+
+        # centers belief map
+        action_matrix = np.full((bounds[0], bounds[1]), 1, dtype=int)
         mid_point = [bounds[0]//2, bounds[1]//2]
         # assumption is made that the action is valid
         action_loc = self.belief_map.get_action_loc(action, curr_bot_loc)
 
         displacement = [(mid_point[0] - action_loc[0]), (mid_point[1] - action_loc[1])]
-
-        partial_info = self.partial_info_matrices[-1]
 
         for x in range(len(partial_info)):
             if (x + displacement[0]) < bounds[0]:

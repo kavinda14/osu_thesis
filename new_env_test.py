@@ -9,4 +9,4 @@ if __name__ == "__main__":
     for i in range(10):
         ground_truth_map = GroundTruthMap(BOUNDS, OCC_DENSITY)
         belief_map = BeliefMap(BOUNDS)
-        ground_truth_map.visualize()
+        ground_truth_map.visualize(1)
