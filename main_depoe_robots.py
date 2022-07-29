@@ -111,10 +111,10 @@ def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
         b = random.random()
         g = random.random()
         bot_color = (r, g, b)
-        # start_loc = robot_start_loc[i] # start at diff locs: use this when testing if paths being communicated properly
+        start_loc = robot_start_loc[i] # start at diff locs: use this when testing if paths being communicated properly
         belief_map_copy = deepcopy(belief_map) # to make sure that each robot has a diff belief map object
-        bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy, bot_color) # start at same loc
-        # bot = Robot(start_loc[0], start_loc[1], belief_map_copy) # start at diff locs
+        # bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy, bot_color) # start at same loc
+        bot = Robot(start_loc[0], start_loc[1], belief_map_copy, bot_color) # start at diff locs
         sensor_model = SensorModel(bot, belief_map_copy)
         simulator = Simulator(belief_map_copy, ground_truth_map, bot, sensor_model, generate_data=False)
         bot.set_sensor_model(sensor_model)
@@ -359,21 +359,21 @@ def main():
         # TOTAL_STEPS = 20  # circularworld
     elif mode == "eval":
         # TRIALS = 100
-        TRIALS = 30
+        TRIALS = 20
         # TOTAL_STEPS = 50 # depoeworld
         # TOTAL_STEPS = 80 # depoeworld
-        TOTAL_STEPS = 20 # circularworld
+        TOTAL_STEPS = 100 # circularworld
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
     # PARTIALCOMM_STEP = 10  # depoeworld
     # PARTIALCOMM_STEP = 3  # depoeworld
-    # PARTIALCOMM_STEP = 5  # circularworld
-    PARTIALCOMM_STEP = 3  # circularworld
+    PARTIALCOMM_STEP = 5  # circularworld
+    # PARTIALCOMM_STEP = 3  # circularworld
     # POORCOMM_STEP = 20  # depoeworld
-    POORCOMM_STEP = 5  # depoeworld
-    # POORCOMM_STEP = 10  # circularworld
+    # POORCOMM_STEP = 5  # depoeworld
+    POORCOMM_STEP = 10  # circularworld
     # POORCOMM_STEP = 5  # circularworld
-    total_robots = [2, 4, 6, 8, 10]
+    total_robots = [2, 4, 6, 8, 10, 12]
 
     CONF = get_CONF()
     json_comp_conf = get_json_comp_conf()
@@ -418,13 +418,13 @@ def main():
         #                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
         #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
-         planner_options = [
-                           MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
-                           MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-                           MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
-                           MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
-                           MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
-                           MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
+        #  planner_options = [
+                        #    MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
+                        #    MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
+                        #    MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
+                        #    MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
+                        #    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
+                        #    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
         
         #  planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
         #                    RandomPlanner(PARTIALCOMM_STEP, "partial"),
@@ -439,16 +439,16 @@ def main():
         #                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
         #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
-        # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
-        #                     RandomPlanner(PARTIALCOMM_STEP, "partial"),
-        #                     RandomPlanner(FULLCOMM_STEP, "full"),
-        #                     CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
-        #                     CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
-        #                     CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
-        #                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-        #                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-        #                     CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-        #                     oracle_cellcount_planner]
+        planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
+                            RandomPlanner(PARTIALCOMM_STEP, "partial"),
+                            RandomPlanner(FULLCOMM_STEP, "full"),
+                            CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+                            CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+                            CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+                            CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+                            CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+                            CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+                            oracle_cellcount_planner]
 
         # planner_options = [CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
         #                 CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
@@ -471,7 +471,7 @@ def main():
         #                 oracle_cellcount_planner]
 
         # planner_options = [CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-        #                   oracle_cellcount_planner]
+                        #   oracle_cellcount_planner]
 
         # planner_options = [MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
@@ -561,13 +561,30 @@ def main():
         belief_map = BeliefMap(BOUNDS)
 
         # start locs should be the same for every planner therefore it is placed here and not in get_robots()
-        robot_start_loc = get_random_loc(ground_truth_map) # start in same loc
+        # robot_start_loc = get_random_loc(ground_truth_map) # start in same loc
         # robot_start_loc = [7, 7]
         # robot_start_loc = [20, 20]
-        # robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(NUM_ROBOTS)] # start in diff locs
+        robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(num_robots)] # start in diff locs
         
         for num_robots in total_robots:
             print("Num robots; ", num_robots)
+            steps_per_bot = TOTAL_STEPS//num_robots 
+            print("steps_per_bot", steps_per_bot)
+            PARTIALCOMM_STEP = int(steps_per_bot*(0.3))
+            POORCOMM_STEP = int(steps_per_bot*(0.5))
+            print("PARTIALCOMM_STEP", PARTIALCOMM_STEP)
+            print("POORCOMM_STEP", POORCOMM_STEP)
+
+            planner_options = [
+                        CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+                        CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+                        CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+                       MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
+                       MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
+                       MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
+                       MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
+                       MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
+                       MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
             for planner in planner_options:
                 print("Planner: ", planner.get_name())
@@ -575,7 +592,7 @@ def main():
 
                 robot_occupied_locs = set()  # so that we can calculate unique occupied cells observed for the score
                 cum_score = 0
-                for curr_step in tqdm(range(TOTAL_STEPS)):
+                for curr_step in tqdm(range(steps_per_bot)):
                     step_score = 0
 
                     # run multiple robots in same map
