@@ -8,9 +8,9 @@ def get_CONF():
         return json.load(json_conf)
 
 def get_json_comp_conf():
-    json_comp_conf = "graeme desktop"
+    # json_comp_conf = "graeme desktop"
     # json_comp_conf = "macbook - kavi"
-    # json_comp_conf = "alienware - kavi"
+    json_comp_conf = "alienware - kavi"
     # json_comp_conf = "hpc"
     return json_comp_conf
 
@@ -21,8 +21,8 @@ def get_random_loc(belief_map):
     while not valid_start_loc:
         x = randint(0, bounds[0]-1)
         # y = randint(0, bounds[0]-1)
-        y = randint(0, 25) # depoe for tests
-        # y = randint(25, 28) # depoe for test images
+        # y = randint(0, 25) # depoe for tests
+        y = randint(25, 28) # depoe for test images
         valid_start_loc = belief_map.is_valid_loc([x, y])
     return [x, y]
 
