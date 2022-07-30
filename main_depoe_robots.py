@@ -373,7 +373,7 @@ def main():
     # POORCOMM_STEP = 5  # depoeworld
     POORCOMM_STEP = 10  # circularworld
     # POORCOMM_STEP = 5  # circularworld
-    total_robots = [2, 4, 6, 8, 10, 12]
+    total_robots = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
 
     CONF = get_CONF()
     json_comp_conf = get_json_comp_conf()
@@ -508,13 +508,10 @@ def main():
         planner_options = [
                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
                     MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
                     MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-                    MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
                     MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
-                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
-                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
+                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device)]
                            
     # for data generation
     '''
@@ -587,13 +584,10 @@ def main():
             planner_options = [
                         CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
                         CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-                        CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
                        MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
                        MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-                       MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
                        MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
-                       MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
-                       MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
+                       MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device)]
 
             for planner in planner_options:
                 print("Planner: ", planner.get_name())
