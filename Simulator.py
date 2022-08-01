@@ -76,7 +76,7 @@ class Simulator:
 
         # to make sure that robots aren't in the same loc
         # only mcts is allowed this because other planners have backtrack count and mcts does not - this makes it fair
-        if planner.__class__.__name__ == "MCTS":
+        if planner.__class__.__name__ == "MCTS" and curr_step > 1:
             # if (self.belief_map.get_action_loc(action, self.bot.get_loc())) in robot_occupied_locs:
             # potential_loc = self.belief_map.get_action_loc(action, self.bot.get_loc())
             # if backtrack_count(self.bot.get_exec_path(), self.bot.get_comm_exec_path(), potential_loc) >= 1:

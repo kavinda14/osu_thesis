@@ -373,7 +373,7 @@ def main():
     # POORCOMM_STEP = 5  # depoeworld
     POORCOMM_STEP = 10  # circularworld
     # POORCOMM_STEP = 5  # circularworld
-    total_robots = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+    total_robots = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26]
 
     CONF = get_CONF()
     json_comp_conf = get_json_comp_conf()
