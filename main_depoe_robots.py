@@ -507,11 +507,8 @@ def main():
 
         planner_options = [
                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-                    CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
                     MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
-                    MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-                    MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
-                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device)]
+                    MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device)]
                            
     # for data generation
     '''
@@ -582,12 +579,9 @@ def main():
             print("POORCOMM_STEP", POORCOMM_STEP)
 
             planner_options = [
-                        CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-                        CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-                       MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
-                       MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-                       MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
-                       MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device)]
+                    CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+                    MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
+                    MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device)]
 
             for planner in planner_options:
                 print("Planner: ", planner.get_name())
