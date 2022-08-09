@@ -362,7 +362,8 @@ def main():
     elif mode == "eval":
         # TRIALS = 100
         TRIALS = 30
-        TOTAL_STEPS = 50 # depoeworld
+        # TOTAL_STEPS = 50 # depoeworld
+        TOTAL_STEPS = 200 # depoeworld
         # TOTAL_STEPS = 80 # depoeworld
         # TOTAL_STEPS = 20 # circularworld
     # NUM_ROBOTS = 4
@@ -585,13 +586,22 @@ def main():
         # robot_start_loc = [20, 20]
         robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(NUM_ROBOTS)] # start in diff locs
 
+        print("Num robots; ", NUM_ROBOTS)
+        steps_per_bot = TOTAL_STEPS//NUM_ROBOTS
+        print("steps_per_bot", steps_per_bot)
+        # PARTIALCOMM_STEP = int(steps_per_bot*(0.3))
+        # POORCOMM_STEP = int(steps_per_bot*(0.5))
+        # print("PARTIALCOMM_STEP", PARTIALCOMM_STEP)
+        # print("POORCOMM_STEP", POORCOMM_STEP)
+
+
         for planner in planner_options:
             print("Planner: ", planner.get_name())
             robots = get_robots(NUM_ROBOTS, belief_map, ground_truth_map, robot_start_loc)
 
             robot_occupied_locs = set()  # so that we can calculate unique occupied cells observed for the score
             cum_score = 0
-            for curr_step in tqdm(range(TOTAL_STEPS)):
+            for curr_step in tqdm(range(steps_per_bot)):
                 step_score = 0
 
                 # run multiple robots in same map
