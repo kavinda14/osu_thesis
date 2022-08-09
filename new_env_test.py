@@ -3,7 +3,8 @@ from BeliefMap import BeliefMap
 
 if __name__ == "__main__":
 
-    BOUNDS = [41, 41]
+    # BOUNDS = [41, 41]
+    BOUNDS = [21, 21]
     OCC_DENSITY = 6
 
     for i in range(10):

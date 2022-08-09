@@ -6,6 +6,12 @@ import pickle
 from utils import get_CONF, get_json_comp_conf
 import os
 
+'''
+
+This script is for visualizing boxplots for the trials of Forest and Depoe Bay Worlds at different levels of communication.
+
+'''
+
 # get the file paths from the .json config
 CONF = get_CONF()
 json_comp_conf = get_json_comp_conf()

@@ -365,13 +365,13 @@ def main():
         TOTAL_STEPS = 100 # circularworld
     NUM_ROBOTS = 4
     FULLCOMM_STEP = 1
-    # PARTIALCOMM_STEP = 10  # depoeworld
+    PARTIALCOMM_STEP = 10  # depoeworld
     # PARTIALCOMM_STEP = 3  # depoeworld
-    PARTIALCOMM_STEP = 5  # circularworld
+    # PARTIALCOMM_STEP = 5  # circularworld
     # PARTIALCOMM_STEP = 3  # circularworld
-    # POORCOMM_STEP = 20  # depoeworld
+    POORCOMM_STEP = 20  # depoeworld
     # POORCOMM_STEP = 5  # depoeworld
-    POORCOMM_STEP = 10  # circularworld
+    # POORCOMM_STEP = 10  # circularworld
     # POORCOMM_STEP = 5  # circularworld
     total_robots = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26]
 

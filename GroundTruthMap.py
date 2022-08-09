@@ -65,7 +65,7 @@ class GroundTruthMap:
         all_boat_locs = first_pier + second_pier + third_pier + fourth_pier
 
         # randomize spawning of boats
-        np.random.seed(8)  # this can be used for debugging when we want the same kind of map
+        # np.random.seed(8)  # this can be used for debugging when we want the same kind of map
         selected_boat_locs = set()
         for _ in range(len(all_boat_locs)):
             idx = np.random.randint(0, len(all_boat_locs)-1)
@@ -200,7 +200,7 @@ class GroundTruthMap:
         y = self.bounds[1]//2
         self._create_obj(x, y, occ_locs)
 
-        np.random.seed(8)  # this can be used for debugging when we want the same kind of map
+        # np.random.seed(8)  # this can be used for debugging when we want the same kind of map
 
         # circle at other locs
         for _ in range(self.OCC_DENSITY):
@@ -277,13 +277,13 @@ class GroundTruthMap:
             ax.add_patch(hole)
         
         # removes axes ticks and values
-        # plt.tick_params(left=False, right=False, labelleft=False,
-        #             labelbottom=False, bottom=False)
+        plt.tick_params(left=False, right=False, labelleft=False,
+                    labelbottom=False, bottom=False)
 
 
         plt.savefig('figs/{}_{}.png'.format(trial, self.__class__.__name__,), bbox_inches='tight')
 
-        # plt.show()
+        plt.show()
         plt.close()  # prevents old data getting used in the same fig
 
 
