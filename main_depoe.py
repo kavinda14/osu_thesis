@@ -135,6 +135,7 @@ def communicate(curr_step, robots, planner):
 
 def generate_binary_matrices(robots, path_matrices, comm_path_matrices, 
                             action_binary_matrices, scores, total_steps, num_robots, rollout):
+    print("total_steps", total_steps)
     for j, bot in enumerate(robots):
         # print("BOT NO: ", j)
         bot_sensor_model = bot.get_sensor_model()
@@ -267,7 +268,7 @@ def generate_data_rollout(path_matrices, comm_path_matrices, actions_binary_matr
     # the while loop is to make sure we don't iterate through the entire dataset to create..
     # ..rollout data because we are matching current data with future data
     while index1 <= (len(actions_binary_matrices) - total_steps//2):
-        if (curr_robot <= num_robots) and (index1 == boundary-(total_steps/5)):
+        if (curr_robot <= num_robots) and (index1 == boundary-(total_steps//5)):
             curr_robot += 1
             # index1 becomes the previous boundary
             index1 = boundary + 1
@@ -275,7 +276,7 @@ def generate_data_rollout(path_matrices, comm_path_matrices, actions_binary_matr
             boundary += boundary_increment
         
         # temp_partial_info_binary_matrices.append(actions_binary_matrices[index1])
-
+        
         index2 = randint(index1, boundary-2)
         # print("index2: ", index2)
         comm_path_index = randint(index1, index2)
@@ -357,7 +358,8 @@ def main():
     OCC_DENSITY = 6
     if mode == "gen_data":
         TRIALS = 1100
-        TOTAL_STEPS = 50  # depoeworld
+        TOTAL_STEPS = 200  # depoeworld
+        # TOTAL_STEPS = 50  # depoeworld
         # TOTAL_STEPS = 20  # circularworld
     elif mode == "eval":
         # TRIALS = 100
@@ -639,7 +641,7 @@ def main():
             if mode == "gen_data":
                 print("Generating data matrices and rollout is {}..".format(rollout))
                 generate_binary_matrices(robots, path_matrices, comm_path_matrices,
-                 actions_binary_matrices, scores, TOTAL_STEPS, NUM_ROBOTS, rollout)
+                 actions_binary_matrices, scores, steps_per_bot, NUM_ROBOTS, rollout)
             elif mode == "eval": # just to be a bit more memory efficient when generating data
                 saved_scores[planner.get_name()].append(cum_score)
 
