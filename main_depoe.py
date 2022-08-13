@@ -93,7 +93,9 @@ def get_neural_model(CONF, json_comp_conf):
     # weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" # depoeworld weights
     # weight_file = "circles_21x21_epoch1_random_oraclecellcount_r4_t1200_s35_rollout:True_samestartloc_batch128" # circularworld weights
     # weight_file = "circular_21x21_epoch1_oracle_r4_t1100_s20_rollout:True_batch128" # circularworld weights
-    weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" # circularworld weights
+    # weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" # depoe weights
+    # weight_file = "depoeharbor_41x41_epoch1_oracle_r6_t1100_s200_rollout:True_batch128" 
+    weight_file = "depoeharbor_41x41_epoch1_oracle_r8_t1100_s150_rollout:True_batch128" 
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
@@ -327,7 +329,6 @@ def generate_tensor_images(path_matricies, actions_binary_matrices, scores, outf
         image.append(path_matricies[i])
 
         for action in actions_binary_matrices[i]:
-            print(actions_binary_matrices[i])
             image.append(action)
 
         # this is needed, because torch complains otherwise that converting a list is too slow
@@ -357,28 +358,40 @@ def main():
     BOUNDS = [41, 41] # depoeworld
     OCC_DENSITY = 6
     if mode == "gen_data":
-        TRIALS = 1100
-        TOTAL_STEPS = 200  # depoeworld
+        TRIALS = 1100 #depoe
+        # TRIALS = 1800 #circular
+        TOTAL_STEPS = 150  # depoeworld
         # TOTAL_STEPS = 50  # depoeworld
+        # TOTAL_STEPS = 60  # circularworld
         # TOTAL_STEPS = 20  # circularworld
     elif mode == "eval":
         # TRIALS = 100
         TRIALS = 30
         # TOTAL_STEPS = 50 # depoeworld
-        TOTAL_STEPS = 200 # depoeworld
+        TOTAL_STEPS = 150 # depoeworld
+        # TOTAL_STEPS = 60 # circular
         # TOTAL_STEPS = 80 # depoeworld
         # TOTAL_STEPS = 20 # circularworld
     # NUM_ROBOTS = 4
-    NUM_ROBOTS = 6
+    NUM_ROBOTS = 8
     FULLCOMM_STEP = 1
-    PARTIALCOMM_STEP = 10  # depoeworld
+    # PARTIALCOMM_STEP = 10  # depoeworld
     # PARTIALCOMM_STEP = 3  # depoeworld
     # PARTIALCOMM_STEP = 5  # circularworld
     # PARTIALCOMM_STEP = 3  # circularworld
-    POORCOMM_STEP = 20  # depoeworld
+    # POORCOMM_STEP = 20  # depoeworld
     # POORCOMM_STEP = 5  # depoeworld
     # POORCOMM_STEP = 10  # circularworld
     # POORCOMM_STEP = 5  # circularworld
+    print("Num robots; ", NUM_ROBOTS)
+    steps_per_bot = TOTAL_STEPS//NUM_ROBOTS
+    print("steps_per_bot", steps_per_bot)
+
+    PARTIALCOMM_STEP = int(steps_per_bot*(0.3))
+    # POORCOMM_STEP = int(steps_per_bot*(0.5))
+    POORCOMM_STEP = int(steps_per_bot*(0.7))
+    print("PARTIALCOMM_STEP", PARTIALCOMM_STEP)
+    print("POORCOMM_STEP", POORCOMM_STEP)
 
     CONF = get_CONF()
     json_comp_conf = get_json_comp_conf()
@@ -401,27 +414,27 @@ def main():
         planner_options = [oracle_cellcount_planner]
 
     elif mode == "eval":
-        # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
-        #                    RandomPlanner(PARTIALCOMM_STEP, "partial"),
-        #                    RandomPlanner(FULLCOMM_STEP, "full"),
-        #                    CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
-        #                    CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
-        #                    CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
-        #                    CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-        #                    CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-        #                    MCTS("cellcount", "cellcount", POORCOMM_STEP, "poor", None, None),
-        #                    MCTS("cellcount", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-        #                    MCTS("cellcount", "cellcount", FULLCOMM_STEP, "full", None, None),
-        #                    MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
-        #                    MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-        #                    MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
-        #                    MCTS("network", "network", POORCOMM_STEP, "poornet", neural_model[0], device),
-        #                    MCTS("network", "network", PARTIALCOMM_STEP, "partialnet", neural_model[0], device),
-        #                    MCTS("network", "network", FULLCOMM_STEP, "fullnet", neural_model[0], device),
-        #                    MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
-        #                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
-        #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
+        planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
+                           RandomPlanner(PARTIALCOMM_STEP, "partial"),
+                           RandomPlanner(FULLCOMM_STEP, "full"),
+                           CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+                           CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+                           CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+                           CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+                           CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+                           CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+                           MCTS("cellcount", "cellcount", POORCOMM_STEP, "poor", None, None),
+                           MCTS("cellcount", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
+                           MCTS("cellcount", "cellcount", FULLCOMM_STEP, "full", None, None),
+                           MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
+                           MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
+                           MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
+                           MCTS("network", "network", POORCOMM_STEP, "poornet", neural_model[0], device),
+                           MCTS("network", "network", PARTIALCOMM_STEP, "partialnet", neural_model[0], device),
+                           MCTS("network", "network", FULLCOMM_STEP, "fullnet", neural_model[0], device),
+                           MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
+                           MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
+                           MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
         #  planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
         #                    RandomPlanner(PARTIALCOMM_STEP, "partial"),
@@ -466,16 +479,16 @@ def main():
         #                     CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
         #                     oracle_cellcount_planner]
 
-        planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
-                            RandomPlanner(PARTIALCOMM_STEP, "partial"),
-                            RandomPlanner(FULLCOMM_STEP, "full"),
-                            CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
-                            CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
-                            CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
-                            CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-                            CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-                            CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-                            oracle_cellcount_planner]
+        # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
+        #                     RandomPlanner(PARTIALCOMM_STEP, "partial"),
+        #                     RandomPlanner(FULLCOMM_STEP, "full"),
+        #                     CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+        #                     CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+        #                     CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+        #                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                     CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                     CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                     oracle_cellcount_planner]
 
         # planner_options = [CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
         #                    oracle_cellcount_planner,
@@ -556,8 +569,8 @@ def main():
     # for pickling data
 
     if mode == "gen_data":
-        datafile = "data_41x41_depoeharbor_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
-        # datafile = "data_41x41_circular_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        # datafile = "data_41x41_depoeharbor_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        datafile = "data_21x21_circular_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
         # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
@@ -588,9 +601,7 @@ def main():
         # robot_start_loc = [20, 20]
         robot_start_loc = [get_random_loc(ground_truth_map) for _ in range(NUM_ROBOTS)] # start in diff locs
 
-        print("Num robots; ", NUM_ROBOTS)
-        steps_per_bot = TOTAL_STEPS//NUM_ROBOTS
-        print("steps_per_bot", steps_per_bot)
+        
         # PARTIALCOMM_STEP = int(steps_per_bot*(0.3))
         # POORCOMM_STEP = int(steps_per_bot*(0.5))
         # print("PARTIALCOMM_STEP", PARTIALCOMM_STEP)
