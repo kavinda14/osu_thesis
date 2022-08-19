@@ -92,7 +92,8 @@ def get_neural_model(CONF, json_comp_conf):
     # weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" # depoeworld weights
     # weight_file = "circles_21x21_epoch1_random_oraclecellcount_r4_t1200_s35_rollout:True_samestartloc_batch128" # circularworld weights
     # weight_file = "circular_21x21_epoch1_oracle_r4_t1100_s20_rollout:True_batch128" # circularworld weights
-    weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" 
+    # weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" 
+    weight_file = "depoeharbor_41x41_epoch1_oracle_r8_t1100_s150_rollout:True_batch128"
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
@@ -373,7 +374,7 @@ def main():
     # POORCOMM_STEP = 5  # depoeworld
     # POORCOMM_STEP = 10  # circularworld
     # POORCOMM_STEP = 5  # circularworld
-    total_robots = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26]
+    total_robots = [2, 4, 6, 8, 10, 12, 14, 16]
 
     CONF = get_CONF()
     json_comp_conf = get_json_comp_conf()
@@ -505,6 +506,9 @@ def main():
         #                    MCTS("network", "network", PARTIALCOMM_STEP, "partialnet", neural_model[0], device),
         #                    MCTS("network", "network", FULLCOMM_STEP, "fullnet", neural_model[0], device)]
 
+        # planner_options = [
+        #             oracle_cellcount_planner]
+
         planner_options = [
                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
                     MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
@@ -582,6 +586,8 @@ def main():
                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
                     MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
                     MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device)]
+            # planner_options = [
+                #    oracle_cellcount_planner]
 
             for planner in planner_options:
                 print("Planner: ", planner.get_name())
