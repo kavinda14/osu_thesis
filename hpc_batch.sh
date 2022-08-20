@@ -15,4 +15,4 @@
 conda activate thesis
 
 # run my job
-python3 /nfs/stak/users/senewiry/osu_thesis/main.py eval $SCRIPT_NO
+python3 /nfs/stak/users/senewiry/osu_thesis/main_depoe_robots.py eval $SCRIPT_NO

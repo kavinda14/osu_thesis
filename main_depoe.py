@@ -95,7 +95,7 @@ def get_neural_model(CONF, json_comp_conf):
     # weight_file = "circular_21x21_epoch1_oracle_r4_t1100_s20_rollout:True_batch128" # circularworld weights
     # weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" # depoe weights
     # weight_file = "depoeharbor_41x41_epoch1_oracle_r6_t1100_s200_rollout:True_batch128" 
-    weight_file = "depoeharbor_41x41_epoch1_oracle_r10_t1100_s150_rollout:True_batch128" 
+    weight_file = "depoeharbor_41x41_epoch1_oracle_r16_t1100_s150_rollout:True_batch128" 
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
@@ -373,7 +373,7 @@ def main():
         # TOTAL_STEPS = 80 # depoeworld
         # TOTAL_STEPS = 20 # circularworld
     # NUM_ROBOTS = 4
-    NUM_ROBOTS = 10
+    NUM_ROBOTS = 16
     FULLCOMM_STEP = 1
     # PARTIALCOMM_STEP = 10  # depoeworld
     # PARTIALCOMM_STEP = 3  # depoeworld

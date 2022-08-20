@@ -10,8 +10,8 @@ def get_CONF():
 def get_json_comp_conf():
     # json_comp_conf = "graeme desktop"
     # json_comp_conf = "macbook - kavi"
-    json_comp_conf = "alienware - kavi"
-    # json_comp_conf = "hpc"
+    #json_comp_conf = "alienware - kavi"
+    json_comp_conf = "hpc"
     return json_comp_conf
 
 # used to create random, valid starting locs
