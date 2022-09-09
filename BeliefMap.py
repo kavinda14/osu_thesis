@@ -112,7 +112,7 @@ class BeliefMap:
 
         return tuple(action_loc)
 
-    def visualize(self, bot):
+    def visualize_all(self, bot):
         plt.xlim(0, self.bounds[0])
         plt.ylim(0, self.bounds[1])
 
@@ -134,7 +134,7 @@ class BeliefMap:
         # plot robot
         bot_xloc = bot.get_loc()[0] + 0.5
         bot_yloc = bot.get_loc()[1] + 0.5
-        plt.scatter(bot_xloc, bot_yloc, color='green', zorder=5)
+        plt.scatter(bot_xloc, bot_yloc, color=bot.get_color(), zorder=5)
 
         # plot robot path
         x_values = list()
@@ -143,7 +143,84 @@ class BeliefMap:
         for loc in bot_exec_path:
             x_values.append(loc[0] + 0.5)
             y_values.append(loc[1] + 0.5)
-        plt.plot(x_values, y_values)
+        plt.plot(x_values, y_values, color=bot.get_color())
+
+        # removes axes ticks and values
+        plt.tick_params(left=False, right=False, labelleft=False,
+                        labelbottom=False, bottom=False)
+
+        plt.show()
+
+    def visualize_bm(self, bot):
+        plt.xlim(0, self.bounds[0])
+        plt.ylim(0, self.bounds[1])
+
+        ax = plt.gca()
+        ax.set_aspect('equal', 'box')
+
+        for spot in self.unknown_locs:
+            hole = patches.Rectangle(spot, 1, 1, facecolor='black')
+            ax.add_patch(hole)
+
+        for spot in self.free_locs:
+            hole = patches.Rectangle(spot, 1, 1, facecolor='white')
+            ax.add_patch(hole)
+
+        for spot in self.occupied_locs:
+            hole = patches.Rectangle(spot, 1, 1, facecolor='green')
+            ax.add_patch(hole)
+
+        # plot robot
+        bot_xloc = bot.get_loc()[0] + 0.5
+        bot_yloc = bot.get_loc()[1] + 0.5
+        plt.scatter(bot_xloc, bot_yloc, color=bot.get_color(), zorder=5)
+
+        # plot robot path
+        # x_values = list()
+        # y_values = list()
+        # bot_exec_path = bot.get_exec_path()
+        # for loc in bot_exec_path:
+        #     x_values.append(loc[0] + 0.5)
+        #     y_values.append(loc[1] + 0.5)
+        # plt.plot(x_values, y_values, color=bot.get_color())
+
+        # removes axes ticks and values
+        plt.tick_params(left=False, right=False, labelleft=False,
+                        labelbottom=False, bottom=False)
+
+        plt.show()
+    
+    def visualize_path(self, bot):
+        plt.xlim(0, self.bounds[0])
+        plt.ylim(0, self.bounds[1])
+
+        ax = plt.gca()
+        ax.set_aspect('equal', 'box')
+
+        for spot in self.unknown_locs:
+            hole = patches.Rectangle(spot, 1, 1, facecolor='white')
+            ax.add_patch(hole)
+
+        for spot in self.free_locs:
+            hole = patches.Rectangle(spot, 1, 1, facecolor='white')
+            ax.add_patch(hole)
+
+        for spot in self.occupied_locs:
+            hole = patches.Rectangle(spot, 1, 1, facecolor='white')
+            ax.add_patch(hole)
+
+        # plot robot path
+        x_values = list()
+        y_values = list()
+        bot_exec_path = bot.get_exec_path()
+        for loc in bot_exec_path:
+            x_values.append(loc[0] + 0.5)
+            y_values.append(loc[1] + 0.5)
+        plt.plot(x_values, y_values, color=bot.get_color())
+
+        # removes axes ticks and values
+        plt.tick_params(left=False, right=False, labelleft=False,
+                        labelbottom=False, bottom=False)
 
         plt.show()
 
