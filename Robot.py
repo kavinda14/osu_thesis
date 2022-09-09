@@ -96,6 +96,9 @@ class Robot:
     def get_sense_range(self):
         return self.SENSE_RANGE
 
+    def get_color(self):
+        return self.color
+
     def append_exec_loc(self, loc):
         self.exec_path.append(loc)
 

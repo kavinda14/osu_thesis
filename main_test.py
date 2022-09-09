@@ -37,7 +37,7 @@ def vis_map(planner_name, cum_score, robots, bounds, map, trial):
         # color all occupied locs before putting specific bot colors on them (to identify which bot discovered what)
         bot_occupied_locs = map.get_occupied_locs()
         for spot in bot_occupied_locs:
-            hole = patches.Rectangle(spot, 1, 1, facecolor='red')
+            hole = patches.Rectangle(spot, 1, 1, facecolor='green')
             ax.add_patch(hole)
 
     for bot in robots:
@@ -93,9 +93,9 @@ def get_neural_model(CONF, json_comp_conf):
     # weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" # depoeworld weights
     # weight_file = "circles_21x21_epoch1_random_oraclecellcount_r4_t1200_s35_rollout:True_samestartloc_batch128" # circularworld weights
     # weight_file = "circular_21x21_epoch1_oracle_r4_t1100_s20_rollout:True_batch128" # circularworld weights
-    # weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" # depoe weights
+    weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" # depoe weights
     # weight_file = "depoeharbor_41x41_epoch1_oracle_r6_t1100_s200_rollout:True_batch128" 
-    weight_file = "depoeharbor_41x41_epoch1_oracle_r16_t1100_s150_rollout:True_batch128" 
+    # weight_file = "depoeharbor_41x41_epoch1_oracle_r16_t1100_s150_rollout:True_batch128" 
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
@@ -108,13 +108,14 @@ def get_neural_model(CONF, json_comp_conf):
 
 def get_robots(num_robots, belief_map, ground_truth_map, robot_start_loc):
     robots = set()
-    colors = ['darkorange', 'pink', 'blue', 'gold']
+    colors = ['darkorange', 'blue', 'pink', 'gold']
     for i in range(num_robots):
        # bot color
         r = random.random()
         b = random.random()
         g = random.random()
         bot_color = (r, g, b)
+        # bot_color = colors[i]
         start_loc = robot_start_loc[i] # start at diff locs: use this when testing if paths being communicated properly
         belief_map_copy = deepcopy(belief_map) # to make sure that each robot has a diff belief map object
         # bot = Robot(robot_start_loc[0], robot_start_loc[1], belief_map_copy, bot_color) # start at same loc
@@ -373,7 +374,7 @@ def main():
         # TOTAL_STEPS = 80 # depoeworld
         # TOTAL_STEPS = 20 # circularworld
     # NUM_ROBOTS = 4
-    NUM_ROBOTS = 16
+    NUM_ROBOTS = 2
     FULLCOMM_STEP = 1
     # PARTIALCOMM_STEP = 10  # depoeworld
     # PARTIALCOMM_STEP = 3  # depoeworld
@@ -414,27 +415,27 @@ def main():
         planner_options = [oracle_cellcount_planner]
 
     elif mode == "eval":
-        planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
-                           RandomPlanner(PARTIALCOMM_STEP, "partial"),
-                           RandomPlanner(FULLCOMM_STEP, "full"),
-                           CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
-                           CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
-                           CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
-                           CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-                           CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-                           CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-                           MCTS("cellcount", "cellcount", POORCOMM_STEP, "poor", None, None),
-                           MCTS("cellcount", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-                           MCTS("cellcount", "cellcount", FULLCOMM_STEP, "full", None, None),
-                           MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
-                           MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-                           MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
-                           MCTS("network", "network", POORCOMM_STEP, "poornet", neural_model[0], device),
-                           MCTS("network", "network", PARTIALCOMM_STEP, "partialnet", neural_model[0], device),
-                           MCTS("network", "network", FULLCOMM_STEP, "fullnet", neural_model[0], device),
-                           MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
-                           MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
-                           MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
+        # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
+        #                    RandomPlanner(PARTIALCOMM_STEP, "partial"),
+        #                    RandomPlanner(FULLCOMM_STEP, "full"),
+        #                    CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+        #                    CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+        #                    CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+        #                    CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                    CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                    MCTS("cellcount", "cellcount", POORCOMM_STEP, "poor", None, None),
+        #                    MCTS("cellcount", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
+        #                    MCTS("cellcount", "cellcount", FULLCOMM_STEP, "full", None, None),
+        #                    MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
+        #                    MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
+        #                    MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
+        #                    MCTS("network", "network", POORCOMM_STEP, "poornet", neural_model[0], device),
+        #                    MCTS("network", "network", PARTIALCOMM_STEP, "partialnet", neural_model[0], device),
+        #                    MCTS("network", "network", FULLCOMM_STEP, "fullnet", neural_model[0], device),
+        #                    MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
+        #                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
+        #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
         #  planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
         #                    RandomPlanner(PARTIALCOMM_STEP, "partial"),
@@ -537,7 +538,7 @@ def main():
         #                     CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
         #                    oracle_cellcount_planner]
 
-        # planner_options = [oracle_cellcount_planner]
+        planner_options = [oracle_cellcount_planner]
 
         # planner_options = [MCTS("network", "network", POORCOMM_STEP, "poornet", neural_model[0], device),
         #                    MCTS("network", "network", PARTIALCOMM_STEP, "partialnet", neural_model[0], device),
@@ -639,6 +640,11 @@ def main():
                     # print("path_matrices", len(bot_sensor_model.get_path_matrices()))
                     # print("comm_path_matrices", len(bot_sensor_model.get_comm_path_matrices()))
                     # print("actions_binary_matrices", len(bot_sensor_model.get_action_matrices()))
+                    if curr_step == 20:
+                        bot_belief_map.visualize_all(bot)
+                    # bot_belief_map.visualize_bm(bot)
+                    # bot_belief_map.visualize_path(bot)
+                        vis_map(planner.get_name(), cum_score, robots, BOUNDS, ground_truth_map, i)
 
                 cum_score += step_score
                 # vis_map(planner.get_name(), cum_score, robots, BOUNDS, belief_map, i)
