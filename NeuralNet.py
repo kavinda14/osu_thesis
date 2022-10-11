@@ -98,6 +98,7 @@ class Net(nn.Module):
         return x
 
 def train_net(data, epochs, weights_path, net=None):
+    sys_actions = ['left', 'right', 'backward', 'forward']
 
     train_loader, valid_loader = create_data_loaders(data)
 
@@ -136,8 +137,10 @@ def train_net(data, epochs, weights_path, net=None):
             # forward + backward + optimize
             # REMEMBER TO ADD float()
             outputs = net(inputs.float())
+            _, predicted = torch.max(outputs, 1)
             
-            loss = criterion(outputs, labels)
+            # loss = criterion(outputs, labels)
+            loss = criterion(predicted, labels)
             
             loss.backward()
             optimizer.step()

@@ -11,7 +11,7 @@ import time
 from tqdm import tqdm
 
 # This was created for when using a planner with the network
-def create_image(partial_info_binary_matrices, path_matrix, final_actions_binary_matrices):
+def create_image(partial_info_binary_matrices, path_matrix):
     image = list()
     
     for i in range(len(partial_info_binary_matrices)):
@@ -21,8 +21,8 @@ def create_image(partial_info_binary_matrices, path_matrix, final_actions_binary
 
         image.append(path_matrix)
 
-        for action in final_actions_binary_matrices[i]:
-            image.append(action)
+        # for action in final_actions_binary_matrices[i]:
+        #     image.append(action)
 
         # this is needed, because torch complains otherwise that converting a list is too slow
         # it's better to use a np array because of the way a np array is stored in memory (contiguous)
@@ -38,9 +38,12 @@ class PlanningDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def __getitem__(self, idx): 
+    def __getitem__(self, idx):
         # The label is converted to a float and in a list because the NN will complain otherwise.
+        # label = [self.data[idx][1]]
+        # sample = self.data[idx][0], torch.Tensor([self.data[idx][1]]).float()
         sample = self.data[idx][0], torch.Tensor([self.data[idx][1]]).float()
+
 
         return sample
 
@@ -48,10 +51,10 @@ def create_data_loaders(data):
     
     dataset = PlanningDataset(data)
     validation_split = 0.2
-    batch_size = 128
-    # batch_size = 64
+    # batch_size = 128
+    batch_size = 64
     random_seed= 42
-    shuffle_dataset = False
+    shuffle_dataset = True
 
     dataset_size = len(dataset)
     indices = list(range(dataset_size))
@@ -81,12 +84,12 @@ class Net(nn.Module):
     def __init__(self):
         super().__init__()
         # input channels, output no. of features, kernel size
-        self.conv1 = nn.Conv2d(7, 12, 5)
+        self.conv1 = nn.Conv2d(4, 12, 5)
         self.conv2 = nn.Conv2d(12, 16, 5)
         self.fc1 = nn.Linear(16 * 13 * 13, 120) # circularworld
         # self.fc1 = nn.Linear(16 * 33 * 33, 120) # it's 33x33 because the feature maps shrink due to no padding
         self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 1)
+        self.fc3 = nn.Linear(84, 4)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -97,8 +100,8 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
-def train_net(data, epochs, weights_path, net=None):
 
+def train_net(data, epochs, weights_path, net=None):
     train_loader, valid_loader = create_data_loaders(data)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -108,7 +111,7 @@ def train_net(data, epochs, weights_path, net=None):
         net = Net().to(device)
 
     # Loss + Optimizer
-    criterion = nn.MSELoss()
+    criterion = nn.CrossEntropyLoss()
     # SGD produced too low loss values and forums recommended Adam
     # optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
     optimizer = optim.Adam(net.parameters(), lr=0.001)
@@ -119,7 +122,7 @@ def train_net(data, epochs, weights_path, net=None):
     valid_loss_values = list()
 
     for epoch in tqdm(range(epochs)):  # loop over the dataset multiple times
-        
+
         # training
         training_loss = 0.0
         net.train()
@@ -128,7 +131,8 @@ def train_net(data, epochs, weights_path, net=None):
             # torch.stack() converts list of tensors into a tensor of tensors
             # only then can we apply the to() function
             # inputs, labels = torch.stack(tuple(data[0])).to(device), torch.stack(tuple(data[1])).to(device)
-            inputs, labels = torch.stack(tuple(data[0])).to(device), torch.stack(tuple(data[1])).to(device)
+            inputs, labels = torch.stack(tuple(data[0])).to(
+                device), torch.stack(tuple(data[1])).to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -136,32 +140,46 @@ def train_net(data, epochs, weights_path, net=None):
             # forward + backward + optimize
             # REMEMBER TO ADD float()
             outputs = net(inputs.float())
-            
+            # squeeze(1) is used to make tensor 1D as needed
+            # the labels were floats and LongTensor converted them to ints
+            # labels for some reason go out of cuda so to() brought it back to cuda
+            labels = (labels.squeeze(1)).type(torch.LongTensor).to(device)
+
             loss = criterion(outputs, labels)
-            
+
             loss.backward()
             optimizer.step()
-            
+
             # print statistics
             training_loss += loss.item()
             if i % 100 == 99:    # print every 100 mini-batches
                 avg_training_loss = training_loss / 100
-                print('[%d, %5d] train loss: %.6f' % (epoch + 1, i + 1, avg_training_loss))
+                print('[%d, %5d] train loss: %.6f' %
+                      (epoch + 1, i + 1, avg_training_loss))
                 train_loss_values.append(avg_training_loss)
-                training_loss = 0.0    
+                training_loss = 0.0
 
                 # validation
                 valid_loss = 0.0
-                net.eval()   
+                net.eval()
+                correct = 0
+                total = 0
                 for _, data in enumerate(valid_loader, 0):
                     # inputs, labels = data
-                    inputs, labels = torch.stack(tuple(data[0])).to(device), torch.stack(tuple(data[1])).to(device)
+                    inputs, labels = torch.stack(tuple(data[0])).to(
+                        device), torch.stack(tuple(data[1])).to(device)
+                    labels = (labels.squeeze(1)).type(torch.LongTensor).to(device)
                     target = net(inputs.float())
                     loss = criterion(target, labels)
+                    _, predicted = torch.max(target, 1)
+                    total += labels.size(0)
+                    correct += (predicted == labels).sum().item()
                     valid_loss += loss.item()
+                print("Accuracy: ", "{:.4f}".format((correct/total)*100))
 
                 avg_valid_loss = valid_loss / len(valid_loader)
-                print('[%d, %5d] valid loss: %.6f' % (epoch + 1, i + 1, avg_valid_loss))
+                print('[%d, %5d] valid loss: %.6f' %
+                      (epoch + 1, i + 1, avg_valid_loss))
                 print()
                 valid_loss_values.append(avg_valid_loss)
 
@@ -172,11 +190,11 @@ def train_net(data, epochs, weights_path, net=None):
     torch.save(net.state_dict(), weights_path)
     print('Finished Training')
 
-    # plot train and valid loss 
+    # plot train and valid loss
     plt.plot(train_loss_values, label="train loss")
     plt.plot(valid_loss_values, label="valid loss")
     plt.legend(loc='best')
-    plt.title("Train Loss vs Valid Loss, time taken: {:.4f}".format(time_taken))
+    plt.title(
+        "Train Loss vs Valid Loss, time taken: {:.4f}".format(time_taken))
     plt.show()
-
 

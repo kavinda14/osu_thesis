@@ -23,6 +23,7 @@ class Simulator:
         self.generate_data = generate_data
 
         self.sys_actions = ['left', 'right', 'forward', 'backward']
+        self.class_to_idx = {j: i for i, j in enumerate(self.sys_actions)}
 
         self.debug_network_score = list()
         self.debug_greedy_score = list()
@@ -33,8 +34,9 @@ class Simulator:
         self.scores.append(self.curr_score)  # init score is 0
 
         # at the start, there is no action, so we just add the initial partial info into the action matrix list
-        partial_info_matrix = self.sensor_model.get_partial_info_matrices()[0]
-        self.sensor_model.append_action_matrix(partial_info_matrix)
+        # partial_info_matrix = self.sensor_model.get_partial_info_matrices()[0]
+        self.sensor_model.append_action_label(1)
+        # self.sensor_model.append_action_matrix(partial_info_matrix)
 
         # to initialize a matrix in comm_path_matrices for data generation ONLY
         curr_bot_loc = self.bot.get_loc()
@@ -50,10 +52,11 @@ class Simulator:
 
     def _generate_data_matrices(self, action):
         self.sensor_model.create_partial_info()
-        self.sensor_model.create_rollout_path_matrix()
-        # self.sensor_model.create_path_matrix() # only use when not creating rollout data
-        self.sensor_model.create_rollout_comm_path_matrix()
-        self.sensor_model.create_action_matrix(action, self.bot.get_loc())
+        # self.sensor_model.create_rollout_path_matrix()
+        self.sensor_model.create_path_matrix() # only use when not creating rollout data
+        # self.sensor_model.create_rollout_comm_path_matrix()
+        self.sensor_model.append_action_label(action)
+        # self.sensor_model.create_action_matrix(action, self.bot.get_loc())
 
 
     # train is there because of the backtracking condition in each planner 
@@ -80,8 +83,10 @@ class Simulator:
                     new_loc = self.belief_map.get_action_loc(action, self.bot.get_loc())
                     if self.belief_map.is_valid_loc(new_loc[0], new_loc[1]) and action is not old_action:
                         break
-
-        self._generate_data_matrices(action) # must be called before moving - we use curr info of where we are along with action to predict what the score would be
+    
+        idx_action = self.class_to_idx[action]
+        # must be called before moving - we use curr info of where we are along with action to predict what the score would be
+        self._generate_data_matrices(idx_action)
         
         # remember that if we call move() at curr_step=0 and 1, all actions will return False because the BeliefMap has no free_locs for is_valid_loc()
         self.bot.move(action)

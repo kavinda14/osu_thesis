@@ -1,9 +1,12 @@
 
 
+from sympy import pretty
 from basic_MCTS_python import mcts
 import random
 import NeuralNet
+import NeuralNetSoftmax
 import sys
+from torch import max
 sys.path.insert(0, './basic_MCTS_python')
 
 
@@ -25,7 +28,8 @@ def random_planner(bot, sys_actions):
         valid_move = bot_belief_map.is_valid_action(action, curr_bot_loc)
         potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc)
 
-        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 20:
+        # if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) <= 20:
+        if backtrack_count(bot_exec_path, bot_comm_exec_path, potential_loc) == 0:
             visited_before = False
 
         if (valid_move and not visited_before) or (counter > 10):
@@ -88,6 +92,74 @@ def cellcount_planner(sys_actions, bot, sensor_model, neural_model, device, orac
     return best_action
 
 
+def cellcount_planner_softmax(sys_actions, class_to_idx, bot, sensor_model, neural_model, device, oracle=False, ground_truth_map=None, robot_occupied_locs=None, sense_range=None):
+    best_action = random.choice(sys_actions)
+    best_action_score = float('-inf')
+    bot_exec_paths = bot.get_exec_path()
+    bot_comm_exec_paths = bot.get_comm_exec_path()
+    bot_belief_map = bot.get_belief_map()
+    bot_sense_range = bot.get_sense_range()
+    curr_bot_loc = bot.get_loc()
+
+    # create map and path matrices for network
+    if neural_model is not None:
+        partial_info = [sensor_model.create_partial_info(False)]
+        partial_info_binary_matrices = sensor_model.create_binary_matrices(
+            partial_info)
+        path_matrix = sensor_model.create_path_matrix(False)
+        
+        count = 0
+        while count < 2:
+            count += 1
+            input = NeuralNetSoftmax.create_image(
+                partial_info_binary_matrices, path_matrix)
+
+            # the unsqueeze adds an extra dimension at index 0 and the .float() is needed otherwise PyTorch will complain
+            # by unsqeezing, we add a batch dimension to the input, which is required by PyTorch: (n_samples, channels, height, width)
+            input = input.unsqueeze(0).float().to(device)
+
+            # output = neural_model(input).item()
+            output = neural_model(input)
+            _, predicted = max(output, 1)
+            # converts pytorch tensor to python list so we can extract answer
+            predicted = predicted.cpu().detach().numpy().tolist()[0]
+            action = class_to_idx[predicted]
+            # print(action)
+            # print()
+
+            potential_loc = bot_belief_map.get_action_loc(action, curr_bot_loc)
+            # if bot_belief_map.is_valid_action(action, curr_bot_loc) and backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) == 0:
+            if bot_belief_map.is_valid_action(action, curr_bot_loc):
+                if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) == 0:
+                    return action
+
+        return random_planner(bot, sys_actions)
+
+    else:
+
+        for action in sys_actions:
+            if bot_belief_map.is_valid_action(action, curr_bot_loc):
+                potential_loc = bot_belief_map.get_action_loc(
+                    action, curr_bot_loc)  # tuple is needed here for count()
+
+                if backtrack_count(bot_exec_paths, bot_comm_exec_paths, potential_loc) == 0:
+                        action_score = len(bot_belief_map.count_unknown_cells(
+                            bot_sense_range, potential_loc))
+                        if oracle:  # we use ground truth to get the observed locs
+                            occupied_locs = ground_truth_map.get_observation(
+                                potential_loc, sense_range)[0]
+
+                            for loc in occupied_locs:
+                                if loc not in robot_occupied_locs:
+                                    action_score += 1
+               
+                        if action_score > best_action_score:
+                            best_action_score = action_score
+                            best_action = action
+
+    return best_action
+
+
 class Planner:
     def __init__(self, comm_step, comm_type):
         self.comm_step = comm_step
@@ -121,6 +193,17 @@ class CellCountPlanner(Planner):
     def get_action(self, bot):
         return cellcount_planner(self.get_sys_actions(), bot, bot.get_sensor_model(), self.neural_model, self.device)
 
+class CellCountPlannerSoftmax(Planner):
+    def __init__(self, neural_model, device, comm_step, comm_type):
+        super().__init__(comm_step, comm_type)
+        self.comm_step = comm_step
+        self.neural_model = neural_model
+        self.device = device
+        self.class_to_idx = {i: j for i, j in enumerate(self.sys_actions)}
+
+    def get_action(self, bot):
+        return cellcount_planner_softmax(self.get_sys_actions(), self.class_to_idx, bot, bot.get_sensor_model(), self.neural_model, self.device)
+
 class OracleCellCountPlanner(Planner):
     def __init__(self, sense_range, neural_model, device, comm_step, comm_type):
         super().__init__(comm_step, comm_type)
@@ -139,6 +222,28 @@ class OracleCellCountPlanner(Planner):
 
     def set_robot_occupied_locs(self, locs):
         self.robot_occupied_locs = locs 
+
+
+class OracleCellCountPlannerSoftmax(Planner):
+    def __init__(self, sense_range, neural_model, device, comm_step, comm_type):
+        super().__init__(comm_step, comm_type)
+        self.comm_step = comm_step
+        # added here because it is used in get_observation() in GroundTruthMap
+        self.sense_range = sense_range
+        self.neural_model = neural_model
+        self.device = device
+        self.ground_truth_map = None
+        self.robot_occupied_locs = set()
+        self.class_to_idx = {i: j for i, j in enumerate(self.sys_actions)}
+
+    def get_action(self, bot):
+        return cellcount_planner_softmax(self.get_sys_actions(), self.class_to_idx, bot, bot.get_sensor_model(), self.neural_model, self.device, True, self.ground_truth_map, self.robot_occupied_locs, self.sense_range)
+
+    def set_ground_truth_map(self, map):
+        self.ground_truth_map = map
+
+    def set_robot_occupied_locs(self, locs):
+        self.robot_occupied_locs = locs
 
 class MCTS(Planner):
     def __init__(self, rollout, reward, comm_step, comm_type, neural_model, device):

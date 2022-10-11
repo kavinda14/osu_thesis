@@ -8,7 +8,8 @@ class SensorModel:
         self.partial_info_matrices = list()
         self.path_matrices = list()
         self.comm_path_matrices = list()
-        self.action_matrices = list()
+        # self.action_matrices = list()
+        self.actions = list()
 
     # Called in Simulator
     # We keep update as true for getting the training data
@@ -191,11 +192,17 @@ class SensorModel:
     def append_action_matrix(self, matrix):
         self.action_matrices.append(matrix)
 
+    def append_action_label(self, label):
+        self.actions.append(label)
+
     def get_partial_info_matrices(self):
         return self.partial_info_matrices
 
     def get_action_matrices(self):
         return self.action_matrices
+
+    def get_actions(self):
+        return self.actions
 
     def get_path_matrices(self):
         return self.path_matrices

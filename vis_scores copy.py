@@ -13,17 +13,16 @@ json_comp_conf = get_json_comp_conf()
 # get the length of shared_files folder
 _, _, files = next(os.walk(CONF[json_comp_conf]["shared_files_path"]))
 # file_count = len(files)
-file_count = 9 # circular
-# file_count = 19 # depoe
+file_count = 7
 
 # this holds all the pickle data
 pickles_dict = dict()
 full_comms_planners = ["OracleCellCountPlannerSoftmax_fulloracle", "MCTS_network_network_fullnet", "MCTS_random_network_full",
-                       "CellCountPlanner_fullnet", "MCTS_cellcount_cellcount_full", "MCTS_random_cellcount_full", "CellCountPlanner_full", "CellCountPlannerSoftmax_fullnet", "RandomPlanner_full"]
+                       "CellCountPlanner_fullnet", "MCTS_cellcount_cellcount_full", "MCTS_random_cellcount_full", "CellCountPlanner_full", "RandomPlanner_full"]
 partial_comms_planners = ["OracleCellCountPlannerSoftmax_partialoracle", "MCTS_network_network_partialnet", "MCTS_random_network_partial",
-                          "CellCountPlanner_partialnet", "MCTS_cellcount_cellcount_partial", "MCTS_random_cellcount_partial", "CellCountPlanner_partial", "CellCountPlannerSoftmax_partialnet", "RandomPlanner_partial"]
+                          "CellCountPlanner_partialnet", "MCTS_cellcount_cellcount_partial", "MCTS_random_cellcount_partial", "CellCountPlanner_partial", "RandomPlanner_partial"]
 poor_comms_planners = ["OracleCellCountPlannerSoftmax_poororacle", "MCTS_network_network_poornet", "MCTS_random_network_poor",
-                       "CellCountPlanner_poornet", "MCTS_cellcount_cellcount_poor", "MCTS_random_cellcount_poor", "CellCountPlanner_poor", "CellCountPlannerSoftmax_poornet", "RandomPlanner_poor"]
+                       "CellCountPlanner_poornet", "MCTS_cellcount_cellcount_poor", "MCTS_random_cellcount_poor", "CellCountPlanner_poor", "RandomPlanner_poor"]
 all_planners = full_comms_planners + partial_comms_planners + poor_comms_planners
 
 for planner in all_planners:
@@ -64,7 +63,7 @@ results_full_comms = [np.array(value) for value in full_comms_dict.values()]
 results_partial_comms = [np.array(value) for value in partial_comms_dict.values()]
 results_poor_comms = [np.array(value) for value in poor_comms_dict.values()]
 
-ticks = ['Oracle', 'MCTS (Greedy)', 'MCTS (Random)', 'Greedy', 'MCTS (Greedy)', 'MCTS (Random)', 'Greedy', 'Action-CNN', 'Random']
+ticks = ['MCTS (Greedy)', 'MCTS (Random)', 'Greedy', 'MCTS (Greedy)', 'MCTS (Random)', 'Greedy', 'Random']
 # Do the plots
 full_comms_plot = plt.boxplot(results_full_comms, 
                 positions=np.array(np.arange(len(results_full_comms)))*3.0-0.6,widths=0.5, patch_artist=True,)
@@ -125,22 +124,15 @@ plt.ylabel('Occupied Cells Observed', fontsize=font_size)
 plt.subplots_adjust(bottom=0.25, top=0.9)
 
 # Planning categories
-x = 1.5
-plt.plot([x, x], [ymin, ymax], '--', color='#AAAAFF', linewidth=5)
-
-x = 10.5
-plt.plot([x, x], [ymin, ymax], '--', color='#AAAAFF', linewidth=5)
-plt.text(6, 0.5, 'Proposed CNN\nReward Function',
+x = 7.5
+plt.plot([x, x], [ymin, ymax], '--', color='#AAAAFF')
+plt.text(3, 0.5, 'Proposed CNN\nReward Function',
          ha='center', color='#0000DD', fontsize=font_size)
 
-x = 19.5
-plt.plot([x, x], [ymin, ymax], '--', color='#AAAAFF', linewidth=5)
-plt.text(15, 0.5, 'Sensor Coverage\nReward Function',
+x = 16.5
+plt.plot([x, x], [ymin, ymax], '--', color='#AAAAFF')
+plt.text(12, 0.5, 'Sensor Coverage\nReward Function',
          ha='center', color='#0000DD', fontsize=font_size)
-
-# x = 22.5
-# plt.plot([x, x], [ymin, ymax], '--', color='#AAAAFF')
-
 
 plt.grid(axis='y', linestyle=':', linewidth=1, color='#CCCCCC')
 

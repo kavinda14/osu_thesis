@@ -3,14 +3,15 @@ import matplotlib.patches as patches
 from GroundTruthMap import GroundTruthMap
 from utils import get_random_loc, get_CONF, get_json_comp_conf
 import torch
-from NeuralNet import Net
+# from NeuralNet import Net
+from NeuralNetSoftmax import Net
 from time import time
 from tqdm import tqdm
 from BeliefMap import BeliefMap
 from Robot import Robot
 from SensorModel import SensorModel
 from Simulator import Simulator
-from Planners import RandomPlanner, CellCountPlanner, OracleCellCountPlanner, MCTS
+from Planners import CellCountPlannerSoftmax, OracleCellCountPlannerSoftmax, RandomPlanner, CellCountPlanner, OracleCellCountPlanner, MCTS
 from copy import deepcopy
 import numpy as np
 from random import randint
@@ -82,7 +83,10 @@ def plot_scores(saved_scores):
 
 def get_neural_model(CONF, json_comp_conf):
     # weight_file = "depoeharbor_41x41_epoch1_oracle_r4_t1100_s50_rollout:True_batch128" # depoeworld weights
-    weight_file = "circles_21x21_epoch1_random_oraclecellcount_r4_t1200_s35_rollout:True_samestartloc_batch128" # circularworld weights
+    # weight_file = "circles_21x21_epoch1_random_oraclecellcount_r4_t1200_s35_rollout:True_samestartloc_batch128" # circularworld weights
+    # weight_file = "21x21_forest_oracle_r4_t4400_s20_epoch2_rollout:False" # circularworld weights
+    weight_file = "21x21_forest_oracle_r4_t2200_s20_rollout:False" # circularworld weights
+    # weight_file = "depoeharbor_41x41_epoch2_oracle_r4_t700_s50_rollout:False_batch128" # depoe weights
     print("weight_file for network: ", weight_file)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Device used: ", device)
@@ -124,7 +128,7 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
 
         # path matricies
         bot_path_matrices = bot_sensor_model.get_path_matrices()
-        bot_comm_path_matrices = bot_sensor_model.get_comm_path_matrices()
+        # bot_comm_path_matrices = bot_sensor_model.get_comm_path_matrices()
         bot_path_matrices = bot_sensor_model.get_path_matrices()
 
         # partial info matricies
@@ -132,8 +136,9 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
         bot_partial_info_binary_matrices = bot_sensor_model.create_binary_matrices(bot_partial_info_matricies)
 
         # action matrices
-        bot_actions_matrices = bot_sensor_model.get_action_matrices()
-        bot_action_binary_matrices = bot_sensor_model.create_binary_matrices(bot_actions_matrices)
+        bot_actions = bot_sensor_model.get_actions()
+        # bot_actions_matrices = bot_sensor_model.get_action_matrices()
+        # bot_action_binary_matrices = bot_sensor_model.create_binary_matrices(bot_actions_matrices)
 
         # scores
         bot_scores = bot.get_simulator().get_scores()
@@ -155,7 +160,7 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
         #             count = 0
             #         print(matrix)
 
-        comm_path_matrices += bot_comm_path_matrices
+        # comm_path_matrices += bot_comm_path_matrices
         # print("debug_path_matrices:")
         # print(path_matrices)
         # # just for debugging
@@ -202,13 +207,14 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
             #             count += 1
             # print("count: ", count)
 
-        action_binary_matrices += bot_action_binary_matrices
+        # action_binary_matrices += bot_action_binary_matrices
+        action_binary_matrices += bot_actions
         # if j == 0:
             # print('len action_binary_matrices', len(action_binary_matrices))
             # print("action matrix", bot_actions_matrices[15])
             # print(action_binary_matrices[15])
 
-        scores += bot_scores
+        # scores += bot_scores
         # if j == 0:
             # print("len scores: ", len(scores))
             # print("scores: ", scores)
@@ -229,7 +235,7 @@ def generate_binary_matrices(robots, path_matrices, comm_path_matrices, partial_
     print("path_matrices: ", len(path_matrices))
     print("partial_info_binary_matrices: ", len(partial_info_binary_matrices))
     print("actions_binary_matrices", len(action_binary_matrices))
-    print("scores: ", len(scores))
+    # print("scores: ", len(scores))
 
 def generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary_matrices, actions_binary_matrices, scores, total_steps, num_robots):
     temp_partial_info_binary_matrices = list()
@@ -253,6 +259,7 @@ def generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary
         if (curr_robot <= num_robots) and (index1 == boundary-(total_steps/5)):
             curr_robot += 1
             # index1 becomes the previous boundary
+            # index1 = boundary + 1
             index1 = boundary + 1
             # we move boundary forward by boundary increment
             boundary += boundary_increment
@@ -275,6 +282,7 @@ def generate_data_rollout(path_matrices, comm_path_matrices, partial_info_binary
         
         curr_path_matrix = path_matrices[index2]
         curr_comm_path_matrix = comm_path_matrices[comm_path_index]
+        # print(comm_path_matrices[0:comm_path_index])
 
         # iterate over each row, col idx of the np array and modify path_matrix
         for irow, icol, in np.ndindex(curr_comm_path_matrix.shape):
@@ -308,15 +316,17 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, actions
 
         image.append(path_matricies[i])
 
-        for action in actions_binary_matrices[i]:
-            image.append(action)
+        # for action in actions_binary_matrices[i]:
+        # image.append(actions_binary_matrices[i])
 
         # this is needed, because torch complains otherwise that converting a list is too slow
         # it's better to use a np array because of the way a np array is stored in memory (contiguous)
+
         image = np.array(image)
 
-        data.append([torch.IntTensor(image), scores[i]])
-
+        # data.append([torch.IntTensor(image), scores[i]])
+        data.append([torch.IntTensor(image), actions_binary_matrices[i]])
+    
     # pickle progress
     print("Pickling started!")
     outfile_tensor_images = open(outfile, 'wb')
@@ -328,21 +338,31 @@ def generate_tensor_images(path_matricies, partial_info_binary_matrices, actions
 def main():
     
     mode = sys.argv[1] # get arg from terminal - two options: 1) eval 2) gen_data
+    # mode = "eval"
     if mode == "eval":
         scorefile_num = sys.argv[2]
+        # scorefile_num = "test"
 
     #### SETUP ####
 
     BOUNDS = [21, 21]
+    # BOUNDS = [41, 41]
     OCC_DENSITY = 6
     if mode == "gen_data":
-        TRIALS = 1100
-        TOTAL_STEPS = 50
+        # TRIALS = 1100
+        # TRIALS = 4000
+        TRIALS = 700
+        # TRIALS = 10
+        # TRIALS = 2
+        TOTAL_STEPS = 50 # depoeworld
+        # TOTAL_STEPS = 20 # circularworld
     elif mode == "eval":
         TRIALS = 100
+        # TRIALS = 30
         # TOTAL_STEPS = 50 # depoeworld
         TOTAL_STEPS = 20 # circularworld
     NUM_ROBOTS = 4
+    # NUM_ROBOTS = 1
     FULLCOMM_STEP = 1
     # PARTIALCOMM_STEP = 10  # depoeworld
     PARTIALCOMM_STEP = 5  # circularworld
@@ -361,13 +381,16 @@ def main():
     # neural_model2.eval()
 
     oracle_cellcount_planner = OracleCellCountPlanner(7, None, None, FULLCOMM_STEP, "fulloracle")
+    oracle_cellcount_planner_softmax = OracleCellCountPlannerSoftmax(7, None, None, FULLCOMM_STEP, "fulloracle")
+    
     # oracle_cellcount_planner2 = OracleCellCountPlanner(7, None, None, FULLCOMM_STEP, "fulloracle7")
     # oracle_cellcount_planner3 = OracleCellCountPlanner(7, None, None, FULLCOMM_STEP, "fulloracle7")
     if mode == "gen_data":
         # planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), 
                         #    oracle_cellcount_planner]
 
-        planner_options = [oracle_cellcount_planner]
+        # planner_options = [oracle_cellcount_planner]
+        planner_options = [oracle_cellcount_planner_softmax]
 
     elif mode == "eval":
         # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
@@ -392,24 +415,24 @@ def main():
         #                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
         #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
 
-         planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
-                           RandomPlanner(PARTIALCOMM_STEP, "partial"),
-                           RandomPlanner(FULLCOMM_STEP, "full"),
-                           CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
-                           CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
-                           CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
-                           CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
-                           CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
-                           CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
-                           MCTS("cellcount", "cellcount", POORCOMM_STEP, "poor", None, None),
-                           MCTS("cellcount", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-                           MCTS("cellcount", "cellcount", FULLCOMM_STEP, "full", None, None),
-                           MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
-                           MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
-                           MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
-                           MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
-                           MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
-                           MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
+        #  planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
+        #                    RandomPlanner(PARTIALCOMM_STEP, "partial"),
+        #                    RandomPlanner(FULLCOMM_STEP, "full"),
+        #                    CellCountPlanner(None, device, POORCOMM_STEP, "poor"),
+        #                    CellCountPlanner(None, device, PARTIALCOMM_STEP, "partial"),
+        #                    CellCountPlanner(None, device, FULLCOMM_STEP, "full"),
+        #                    CellCountPlanner(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                    CellCountPlanner(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                    CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                    MCTS("cellcount", "cellcount", POORCOMM_STEP, "poor", None, None),
+        #                    MCTS("cellcount", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
+        #                    MCTS("cellcount", "cellcount", FULLCOMM_STEP, "full", None, None),
+        #                    MCTS("random", "cellcount", POORCOMM_STEP, "poor", None, None),
+        #                    MCTS("random", "cellcount", PARTIALCOMM_STEP, "partial", None, None),
+        #                    MCTS("random", "cellcount", FULLCOMM_STEP, "full", None, None),
+        #                    MCTS("random", "network", POORCOMM_STEP, "poor", neural_model[0], device),
+        #                    MCTS("random", "network", PARTIALCOMM_STEP, "partial", neural_model[0], device),
+        #                    MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
         
         #  planner_options = [RandomPlanner(POORCOMM_STEP, "poor"), 
         #                    RandomPlanner(PARTIALCOMM_STEP, "partial"),
@@ -456,8 +479,36 @@ def main():
         # planner_options = [CellCountPlanner(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
         #                   oracle_cellcount_planner]
 
-        # planner_options = [MCTS("random", "network", FULLCOMM_STEP, "full", neural_model[0], device)]
-                    
+        # planner_options = [CellCountPlannerSoftmax(None, device, FULLCOMM_STEP, "fullnet")]
+        oracle_cellcount_planner_softmax = OracleCellCountPlannerSoftmax(7, None, None, POORCOMM_STEP, "poororacle")
+        oracle_cellcount_planner_softmax2 = OracleCellCountPlannerSoftmax(7, None, None, PARTIALCOMM_STEP, "partialoracle")
+        oracle_cellcount_planner_softmax3 = OracleCellCountPlannerSoftmax(7, None, None, FULLCOMM_STEP, "fulloracle")
+        # planner_options = [RandomPlanner(FULLCOMM_STEP, "full"), CellCountPlannerSoftmax(neural_model[0], device, FULLCOMM_STEP, "fullnet"), oracle_cellcount_planner_softmax]
+        # planner_options = [CellCountPlannerSoftmax(neural_model[0], device, FULLCOMM_STEP, "fullnet")]
+        # planner_options = [CellCountPlannerSoftmax(neural_model[0], device, FULLCOMM_STEP, "fullnet")]
+        # planner_options = [RandomPlanner(POORCOMM_STEP, "poor"),
+        #                    RandomPlanner(PARTIALCOMM_STEP, "partial"),
+        #                    RandomPlanner(FULLCOMM_STEP, "full"),
+        #                    CellCountPlannerSoftmax(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                    CellCountPlannerSoftmax(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                    CellCountPlannerSoftmax(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                    oracle_cellcount_planner_softmax3]
+        
+        # planner_options = [CellCountPlannerSoftmax(neural_model[0], device, POORCOMM_STEP, "poornet"),
+        #                    CellCountPlannerSoftmax(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+        #                    CellCountPlannerSoftmax(neural_model[0], device, FULLCOMM_STEP, "fullnet"),
+        #                    oracle_cellcount_planner_softmax,
+        #                    oracle_cellcount_planner_softmax2,
+        #                    oracle_cellcount_planner_softmax3]
+        
+        planner_options = [CellCountPlannerSoftmax(neural_model[0], device, POORCOMM_STEP, "poornet"),
+                           CellCountPlannerSoftmax(neural_model[0], device, PARTIALCOMM_STEP, "partialnet"),
+                           CellCountPlannerSoftmax(neural_model[0], device, FULLCOMM_STEP, "fullnet")]
+
+        # planner_options = [oracle_cellcount_planner_softmax,
+        #                    oracle_cellcount_planner_softmax2,
+        #                    oracle_cellcount_planner_softmax3]
+                        
         
                            
     # for data generation
@@ -474,7 +525,7 @@ def main():
         9) debug mode in mcts is set to False
     '''
         
-    rollout = True
+    rollout = False
     partial_info_binary_matrices = list()
     path_matrices = list()
     comm_path_matrices = list()
@@ -484,8 +535,9 @@ def main():
     # for pickling data
 
     if mode == "gen_data":
-        # datafile = "data_41x41_depoeharbor_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
-        datafile = "test"
+        datafile = "data_41x41_depoeharbor_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        # datafile = "data_41x41_forest_oracle_r{}_t{}_s{}_rollout:{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, rollout)
+        # datafile = "test"
         outfile_tensor_images = CONF[json_comp_conf]["pickle_path"]+datafile
     elif mode == "eval":
         scorefile = "scores_circularworld_r{}_t{}_s{}_{}".format(NUM_ROBOTS, TRIALS, TOTAL_STEPS, scorefile_num)
@@ -502,6 +554,9 @@ def main():
 
         ground_truth_map = GroundTruthMap(BOUNDS, OCC_DENSITY)
         oracle_cellcount_planner.set_ground_truth_map(ground_truth_map)
+        oracle_cellcount_planner_softmax.set_ground_truth_map(ground_truth_map)
+        oracle_cellcount_planner_softmax2.set_ground_truth_map(ground_truth_map)
+        oracle_cellcount_planner_softmax3.set_ground_truth_map(ground_truth_map)
         # oracle_cellcount_planner2.set_ground_truth_map(ground_truth_map)
         # oracle_cellcount_planner3.set_ground_truth_map(ground_truth_map)
         belief_map = BeliefMap(BOUNDS)
@@ -543,6 +598,12 @@ def main():
 
             # vis_map(planner.get_name(), cum_score, robots, BOUNDS, belief_map)
             # vis_map(planner.get_name(), cum_score, robots, BOUNDS, ground_truth_map)
+            # for bot in robots:
+            #     bot_sensor_model = bot.get_sensor_model()
+            #     print("partial_info_matrices count: ", len(bot_sensor_model.get_partial_info_matrices()))
+            #     print("path_matrices count: ", len(bot_sensor_model.get_path_matrices()))
+            #     print("actions count: ", len(bot_sensor_model.get_actions()))
+            #     print("actions count: ", bot_sensor_model.get_actions())
 
             print("CUM_SCORE: ", cum_score)
         

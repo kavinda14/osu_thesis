@@ -68,7 +68,8 @@ class GroundTruthMap:
         selected_boat_locs = set()
         for _ in range(len(all_boat_locs)):
             idx = np.random.randint(0, len(all_boat_locs)-1)
-        for _ in range(len(all_boat_locs)-40):
+        # for _ in range(len(all_boat_locs)-40):
+        for _ in range(len(all_boat_locs)):
             idx = np.random.randint(0, len(all_boat_locs))
             selected_boat_locs.add(all_boat_locs[idx])
 
