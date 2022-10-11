@@ -2,7 +2,6 @@
 __pycache__/
 .vscode/
 pickles/
-neural_net_weights/
 notes
 cProfile_stats.txt
 /experiments
